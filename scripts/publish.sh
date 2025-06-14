@@ -69,6 +69,10 @@ echo "Copying INSTALLING.html to dist/..."
 cp INSTALLING.html dist/
 echo "✓ INSTALLING.html copied"
 
+echo "Copying LICENSE to dist/..."
+cp LICENSE dist/LICENSE.txt
+echo "✓ LICENSE copied"
+
 echo "Copying Node.js runtime for $TARGET_ARCH to dist/node/..."
 cp -r "$NODE_FOLDER"/* dist/node/
 echo "✓ Node.js runtime copied to dist/node"
