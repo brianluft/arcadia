@@ -54,10 +54,10 @@
     - [x] If file does exist, jump to that line. If it's past the end, return a message that the requested line is past the end of the file.
     - [x] Start reading from that line forward and returning those lines in the response array. Tokenize by whitespace so you can count how many words we're returning, update the running total after each line. Once you exceed 1000 words, stop and append line "Truncated output. There are {N} lines left. Use `read_output` tool with filename "{Filename}" line {NextLineIndex} to read more."
     - [x] Make a long test file in `test/files/` that you can test with `run_bash_command` and `cat` for a truncated result.
-- [ ] `scripts/init.sh`:
-    - [ ] Download `https://www.7-zip.org/a/7za920.zip` to `downloads/` if it doesn't exist.
-    - [ ] There is no top-level folder inside the zip. Create `7zip/` and extract the files there.
-    - [ ] Run it.
+- [x] `scripts/init.sh`:
+    - [x] Download `https://www.7-zip.org/a/7za920.zip` to `downloads/` if it doesn't exist.
+    - [x] There is no top-level folder inside the zip. Create `7zip/` and extract the files there.
+    - [x] Run it.
 - [ ] Create `scripts/publish.sh`.
     1. Clean `dist/`
     2. Run `build.sh`

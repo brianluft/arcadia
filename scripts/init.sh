@@ -58,6 +58,39 @@ else
     exit 1
 fi
 
+# 7-zip download and setup
+SEVENZIP_ZIP="7za920.zip"
+SEVENZIP_URL="https://www.7-zip.org/a/7za920.zip"
+SEVENZIP_DOWNLOAD_PATH="downloads/${SEVENZIP_ZIP}"
+
+# Download 7-zip if it hasn't already been downloaded
+if [ ! -f "$SEVENZIP_DOWNLOAD_PATH" ]; then
+    echo "Downloading 7-zip..."
+    curl -L -o "$SEVENZIP_DOWNLOAD_PATH" "$SEVENZIP_URL"
+    echo "Downloaded $SEVENZIP_ZIP"
+else
+    echo "7-zip already downloaded: $SEVENZIP_DOWNLOAD_PATH"
+fi
+
+# Create 7zip folder and extract files
+if [ -d "7zip" ]; then
+    echo "Removing existing 7zip folder..."
+    rm -rf 7zip
+fi
+
+echo "Extracting 7-zip..."
+mkdir -p 7zip
+unzip -q "$SEVENZIP_DOWNLOAD_PATH" -d 7zip
+
+# Test 7-zip installation
+if [ -f "7zip/7za.exe" ]; then
+    echo "✓ 7-zip setup complete!"
+    echo "✓ 7zip/7za.exe exists"
+else
+    echo "✗ Error: 7za.exe not found in the 7zip folder!"
+    exit 1
+fi
+
 # Use local node
 export PATH=$PWD/node:$PATH
 
