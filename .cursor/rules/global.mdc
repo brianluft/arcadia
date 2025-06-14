@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+This is Arcadia, an MCP server in Node.js providing helpful tools especially for Windows users of Cursor.

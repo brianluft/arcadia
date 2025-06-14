@@ -1,0 +1,6 @@
+.vs/
+*.log
+bin/
+obj/
+*.user
+temp.sh
