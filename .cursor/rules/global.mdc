@@ -16,6 +16,7 @@ This is Arcadia, an MCP server in Node.js providing helpful tools for Windows us
   cd ..
   export PATH=$PATH:$PWD/node
   ```
+- When installing new packages, run `scripts/clean.sh` and `scripts/init.sh`, don't run npm yourself.
 </guidelines>
 
 <information>
