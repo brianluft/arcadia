@@ -93,3 +93,65 @@ export function ensureStorageDirectory(storageDir: string): string {
 
   return path.resolve(storageDir);
 }
+
+/**
+ * Generate a unique timestamped filename in the storage directory
+ * Creates a dense numeric ID with date and time information encoded
+ * Format: YYYYMMDDHHMMSS followed by milliseconds and a counter if needed
+ * @param storageDir - Absolute path to the storage directory
+ * @param extension - File extension (without dot), defaults to 'txt'
+ * @returns Full path to a guaranteed-unique file that doesn't exist
+ */
+export function generateTimestampedFilename(storageDir: string, extension: string = 'txt'): string {
+  const now = new Date();
+
+  // Create base timestamp: YYYYMMDDHHMMSS + milliseconds (3 digits)
+  const year = now.getFullYear().toString();
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  const seconds = now.getSeconds().toString().padStart(2, '0');
+  const millis = now.getMilliseconds().toString().padStart(3, '0');
+
+  const baseTimestamp = `${year}${month}${day}${hours}${minutes}${seconds}${millis}`;
+
+  // Try the base filename first
+  let filename = `${baseTimestamp}.${extension}`;
+  let fullPath = path.join(storageDir, filename);
+
+  // If file exists, add a counter suffix
+  let counter = 1;
+  while (fs.existsSync(fullPath)) {
+    filename = `${baseTimestamp}_${counter.toString().padStart(3, '0')}.${extension}`;
+    fullPath = path.join(storageDir, filename);
+    counter++;
+
+    // Safety check to prevent infinite loop (though very unlikely)
+    if (counter > 999) {
+      throw new Error(`Unable to generate unique filename after 999 attempts for timestamp ${baseTimestamp}`);
+    }
+  }
+
+  return fullPath;
+}
+
+/**
+ * Generate a unique timestamped filename and immediately create an empty file
+ * This ensures the filename is reserved and prevents race conditions
+ * @param storageDir - Absolute path to the storage directory
+ * @param extension - File extension (without dot), defaults to 'txt'
+ * @returns Full path to the created file
+ * @throws Error if file cannot be created
+ */
+export function reserveTimestampedFilename(storageDir: string, extension: string = 'txt'): string {
+  const fullPath = generateTimestampedFilename(storageDir, extension);
+
+  try {
+    // Create an empty file to reserve the filename
+    fs.writeFileSync(fullPath, '');
+    return fullPath;
+  } catch (error) {
+    throw new Error(`Failed to reserve timestamped filename ${fullPath}: ${error}`);
+  }
+}
