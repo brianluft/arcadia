@@ -3,5 +3,8 @@
   "server": {
     "name": "arcadia-server",
     "description": "Arcadia MCP server providing helpful tools for Windows users"
+  },
+  "storage": {
+    "directory": "./storage/"
   }
 } 

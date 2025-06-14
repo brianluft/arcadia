@@ -14,6 +14,9 @@ interface Config {
     name: string;
     description: string;
   };
+  storage?: {
+    directory?: string;
+  };
 }
 
 // Load configuration from parent directory
@@ -40,8 +43,47 @@ function loadConfig(): Config {
   }
 }
 
+// Initialize storage directory
+function initializeStorageDirectory(config: Config): string {
+  try {
+    // Get the directory of the current file
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const configDir = path.join(__dirname, '..');
+
+    // Get storage directory from config, default to './storage/'
+    const storageDir = config.storage?.directory || './storage/';
+
+    // Resolve path relative to config directory if not absolute
+    const resolvedStorageDir = path.isAbsolute(storageDir) ? storageDir : path.join(configDir, storageDir);
+
+    // Create the directory if it doesn't exist
+    if (!fs.existsSync(resolvedStorageDir)) {
+      fs.mkdirSync(resolvedStorageDir, { recursive: true });
+    }
+
+    // Test write and delete a file to verify directory is writable
+    const testFilePath = path.join(resolvedStorageDir, '.test-write-access');
+    try {
+      fs.writeFileSync(testFilePath, 'test');
+      fs.unlinkSync(testFilePath);
+    } catch (testError) {
+      throw new Error(`Storage directory is not writable: ${resolvedStorageDir}. Error: ${testError}`);
+    }
+
+    console.error(`Storage directory initialized: ${resolvedStorageDir}`);
+    return resolvedStorageDir;
+  } catch (error) {
+    console.error('Failed to initialize storage directory:', error);
+    process.exit(1);
+  }
+}
+
 // Load configuration at startup
 const config = loadConfig();
+
+// Initialize storage directory
+const storageDirectory = initializeStorageDirectory(config);
 
 const server = new Server(
   {

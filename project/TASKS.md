@@ -22,8 +22,8 @@
     - [x] Update `scripts/build.sh` to build the test client into `dist/test/` and then run the test client, so that we run the tests every time after building.
 - [x] Create a configuration system. At startup the server will read a config.json file in the parent folder of the folder containing the running js file. That is, our server is in `dist/server/` and the config file is in `dist/`.
     - [x] Make an example config.json and copy it into `dist/` on build.
-- [ ] New config.json option: path to a storage directory. Default: `./storage/` (path relative to config.json, but absolute path also accepted if configured)
-    - [ ] Create the directory on startup. Create a test file and delete it. If any of that fails, print an error and exit.
+- [x] New config.json option: path to a storage directory. Default: `./storage/` (path relative to config.json, but absolute path also accepted if configured)
+    - [x] Create the directory on startup. Create a test file and delete it. If any of that fails, print an error and exit.
 - [ ] Create a system for assigning unique timestamped filenames in the storage directory. Make it one dense numeric ID with the date and time information encoded in it. Ensure the file does not exist when you return a newly assigned filename.
 - [ ] New MCP tool: `run_bash_command`
     - [ ] Required parameter: String for the command line.
