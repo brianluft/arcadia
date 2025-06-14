@@ -58,6 +58,7 @@
     - [x] Download `https://www.7-zip.org/a/7za920.zip` to `downloads/` if it doesn't exist.
     - [x] There is no top-level folder inside the zip. Create `7zip/` and extract the files there.
     - [x] Run it.
+- [ ] Tests are taking 11 seconds which is deeply suspicious--remember our `ping -n 10` test. It's supposed to be killed after 1 second. Write additional tests to verify that we really are killing the process after the desired timeout.
 - [ ] Create `scripts/publish.sh`.
     1. Clean `dist/`
     2. Run `build.sh`
@@ -77,4 +78,3 @@
       }
     }
     ```
-- [ ] Tests are taking 11 seconds which is deeply suspicious--remember our `ping -n 10` test. It's supposed to be killed after 1 second. Write additional tests to verify that we really are killing the process after the desired timeout.
