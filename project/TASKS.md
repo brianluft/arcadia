@@ -55,4 +55,16 @@
     - [ ] Start reading from that line forward and returning those lines in the response array. Tokenize by whitespace so you can count how many words we're returning, update the running total after each line. Once you exceed 1000 words, stop and append line "Truncated output. There are {N} lines left. Use `read_output` tool with filename "{Filename}" line {NextLineIndex} to read more."
     - [ ] Make a long test file in `test/files/` that you can test with `run_bash_command` and `cat` for a truncated result.
 - [ ] Create `scripts/publish.sh`. Cleans `dist/`, runs `build.sh`, copies `node/` to `dist/node`. Makes a zip of `dist/*` except for `dist/test/`, in `arcadia.zip`
-- [ ] Write a readme that describes how to set up Cursor with our MCP server, assuming the user has downloaded `arcadia.zip` from our GitHub releases.
+- [ ] Write a readme that describes how to set up Cursor with our MCP server, assuming the user has downloaded `arcadia.zip` from our GitHub releases. Give the sample `mcp.json` file:
+    ```
+    {
+      "mcpServers": {
+        "filesystem": {
+          "command": "<arcadia path>\\node\\node.exe",
+          "args": [
+            "<arcadia path>\\server\\index.js"
+          ]
+        }
+      }
+    }
+    ```
