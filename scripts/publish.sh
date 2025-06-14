@@ -56,7 +56,7 @@ echo "✓ Server files copied to dist/server"
 
 echo "Installing production dependencies in dist/server/..."
 cd dist/server
-export PATH=$PATH:$PROJECT_ROOT/node
+export PATH=$PROJECT_ROOT/node:$PATH
 npm ci --omit=dev
 cd ../..
 echo "✓ Production dependencies installed"

@@ -4,7 +4,7 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 ARCH=$(./get-native-arch.sh)
 cd ..
 
-export PATH=$PATH:$PWD/node
+export PATH=$PWD/node:$PATH
 
 # Create build directories
 mkdir -p build/server

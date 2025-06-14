@@ -14,7 +14,7 @@ This is Arcadia, an MCP server in Node.js providing helpful tools for Windows us
   ```
   cd "$( dirname "${BASH_SOURCE[0]}" )"
   cd ..
-  export PATH=$PATH:$PWD/node
+  export PATH=$PWD/node:$PATH
   ```
 - When installing new packages, run `scripts/clean.sh` and `scripts/init.sh`, don't run npm yourself.
 - Never use `import.meta` outside of startup in `index.ts`. Use dependency injection to pass directory paths to modules instead.

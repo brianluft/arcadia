@@ -3,7 +3,7 @@ set -euo pipefail
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 cd ..
 
-export PATH=$PATH:$PWD/node
+export PATH=$PWD/node:$PATH
 
 # Format server code with prettier
 echo "Formatting server code..."
