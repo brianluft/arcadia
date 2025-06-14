@@ -1,6 +1,0 @@
----
-description: 
-globs: 
-alwaysApply: true
----
-Never use the `run_terminal_cmd` tool. Always use `mcp_arcadia_run_bash_command` to run terminal commands. There is no state kept between command executions. You are not able to interact; pass the non-interactive flag (e.g. -y) and avoid pagers.
