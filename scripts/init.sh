@@ -7,56 +7,79 @@ cd ..
 
 # Configuration
 NODE_VERSION="24.2.0"
-ARCH=$(scripts/get-native-arch.sh)
+NATIVE_ARCH=$(scripts/get-native-arch.sh)
 
 echo "Setting up Arcadia project..."
 echo "Node.js version: $NODE_VERSION"
-echo "Architecture: $ARCH"
+echo "Native architecture: $NATIVE_ARCH"
 
 # Create downloads folder if it doesn't exist
 mkdir -p downloads
 
-# Node.js download URL and filename
-NODE_FILENAME="node-v${NODE_VERSION}-win-${ARCH}"
-NODE_ZIP="${NODE_FILENAME}.zip"
-NODE_URL="https://nodejs.org/dist/v${NODE_VERSION}/${NODE_ZIP}"
-DOWNLOAD_PATH="downloads/${NODE_ZIP}"
+# Function to download and setup Node.js for a specific architecture
+setup_node_arch() {
+    local arch=$1
+    local folder_name=$2
+    
+    echo "Setting up Node.js for $arch..."
+    
+    # Node.js download URL and filename
+    local node_filename="node-v${NODE_VERSION}-win-${arch}"
+    local node_zip="${node_filename}.zip"
+    local node_url="https://nodejs.org/dist/v${NODE_VERSION}/${node_zip}"
+    local download_path="downloads/${node_zip}"
+    
+    # Download Node if it hasn't already been downloaded
+    if [ ! -f "$download_path" ]; then
+        echo "Downloading Node.js for $arch..."
+        curl -L -o "$download_path" "$node_url"
+        echo "Downloaded $node_zip"
+    else
+        echo "Node.js for $arch already downloaded: $download_path"
+    fi
+    
+    # Delete folder if it exists
+    if [ -d "$folder_name" ]; then
+        echo "Removing existing $folder_name folder..."
+        rm -rf "$folder_name"
+    fi
+    
+    # Extract Node.js
+    echo "Extracting Node.js for $arch..."
+    unzip -q "$download_path" -d .
+    
+    # Rename the extracted folder
+    mv "$node_filename" "$folder_name"
+    
+    # Verify that node.exe and npm.cmd exist
+    if [ -f "$folder_name/node.exe" ] && [ -f "$folder_name/npm.cmd" ]; then
+        echo "✓ Node.js setup complete for $arch!"
+        echo "✓ $folder_name/node.exe exists"
+        echo "✓ $folder_name/npm.cmd exists"
+    else
+        echo "✗ Error: node.exe or npm.cmd not found in the $folder_name folder!"
+        exit 1
+    fi
+}
 
-# Download Node if it hasn't already been downloaded
-if [ ! -f "$DOWNLOAD_PATH" ]; then
-    echo "Downloading Node.js..."
-    curl -L -o "$DOWNLOAD_PATH" "$NODE_URL"
-    echo "Downloaded $NODE_ZIP"
-else
-    echo "Node.js already downloaded: $DOWNLOAD_PATH"
-fi
+# Setup Node.js for both architectures
+setup_node_arch "x64" "node-x64"
+setup_node_arch "arm64" "node-arm64"
 
-# Delete "node" folder if it exists
+# Setup the native architecture as the main "node" folder for building
+echo "Setting up native Node.js ($NATIVE_ARCH) for building..."
 if [ -d "node" ]; then
     echo "Removing existing node folder..."
     rm -rf node
 fi
 
-# Extract Node.js
-echo "Extracting Node.js..."
-unzip -q "$DOWNLOAD_PATH" -d .
+# Copy the native architecture node to the main "node" folder
+cp -r "node-${NATIVE_ARCH}" node
+echo "✓ Native Node.js ($NATIVE_ARCH) copied to node/ for building"
 
-# Rename the extracted folder to "node"  
-mv "$NODE_FILENAME" node
-
-# Verify that node.exe and npm.cmd exist
-if [ -f "node/node.exe" ] && [ -f "node/npm.cmd" ]; then
-    echo "✓ Node.js setup complete!"
-    echo "✓ node/node.exe exists"
-    echo "✓ node/npm.cmd exists"
-    
-    # Test Node.js
-    echo "Node.js version: $(node/node.exe --version)"
-    echo "npm version: $(node/npm.cmd --version)"
-else
-    echo "✗ Error: node.exe or npm.cmd not found in the node folder!"
-    exit 1
-fi
+# Test Node.js
+echo "Node.js version: $(node/node.exe --version)"
+echo "npm version: $(node/npm.cmd --version)"
 
 # 7-zip download and setup
 SEVENZIP_ZIP="7za920.zip"

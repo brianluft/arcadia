@@ -6,6 +6,35 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 cd ..
 PROJECT_ROOT=$PWD
 
+# Parse command line arguments
+TARGET_ARCH=""
+if [ $# -eq 1 ]; then
+    TARGET_ARCH="$1"
+elif [ $# -eq 0 ]; then
+    # Default to native architecture if no argument provided
+    TARGET_ARCH=$(scripts/get-native-arch.sh)
+else
+    echo "Usage: $0 [x64|arm64]"
+    echo "If no architecture is specified, uses native architecture"
+    exit 1
+fi
+
+# Validate architecture argument
+if [ "$TARGET_ARCH" != "x64" ] && [ "$TARGET_ARCH" != "arm64" ]; then
+    echo "Error: Invalid architecture '$TARGET_ARCH'. Must be 'x64' or 'arm64'"
+    exit 1
+fi
+
+# Check that the required node folder exists
+NODE_FOLDER="node-${TARGET_ARCH}"
+if [ ! -d "$NODE_FOLDER" ]; then
+    echo "Error: Node.js folder '$NODE_FOLDER' not found. Run 'scripts/init.sh' first."
+    exit 1
+fi
+
+echo "Publishing for architecture: $TARGET_ARCH"
+echo "Using Node.js from: $NODE_FOLDER"
+
 echo "Cleaning build/ and dist/ directories..."
 rm -rf build/ dist/
 
@@ -36,15 +65,18 @@ echo "Copying config file to dist/..."
 cp build/config.json dist/
 echo "✓ Config file copied"
 
-echo "Copying Node.js runtime to dist/node/..."
-cp -r node/* dist/node/
+echo "Copying Node.js runtime for $TARGET_ARCH to dist/node/..."
+cp -r "$NODE_FOLDER"/* dist/node/
 echo "✓ Node.js runtime copied to dist/node"
 
-echo "Creating arcadia.zip..."
-rm -f arcadia.zip
-(cd dist && ../7zip/7za.exe a -tzip ../arcadia.zip *) > /dev/null
+# Create architecture-specific zip filename
+ZIP_FILENAME="arcadia-${TARGET_ARCH}.zip"
 
-echo "Successfully created arcadia.zip"
-echo "Archive size: $(ls -lh arcadia.zip | awk '{print $5}')"
+echo "Creating $ZIP_FILENAME..."
+rm -f "$ZIP_FILENAME"
+(cd dist && ../7zip/7za.exe a -tzip "../$ZIP_FILENAME" *) > /dev/null
 
-echo "Publish complete!"
+echo "Successfully created $ZIP_FILENAME"
+echo "Archive size: $(ls -lh "$ZIP_FILENAME" | awk '{print $5}')"
+
+echo "Publish complete for $TARGET_ARCH!"

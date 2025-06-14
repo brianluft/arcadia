@@ -3,5 +3,5 @@
 /build/
 /dist/
 /downloads/
-/node/
+/node*/
 node_modules/
