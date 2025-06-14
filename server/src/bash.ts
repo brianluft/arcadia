@@ -63,18 +63,51 @@ export async function runBashCommand(
     });
 
     let timedOut = false;
+    let resolved = false;
     const outputLines: string[] = [];
+
+    // Helper function to resolve once and prevent double resolution
+    const resolveOnce = (result: BashCommandResult) => {
+      if (!resolved) {
+        resolved = true;
+        resolve(result);
+      }
+    };
 
     // Set up timeout with Windows-optimized process killing
     const timeout = setTimeout(() => {
       timedOut = true;
+      outputStream.end();
 
+      // Remove empty lines from the end
+      while (outputLines.length > 0 && outputLines[outputLines.length - 1].trim() === '') {
+        outputLines.pop();
+      }
+
+      // Get last 20 lines
+      const last20Lines = outputLines.slice(-20);
+
+      // Check if we need truncation message
+      let truncationMessage: string | undefined;
+      if (outputLines.length > 20) {
+        const filename = path.basename(outputFile);
+        truncationMessage = `Truncated output. Full output is ${outputLines.length} lines. Use \`read_output\` tool with filename "${filename}" line 0 to read more.`;
+      }
+
+      // Resolve immediately with timeout status - don't wait for process to be killed
+      resolveOnce({
+        output: last20Lines,
+        status: `The command timed out after ${timeoutSeconds} seconds.`,
+        truncationMessage,
+      });
+
+      // Try to kill the process, but don't wait for it
       if (process.platform === 'win32' && child.pid) {
         // It's tempting to try child.kill() but in practice it does NOT work on Windows.
         try {
           execSync(`taskkill /F /T /PID ${child.pid}`, { stdio: 'ignore' });
         } catch (error) {
-          // Ignore errors - process might already be dead
+          // Ignore errors - process might already be dead or unkillable
         }
       } else {
         // On Unix systems, try SIGTERM first, then SIGKILL
@@ -108,29 +141,32 @@ export async function runBashCommand(
       clearTimeout(timeout);
       outputStream.end();
 
-      // Remove empty lines from the end
-      while (outputLines.length > 0 && outputLines[outputLines.length - 1].trim() === '') {
-        outputLines.pop();
+      // Only resolve if we haven't already resolved due to timeout
+      if (!resolved) {
+        // Remove empty lines from the end
+        while (outputLines.length > 0 && outputLines[outputLines.length - 1].trim() === '') {
+          outputLines.pop();
+        }
+
+        // Determine status
+        const status = timedOut ? `The command timed out after ${timeoutSeconds} seconds.` : `Exit code: ${code}`;
+
+        // Get last 20 lines
+        const last20Lines = outputLines.slice(-20);
+
+        // Check if we need truncation message
+        let truncationMessage: string | undefined;
+        if (outputLines.length > 20) {
+          const filename = path.basename(outputFile);
+          truncationMessage = `Truncated output. Full output is ${outputLines.length} lines. Use \`read_output\` tool with filename "${filename}" line 0 to read more.`;
+        }
+
+        resolveOnce({
+          output: last20Lines,
+          status,
+          truncationMessage,
+        });
       }
-
-      // Determine status
-      const status = timedOut ? `The command timed out after ${timeoutSeconds} seconds.` : `Exit code: ${code}`;
-
-      // Get last 20 lines
-      const last20Lines = outputLines.slice(-20);
-
-      // Check if we need truncation message
-      let truncationMessage: string | undefined;
-      if (outputLines.length > 20) {
-        const filename = path.basename(outputFile);
-        truncationMessage = `Truncated output. Full output is ${outputLines.length} lines. Use \`read_output\` tool with filename "${filename}" line 0 to read more.`;
-      }
-
-      resolve({
-        output: last20Lines,
-        status,
-        truncationMessage,
-      });
     });
 
     // Handle process errors
