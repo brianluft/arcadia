@@ -20,7 +20,7 @@
     - [x] Update `scripts/init.sh` to `npm install` the test project. Run it.
     - [x] Create a simple way for us to write a series of MCP tool executions and then verify the responses, then tabulate the successes and failures.
     - [x] Update `scripts/build.sh` to build the test client into `dist/test/` and then run the test client, so that we run the tests every time after building.
-- [ ] Create a unit test system for the server, separate from our actually-for-real MCP test client. This will be used to test individual functions and components in the server without having to expose MCP tools for internal functionality. Use jest.
+- [x] Create a unit test system for the server, separate from our actually-for-real MCP test client. This will be used to test individual functions and components in the server without having to expose MCP tools for internal functionality. Use jest.
 - [x] Create a configuration system. At startup the server will read a config.json file in the parent folder of the folder containing the running js file. That is, our server is in `dist/server/` and the config file is in `dist/`.
     - [x] Make an example config.json and copy it into `dist/` on build.
 - [x] New config.json option: path to a storage directory. Default: `./storage/` (path relative to config.json, but absolute path also accepted if configured)
