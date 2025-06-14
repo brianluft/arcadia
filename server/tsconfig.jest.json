@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ES2022",
+    "module": "ESNext",
     "moduleResolution": "node",
     "allowJs": true,
     "esModuleInterop": true,

@@ -25,6 +25,9 @@
     - [x] Make an example config.json and copy it into `dist/` on build.
 - [x] New config.json option: path to a storage directory. Default: `./storage/` (path relative to config.json, but absolute path also accepted if configured)
     - [x] Create the directory on startup. Create a test file and delete it. If any of that fails, print an error and exit.
+- [ ] Use currently use `import.meta.url` to resolve paths relative to the executing script file. We use this in several modules. We just upgraded to Node 24. Get the dirname from `import.meta.dirname` at startup, then pass that path down to the initialization of any other module that wants it. Use a dependency injection pattern.
+    - [ ] Add a rule about never using `import.meta` outside of startup in `index.ts`.
+    - [ ] Add a rule about using dependency injection for modules.
 - [ ] Create an internal system for assigning unique timestamped filenames in the storage directory. Make it one dense numeric ID with the date and time information encoded in it. Ensure the file does not exist when you return a newly assigned filename. We'll use this to store the output from tool executions so the client can page through it. This is not directly exposed as an MCP tool; it's used in tasks below.
 - [ ] New MCP tool: `run_bash_command`
     - [ ] Required parameter: String for the command line.

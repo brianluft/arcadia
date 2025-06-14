@@ -6,7 +6,7 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 cd ..
 
 # Configuration
-NODE_VERSION="22.16.0"
+NODE_VERSION="24.2.0"
 ARCH=$(scripts/get-native-arch.sh)
 
 echo "Setting up Arcadia project..."
