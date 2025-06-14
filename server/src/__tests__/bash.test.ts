@@ -108,6 +108,74 @@ describe('runBashCommand', () => {
 
       expect(result.status).toBe('The command timed out after 1 seconds.');
     }, 10000); // Increase test timeout to 10 seconds
+
+    test('should timeout within reasonable time (verify timeout implementation)', async () => {
+      const startTime = Date.now();
+
+      // Use ping command that would normally take 10 seconds
+      const result = await runBashCommand('ping -n 10 127.0.0.1', 'C:\\temp', 2, config, storageDir);
+
+      const endTime = Date.now();
+      const elapsed = (endTime - startTime) / 1000;
+
+      // Should timeout after 2 seconds, but we'll allow up to 8 seconds for process cleanup
+      expect(elapsed).toBeLessThan(8);
+      expect(result.status).toBe('The command timed out after 2 seconds.');
+    }, 15000);
+
+    test('should timeout infinite loop command quickly', async () => {
+      const startTime = Date.now();
+
+      // Use a bash command that creates an infinite loop
+      const result = await runBashCommand(
+        'while true; do echo "running"; sleep 0.1; done',
+        'C:\\temp',
+        1,
+        config,
+        storageDir
+      );
+
+      const endTime = Date.now();
+      const elapsed = (endTime - startTime) / 1000;
+
+      // Should timeout after 1 second, but we'll allow up to 7 seconds for process cleanup
+      expect(elapsed).toBeLessThan(7);
+      expect(result.status).toBe('The command timed out after 1 seconds.');
+    }, 12000);
+
+    test('should timeout sleep command', async () => {
+      const startTime = Date.now();
+
+      // Use sleep command which should be easier to kill
+      const result = await runBashCommand('sleep 10', 'C:\\temp', 1, config, storageDir);
+
+      const endTime = Date.now();
+      const elapsed = (endTime - startTime) / 1000;
+
+      // Should timeout after 1 second, sleep should be easier to kill
+      expect(elapsed).toBeLessThan(7);
+      expect(result.status).toBe('The command timed out after 1 seconds.');
+    }, 12000);
+
+    test('should handle timeout with output generated before timeout', async () => {
+      const startTime = Date.now();
+
+      // Command that generates some output then runs long
+      const result = await runBashCommand(
+        'echo "Starting process"; ping -n 10 127.0.0.1',
+        'C:\\temp',
+        1,
+        config,
+        storageDir
+      );
+
+      const endTime = Date.now();
+      const elapsed = (endTime - startTime) / 1000;
+
+      expect(elapsed).toBeLessThan(8);
+      expect(result.status).toBe('The command timed out after 1 seconds.');
+      expect(result.output.some(line => line.includes('Starting process'))).toBe(true);
+    }, 12000);
   });
 
   describe('output truncation tests', () => {

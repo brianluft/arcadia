@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 import { Config } from './config.js';
 import { generateTimestampedFilename } from './storage.js';
 
@@ -65,15 +65,32 @@ export async function runBashCommand(
     let timedOut = false;
     const outputLines: string[] = [];
 
-    // Set up timeout
+    // Set up timeout with Windows-optimized process killing
     const timeout = setTimeout(() => {
       timedOut = true;
-      child.kill('SIGTERM');
-      setTimeout(() => {
-        if (!child.killed) {
-          child.kill('SIGKILL');
+
+      // On Windows, use taskkill immediately to kill the entire process tree
+      if (process.platform === 'win32' && child.pid) {
+        try {
+          // Use taskkill to forcefully kill the process tree immediately
+          execSync(`taskkill /F /T /PID ${child.pid}`, { stdio: 'ignore' });
+        } catch (error) {
+          // If taskkill fails, try the Node.js kill as fallback
+          try {
+            child.kill('SIGKILL');
+          } catch (killError) {
+            // Ignore errors - process might already be dead
+          }
         }
-      }, 5000); // Give it 5 seconds to terminate gracefully
+      } else {
+        // On Unix systems, try SIGTERM first, then SIGKILL
+        child.kill('SIGTERM');
+        setTimeout(() => {
+          if (!child.killed) {
+            child.kill('SIGKILL');
+          }
+        }, 500); // Reduced grace period to 500ms
+      }
     }, timeoutSeconds * 1000);
 
     // Capture stdout
