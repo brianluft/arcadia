@@ -59,13 +59,13 @@
     - [x] There is no top-level folder inside the zip. Create `7zip/` and extract the files there.
     - [x] Run it.
 - [x] Tests are taking 11 seconds which is deeply suspicious--remember our `ping -n 10` test. It's supposed to be killed after 1 second. Write additional tests to verify that we really are killing the process after the desired timeout.
-- [ ] Create `scripts/publish.sh`.
+- [x] Create `scripts/publish.sh`.
     1. Clean `dist/`
     2. Run `build.sh`
     3. Delete `dist/test/`
     4. Copy `node/` to `dist/node`
     5. Use `7zip/7za.exe` to make `arcadia.zip` from `dist/*`
-- [ ] Write a readme that describes how to set up Cursor with our MCP server, assuming the user has downloaded `arcadia.zip` from our GitHub releases. Give the sample `mcp.json` file:
+- [x] Write a readme that describes how to set up Cursor with our MCP server, assuming the user has downloaded `arcadia.zip` from our GitHub releases. Give the sample `mcp.json` file:
     ```
     {
       "mcpServers": {
