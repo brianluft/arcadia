@@ -10,10 +10,14 @@
 - [ ] Add a rule about running node/npm out of our local folder, and that they are _not_ installed globally in the system.
 - [ ] Begin a `server/` folder with `package.json`. This will be the MCP server.
     - [ ] Use TypeScript with `@modelcontextprotocol/sdk`
+    - [ ] Local prettier install. Override printWidth=120. Update `scripts/format.sh` to format the server code.
+    - [ ] Update `scripts/init.sh` to `npm install` the server project. Run it.
     - [ ] Update `scripts/build.sh` to run TypeScript and produce .js output in `dist/server/`. Copy node into `dist/node/`.
     - [ ] Test `build.sh`.
 - [ ] Begin a `test/` folder with another `package.json`. This will be an MCP client that runs real automated tests against the MCP server.
     - [ ] Use TypeScript with `@modelcontextprotocol/sdk`
+    - [ ] Local prettier install. Override printWidth=120. Update `scripts/format.sh` to format the test code too.
+    - [ ] Update `scripts/init.sh` to `npm install` the test project. Run it.
     - [ ] Create a simple way for us to write a series of MCP tool executions and then verify the responses, then tabulate the successes and failures.
     - [ ] Update `scripts/build.sh` to build the test client into `dist/test/` and then run the test client, so that we run the tests every time after building.
 - [ ] Create a configuration system. At startup the server will read a config.json file in the parent folder of the folder containing the running js file. That is, our server is in `dist/server/` and the config file is in `dist/`.
