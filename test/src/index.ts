@@ -180,27 +180,6 @@ async function main() {
     // Define test cases
     const testCases: TestCase[] = [
       {
-        name: 'example_tool_valid_message',
-        toolName: 'example_tool',
-        arguments: { message: 'Hello, World!' },
-        expectedContent: 'Echo: Hello, World!',
-        description: 'Test example_tool with valid message',
-      },
-      {
-        name: 'example_tool_empty_message',
-        toolName: 'example_tool',
-        arguments: { message: '' },
-        expectedContent: 'Echo: ',
-        description: 'Test example_tool with empty message',
-      },
-      {
-        name: 'example_tool_missing_param',
-        toolName: 'example_tool',
-        arguments: {},
-        expectedError: 'InvalidParams',
-        description: 'Test example_tool with missing message parameter',
-      },
-      {
         name: 'unknown_tool',
         toolName: 'nonexistent_tool',
         arguments: {},

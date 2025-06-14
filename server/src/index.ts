@@ -54,20 +54,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
-        name: 'example_tool',
-        description: 'An example tool for testing',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            message: {
-              type: 'string',
-              description: 'A message to echo back',
-            },
-          },
-          required: ['message'],
-        },
-      },
-      {
         name: 'run_bash_command',
         description: 'Run a bash command with timeout and output capture',
         inputSchema: {
@@ -120,19 +106,6 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
   const { name, arguments: args } = request.params;
 
   switch (name) {
-    case 'example_tool':
-      if (!args || typeof args.message !== 'string') {
-        throw new McpError(ErrorCode.InvalidParams, 'Missing or invalid message parameter');
-      }
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Echo: ${args.message}`,
-          },
-        ],
-      };
-
     case 'run_bash_command':
       if (!args || typeof args.command !== 'string') {
         throw new McpError(ErrorCode.InvalidParams, 'Missing or invalid command parameter');
