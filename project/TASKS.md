@@ -47,13 +47,13 @@
     - [x] Write happy path tests. Since the tool accepts bash commands, just test with `echo`.
     - [x] Write a test for a command that doesn't exist and check how the error is presented.
     - [x] Write a test for timeout; make it a 1 second timeout and test with `ping -n 10 127.0.0.1`
-- [ ] New MCP tool: `read_output`
-    - [ ] Required parameter: Filename
-    - [ ] Required parameter: Start line index, zero based
-    - [ ] If file doesn't exist, return an error.
-    - [ ] If file does exist, jump to that line. If it's past the end, return a message that the requested line is past the end of the file.
-    - [ ] Start reading from that line forward and returning those lines in the response array. Tokenize by whitespace so you can count how many words we're returning, update the running total after each line. Once you exceed 1000 words, stop and append line "Truncated output. There are {N} lines left. Use `read_output` tool with filename "{Filename}" line {NextLineIndex} to read more."
-    - [ ] Make a long test file in `test/files/` that you can test with `run_bash_command` and `cat` for a truncated result.
+- [x] New MCP tool: `read_output`
+    - [x] Required parameter: Filename
+    - [x] Required parameter: Start line index, zero based
+    - [x] If file doesn't exist, return an error.
+    - [x] If file does exist, jump to that line. If it's past the end, return a message that the requested line is past the end of the file.
+    - [x] Start reading from that line forward and returning those lines in the response array. Tokenize by whitespace so you can count how many words we're returning, update the running total after each line. Once you exceed 1000 words, stop and append line "Truncated output. There are {N} lines left. Use `read_output` tool with filename "{Filename}" line {NextLineIndex} to read more."
+    - [x] Make a long test file in `test/files/` that you can test with `run_bash_command` and `cat` for a truncated result.
 - [ ] Create `scripts/publish.sh`. Cleans `dist/`, runs `build.sh`, copies `node/` to `dist/node`. Makes a zip of `dist/*` except for `dist/test/`, in `arcadia.zip`
 - [ ] Write a readme that describes how to set up Cursor with our MCP server, assuming the user has downloaded `arcadia.zip` from our GitHub releases. Give the sample `mcp.json` file:
     ```

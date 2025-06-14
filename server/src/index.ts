@@ -4,7 +4,7 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { loadConfigFromDirectory } from './config.js';
-import { initializeStorageDirectoryFromDirectory } from './storage.js';
+import { initializeStorageDirectoryFromDirectory, readOutputFile } from './storage.js';
 import { runBashCommand } from './bash.js';
 import * as fs from 'fs';
 
@@ -92,6 +92,25 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['command', 'working_directory', 'timeout_seconds'],
         },
       },
+      {
+        name: 'read_output',
+        description: 'Read output from a stored file with pagination support',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            filename: {
+              type: 'string',
+              description: 'The filename to read (just the filename, not full path)',
+            },
+            start_line_index: {
+              type: 'number',
+              description: 'Zero-based line index to start reading from',
+              minimum: 0,
+            },
+          },
+          required: ['filename', 'start_line_index'],
+        },
+      },
     ],
   };
 });
@@ -150,6 +169,38 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         };
       } catch (error) {
         throw new McpError(ErrorCode.InternalError, `Failed to run bash command: ${error}`);
+      }
+
+    case 'read_output':
+      if (!args || typeof args.filename !== 'string') {
+        throw new McpError(ErrorCode.InvalidParams, 'Missing or invalid filename parameter');
+      }
+      if (!args || typeof args.start_line_index !== 'number') {
+        throw new McpError(ErrorCode.InvalidParams, 'Missing or invalid start_line_index parameter');
+      }
+
+      try {
+        const result = readOutputFile(args.filename, args.start_line_index, storageDirectory);
+
+        // Build response text
+        const responseLines = [...result.lines];
+        if (result.truncated && result.nextLineIndex !== undefined) {
+          const linesLeft = result.totalLines! - result.nextLineIndex;
+          responseLines.push(
+            `Truncated output. There are ${linesLeft} lines left. Use \`read_output\` tool with filename "${args.filename}" line ${result.nextLineIndex} to read more.`
+          );
+        }
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: responseLines.join('\n'),
+            },
+          ],
+        };
+      } catch (error) {
+        throw new McpError(ErrorCode.InternalError, `Failed to read output file: ${error}`);
       }
 
     default:

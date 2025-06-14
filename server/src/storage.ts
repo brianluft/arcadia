@@ -155,3 +155,70 @@ export function reserveTimestampedFilename(storageDir: string, extension: string
     throw new Error(`Failed to reserve timestamped filename ${fullPath}: ${error}`);
   }
 }
+
+/**
+ * Read output file with word count limiting and pagination
+ * @param filename - The filename to read (just the filename, not full path)
+ * @param startLineIndex - Zero-based line index to start reading from
+ * @param storageDir - Absolute path to the storage directory
+ * @param maxWords - Maximum number of words to return (default: 1000)
+ * @returns Object with lines array and optional truncation info
+ */
+export function readOutputFile(
+  filename: string,
+  startLineIndex: number,
+  storageDir: string,
+  maxWords: number = 1000
+): { lines: string[]; truncated?: boolean; totalLines?: number; nextLineIndex?: number } {
+  const fullPath = path.join(storageDir, filename);
+
+  // Check if file exists
+  if (!fs.existsSync(fullPath)) {
+    throw new Error(`File not found: ${filename}`);
+  }
+
+  // Read all lines from the file
+  const fileContent = fs.readFileSync(fullPath, 'utf8');
+  const allLines = fileContent.split('\n');
+
+  // Check if start line index is valid
+  if (startLineIndex >= allLines.length) {
+    throw new Error(`Requested line ${startLineIndex} is past the end of the file (${allLines.length} lines total)`);
+  }
+
+  // Start reading from the specified line
+  const resultLines: string[] = [];
+  let wordCount = 0;
+  let currentLineIndex = startLineIndex;
+
+  for (let i = startLineIndex; i < allLines.length; i++) {
+    const line = allLines[i];
+
+    // Count words in this line (split by whitespace and filter out empty strings)
+    const wordsInLine = line.split(/\s+/).filter(word => word.length > 0).length;
+
+    // Check if adding this line would exceed the word limit
+    if (wordCount + wordsInLine > maxWords && resultLines.length > 0) {
+      // We need to truncate here
+      const linesLeft = allLines.length - i;
+      return {
+        lines: resultLines,
+        truncated: true,
+        totalLines: allLines.length,
+        nextLineIndex: i,
+      };
+    }
+
+    // Add the line and update word count
+    resultLines.push(line);
+    wordCount += wordsInLine;
+    currentLineIndex = i + 1;
+  }
+
+  // If we got here, we read all remaining lines without hitting the word limit
+  return {
+    lines: resultLines,
+    truncated: false,
+    totalLines: allLines.length,
+  };
+}

@@ -207,6 +207,47 @@ async function main() {
         expectedError: 'MethodNotFound',
         description: 'Test calling a non-existent tool',
       },
+      {
+        name: 'run_bash_command_and_read_output',
+        toolName: 'run_bash_command',
+        arguments: {
+          command:
+            'echo "Line 1 with some words"; echo "Line 2 with different content"; echo "Line 3 has more words and text"; echo "Line 4 contains additional content"; echo "Line 5 with even more words to test"',
+          working_directory: '/c/Projects/arcadia',
+          timeout_seconds: 30,
+        },
+        expectedContent: 'Line 1 with some words',
+        description: 'Test run_bash_command generates output for read_output testing',
+      },
+      {
+        name: 'read_output_nonexistent_file',
+        toolName: 'read_output',
+        arguments: {
+          filename: 'nonexistent.txt',
+          start_line_index: 0,
+        },
+        expectedError: 'File not found',
+        description: 'Test read_output with nonexistent file',
+      },
+      {
+        name: 'read_output_invalid_line_index',
+        toolName: 'read_output',
+        arguments: {
+          filename: 'test.txt',
+          start_line_index: 'invalid',
+        },
+        expectedError: 'InvalidParams',
+        description: 'Test read_output with invalid line index parameter',
+      },
+      {
+        name: 'read_output_missing_filename',
+        toolName: 'read_output',
+        arguments: {
+          start_line_index: 0,
+        },
+        expectedError: 'InvalidParams',
+        description: 'Test read_output with missing filename parameter',
+      },
     ];
 
     // Run tests

@@ -7,6 +7,7 @@ import {
   ensureStorageDirectory,
   generateTimestampedFilename,
   reserveTimestampedFilename,
+  readOutputFile,
 } from '../storage';
 import { Config } from '../config';
 
@@ -189,6 +190,126 @@ describe('Storage module', () => {
       const nonExistentDir = path.join(tempDir, 'non-existent', 'deep', 'path');
 
       expect(() => reserveTimestampedFilename(nonExistentDir)).toThrow(/Failed to reserve timestamped filename/);
+    });
+  });
+
+  describe('readOutputFile', () => {
+    let testFile: string;
+
+    beforeEach(() => {
+      // Create a test file with known content
+      testFile = path.join(tempDir, 'test-output.txt');
+      const content = [
+        'Line 1 with some words',
+        'Line 2 with different content',
+        'Line 3 has more words and text',
+        'Line 4 contains additional content',
+        'Line 5 with even more words to test',
+      ].join('\n');
+      fs.writeFileSync(testFile, content);
+    });
+
+    it('should throw error if file does not exist', () => {
+      expect(() => readOutputFile('nonexistent.txt', 0, tempDir)).toThrow('File not found: nonexistent.txt');
+    });
+
+    it('should throw error if start line index is past end of file', () => {
+      expect(() => readOutputFile('test-output.txt', 10, tempDir)).toThrow(
+        'Requested line 10 is past the end of the file (5 lines total)'
+      );
+    });
+
+    it('should read file from beginning', () => {
+      const result = readOutputFile('test-output.txt', 0, tempDir);
+
+      expect(result.lines).toEqual([
+        'Line 1 with some words',
+        'Line 2 with different content',
+        'Line 3 has more words and text',
+        'Line 4 contains additional content',
+        'Line 5 with even more words to test',
+      ]);
+      expect(result.truncated).toBe(false);
+      expect(result.totalLines).toBe(5);
+    });
+
+    it('should read file from middle', () => {
+      const result = readOutputFile('test-output.txt', 2, tempDir);
+
+      expect(result.lines).toEqual([
+        'Line 3 has more words and text',
+        'Line 4 contains additional content',
+        'Line 5 with even more words to test',
+      ]);
+      expect(result.truncated).toBe(false);
+      expect(result.totalLines).toBe(5);
+    });
+
+    it('should truncate output when word limit exceeded', () => {
+      // Create a file with many words
+      const manyWordsFile = path.join(tempDir, 'many-words.txt');
+      const lines = [];
+      for (let i = 1; i <= 100; i++) {
+        // Each line has about 10-15 words
+        lines.push(`Line ${i} has many words and content to test the word counting functionality thoroughly`);
+      }
+      fs.writeFileSync(manyWordsFile, lines.join('\n'));
+
+      // Read with a low word limit
+      const result = readOutputFile('many-words.txt', 0, tempDir, 50);
+
+      expect(result.truncated).toBe(true);
+      expect(result.lines.length).toBeGreaterThan(0);
+      expect(result.lines.length).toBeLessThan(100);
+      expect(result.nextLineIndex).toBeDefined();
+      expect(result.totalLines).toBe(100);
+    });
+
+    it('should handle empty lines correctly', () => {
+      const emptyLinesFile = path.join(tempDir, 'empty-lines.txt');
+      const content = 'Line 1\n\nLine 3\n\nLine 5';
+      fs.writeFileSync(emptyLinesFile, content);
+
+      const result = readOutputFile('empty-lines.txt', 0, tempDir);
+
+      expect(result.lines).toEqual(['Line 1', '', 'Line 3', '', 'Line 5']);
+      expect(result.truncated).toBe(false);
+      expect(result.totalLines).toBe(5);
+    });
+
+    it('should count words correctly', () => {
+      const wordTestFile = path.join(tempDir, 'word-test.txt');
+      // Create lines with known word counts
+      const lines = [
+        'one two three', // 3 words
+        'four five six seven eight', // 5 words
+        'nine ten', // 2 words
+        'eleven twelve thirteen fourteen', // 4 words
+      ];
+      fs.writeFileSync(wordTestFile, lines.join('\n'));
+
+      // Total words: 3 + 5 + 2 + 4 = 14 words
+      // Test with limit of 10 words - should truncate after 3rd line (3+5+2=10 words)
+      const result = readOutputFile('word-test.txt', 0, tempDir, 10);
+
+      expect(result.lines).toEqual(['one two three', 'four five six seven eight', 'nine ten']);
+      expect(result.truncated).toBe(true);
+      expect(result.nextLineIndex).toBe(3);
+      expect(result.totalLines).toBe(4);
+    });
+
+    it('should handle single line that exceeds word limit', () => {
+      const singleLineFile = path.join(tempDir, 'single-line.txt');
+      // Create a single line with many words
+      const manyWords = Array.from({ length: 20 }, (_, i) => `word${i + 1}`).join(' ');
+      fs.writeFileSync(singleLineFile, manyWords);
+
+      // With word limit of 10, should still return the first line since we have no lines yet
+      const result = readOutputFile('single-line.txt', 0, tempDir, 10);
+
+      expect(result.lines).toHaveLength(1);
+      expect(result.lines[0]).toBe(manyWords);
+      expect(result.truncated).toBe(false);
     });
   });
 });
