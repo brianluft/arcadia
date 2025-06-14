@@ -59,7 +59,7 @@
     ```
     {
       "mcpServers": {
-        "filesystem": {
+        "arcadia": {
           "command": "<arcadia path>\\node\\node.exe",
           "args": [
             "<arcadia path>\\server\\index.js"
@@ -68,3 +68,4 @@
       }
     }
     ```
+- [ ] Tests are taking 11 seconds which is deeply suspicious--remember our `ping -n 10` test. It's supposed to be killed after 1 second. Write additional tests to verify that we really are killing the process after the desired timeout.
