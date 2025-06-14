@@ -69,18 +69,12 @@ export async function runBashCommand(
     const timeout = setTimeout(() => {
       timedOut = true;
 
-      // On Windows, use taskkill immediately to kill the entire process tree
       if (process.platform === 'win32' && child.pid) {
+        // It's tempting to try child.kill() but in practice it does NOT work on Windows.
         try {
-          // Use taskkill to forcefully kill the process tree immediately
           execSync(`taskkill /F /T /PID ${child.pid}`, { stdio: 'ignore' });
         } catch (error) {
-          // If taskkill fails, try the Node.js kill as fallback
-          try {
-            child.kill('SIGKILL');
-          } catch (killError) {
-            // Ignore errors - process might already be dead
-          }
+          // Ignore errors - process might already be dead
         }
       } else {
         // On Unix systems, try SIGTERM first, then SIGKILL
