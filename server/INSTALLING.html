@@ -70,9 +70,8 @@
 </head>
 <body>
     <div class="header">
-        <h1>🏛️ Arcadia MCP Server</h1>
+        <h1>Arcadia MCP Server</h1>
         <p><strong>Installation Guide</strong></p>
-        <p>Cursor has lots of bugs on Windows and Arcadia provides workarounds for some of them.</p>
     </div>
 
     <div class="content">
@@ -115,14 +114,9 @@
         </div>
 
         <div class="step">
-            <h3><span class="step-number">4</span>Set Up Project Rules</h3>
-            <p>Add a <code>.cursor/rules/arcadia.mdc</code> file to your project:</p>
-            <pre>---
-description: 
-globs: 
-alwaysApply: true
----
-Never use the `run_terminal_cmd` tool. Always use `mcp_arcadia_run_bash_command` to run terminal commands. There is no state kept between command executions. You are not able to interact; pass the non-interactive flag (e.g. -y) and avoid pagers.</pre>
+            <h3><span class="step-number">4</span>Set Up User Rules</h3>
+            <p>Add a user rule to Cursor:</p>
+            <code>Never use the `run_terminal_cmd` tool. Always use `mcp_arcadia_run_bash_command` to run terminal commands. There is no state kept between command executions. You are not able to interact; pass the non-interactive flag (e.g. -y) and avoid pagers.</code>
         </div>
 
         <div class="step">
@@ -137,26 +131,6 @@ Never use the `run_terminal_cmd` tool. Always use `mcp_arcadia_run_bash_command`
             <li><strong>Storage Directory:</strong> <code>./storage/</code> (relative to installation directory)</li>
         </ul>
         <p>You can modify these settings by editing the <code>config.json</code> file.</p>
-
-        <h2>🔧 Features</h2>
-        <h3>Bash Command Execution</h3>
-        <ul>
-            <li><strong>MCP tools:</strong> <code>run_bash_command</code>, <code>read_output</code></li>
-            <li>Avoids Cursor bug: run tool attempts to use xterm bracketed paste on Windows where that isn't supported</li>
-            <li>Avoids Cursor bug: run tool sometimes hangs before actually starting the command</li>
-            <li>Avoids Cursor bug: commands sometimes execute but never return control to the model</li>
-            <li>Improves on Cursor by automatically paging command outputs</li>
-            <li>Improves on Cursor by adding mandatory timeouts to all command executions</li>
-        </ul>
-
-        <h2>🆘 Troubleshooting</h2>
-        <p>If you encounter issues:</p>
-        <ul>
-            <li>Ensure all paths in <code>mcp.json</code> use double backslashes (<code>\\</code>)</li>
-            <li>Verify that Git Bash is installed at the configured path</li>
-            <li>Check that the Arcadia files have the correct permissions</li>
-            <li>Restart Cursor after making configuration changes</li>
-        </ul>
     </div>
 </body>
 </html> 
