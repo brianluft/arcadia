@@ -35,8 +35,16 @@ export async function runBashCommand(
   // Validate working directory format
   if (!isValidWindowsPath(workingDirectory)) {
     throw new Error(
-      'Working directory must be an absolute path in one of these formats: C:\\Foo\\Bar, /c/Foo/Bar, or /c:/Foo/Bar'
+      'Working directory must be an absolute path in one of these formats: C:\\Foo\\Bar, /c/Foo/Bar, /c:/Foo/Bar, C:, C:\\, /c, /c/, or /c:/'
     );
+  }
+
+  // Convert working directory to Windows format for bash
+  const normalizedWorkingDir = normalizeWindowsPath(workingDirectory);
+
+  // Check if the working directory exists
+  if (!fs.existsSync(normalizedWorkingDir)) {
+    throw new Error(`Working directory does not exist: ${normalizedWorkingDir}`);
   }
 
   // Get bash path from config
@@ -46,9 +54,6 @@ export async function runBashCommand(
   if (!fs.existsSync(bashPath)) {
     throw new Error(`Bash not found at configured path: ${bashPath}`);
   }
-
-  // Convert working directory to Windows format for bash
-  const normalizedWorkingDir = normalizeWindowsPath(workingDirectory);
 
   // Create output file
   const outputFile = generateTimestampedFilename(storageDirectory, 'log');
@@ -180,21 +185,21 @@ export async function runBashCommand(
 
 /**
  * Check if a path is a valid Windows absolute path format
- * Accepts: C:\Foo\Bar, /c/Foo/Bar, /c:/Foo/Bar
+ * Accepts: C:\Foo\Bar, /c/Foo/Bar, /c:/Foo/Bar, C:, C:\, C:/, /c, /c/, /c:/
  */
 function isValidWindowsPath(path: string): boolean {
-  // Windows format: C:\Foo\Bar
-  if (/^[A-Za-z]:\\/.test(path)) {
+  // Windows format: C:\Foo\Bar or C:\ or C: or C:/Foo/Bar or C:/
+  if (/^[A-Za-z]:([\\\/].*)?$/.test(path)) {
     return true;
   }
 
-  // Unix-style format: /c/Foo/Bar
-  if (/^\/[A-Za-z]\//.test(path)) {
+  // Unix-style format: /c/Foo/Bar or /c/ or /c
+  if (/^\/[A-Za-z](\/.*)?$/.test(path)) {
     return true;
   }
 
-  // Unix-style format: /c:/Foo/Bar
-  if (/^\/[A-Za-z]:\//.test(path)) {
+  // Unix-style format: /c:/Foo/Bar or /c:/
+  if (/^\/[A-Za-z]:(\/.*)?$/.test(path)) {
     return true;
   }
 
@@ -205,9 +210,29 @@ function isValidWindowsPath(path: string): boolean {
  * Normalize a Windows path to the proper format for the working directory
  */
 function normalizeWindowsPath(path: string): string {
-  // If it's already in Windows format, return as-is
-  if (/^[A-Za-z]:\\/.test(path)) {
-    return path;
+  // If it's already in Windows format, normalize root drive
+  if (/^[A-Za-z]:/.test(path)) {
+    const drive = path[0].toUpperCase();
+    if (path === `${path[0]}:`) {
+      // Handle C: -> C:\
+      return `${drive}:\\`;
+    } else if (path.startsWith(`${path[0]}:/`)) {
+      // Handle C:/Foo -> C:\Foo
+      return `${drive}:\\${path.substring(3).replace(/\//g, '\\')}`;
+    }
+    return path; // Already in correct Windows format
+  }
+
+  // Convert /c to C:\
+  if (/^\/[A-Za-z]$/.test(path)) {
+    const drive = path[1].toUpperCase();
+    return `${drive}:\\`;
+  }
+
+  // Convert /c/ to C:\
+  if (/^\/[A-Za-z]\/$/.test(path)) {
+    const drive = path[1].toUpperCase();
+    return `${drive}:\\`;
   }
 
   // Convert /c/Foo/Bar to C:\Foo\Bar
@@ -215,6 +240,12 @@ function normalizeWindowsPath(path: string): string {
     const drive = path[1].toUpperCase();
     const rest = path.substring(3).replace(/\//g, '\\');
     return `${drive}:\\${rest}`;
+  }
+
+  // Convert /c:/ to C:\
+  if (/^\/[A-Za-z]:\/$/.test(path)) {
+    const drive = path[1].toUpperCase();
+    return `${drive}:\\`;
   }
 
   // Convert /c:/Foo/Bar to C:\Foo\Bar

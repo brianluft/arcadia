@@ -99,6 +99,22 @@ describe('runBashCommand', () => {
         'Bash not found at configured path'
       );
     });
+
+    test('should handle non-existent working directory with clear error message', async () => {
+      await expect(
+        runBashCommand('echo "test"', '/c/nonexistent/working/directory/', 10, config, storageDir)
+      ).rejects.toThrow('Working directory does not exist: C:\\nonexistent\\working\\directory\\');
+    });
+
+    test('should accept root drive formats', async () => {
+      const rootDriveFormats = ['/c', '/c/', 'C:', 'C:/'];
+
+      for (const workingDir of rootDriveFormats) {
+        const result = await runBashCommand('echo "test root drive"', workingDir, 10, config, storageDir);
+        expect(result.status).toBe('Exit code: 0');
+        expect(result.output).toContain('test root drive');
+      }
+    });
   });
 
   describe('timeout tests', () => {
