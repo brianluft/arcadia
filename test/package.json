@@ -13,9 +13,9 @@
     "@modelcontextprotocol/sdk": "^1.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
-    "prettier": "^3.0.0",
-    "typescript": "^5.0.0"
+    "@types/node": "^24.0.1",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3"
   },
   "engines": {
     "node": ">=22.16.0"

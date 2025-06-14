@@ -58,11 +58,14 @@ else
     exit 1
 fi
 
+# Use local node
+export PATH=$PWD/node:$PATH
+
 # Install server dependencies
 if [ -d "server" ]; then
     echo "Installing server dependencies..."
     cd server
-    ../node/npm.cmd install
+    npm install
     cd ..
     echo "✓ Server dependencies installed"
 fi
@@ -71,7 +74,7 @@ fi
 if [ -d "test" ]; then
     echo "Installing test dependencies..."
     cd test
-    ../node/npm.cmd install
+    npm install
     cd ..
     echo "✓ Test dependencies installed"
 fi
