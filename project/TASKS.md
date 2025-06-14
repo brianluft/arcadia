@@ -1,12 +1,12 @@
-- [ ] Create `scripts/init.sh` to set things up after first cloning the repo.
-    - [ ] Use a variable for the node version, currently 22.16.0
-    - [ ] Use `scripts-get-native-arch.sh` to get the string "x64" or "arm64"
-    - [ ] Navigate to root of repository with `cd "$( dirname "${BASH_SOURCE[0]}" )"` and `cd ..`
-    - [ ] Create "downloads" folder if it doesn't exist.
-    - [ ] Download Node if it hasn't already been downloaded: https://nodejs.org/dist/v22.16.0/node-v22.16.0-win-arm64.zip (replace version and arch)
-    - [ ] Delete "node" folder if it exists.
-    - [ ] Expand Node into the root of the project. The zip contains a top-level folder `node-v22.16.0-win-arm64` (same as the filename). Rename that folder to "node". Verify that `node/node.exe` and `node/npm.exe` exist.
-    - [ ] Test `init.sh`
+- [x] Create `scripts/init.sh` to set things up after first cloning the repo.
+    - [x] Use a variable for the node version, currently 22.16.0
+    - [x] Use `scripts-get-native-arch.sh` to get the string "x64" or "arm64"
+    - [x] Navigate to root of repository with `cd "$( dirname "${BASH_SOURCE[0]}" )"` and `cd ..`
+    - [x] Create "downloads" folder if it doesn't exist.
+    - [x] Download Node if it hasn't already been downloaded: https://nodejs.org/dist/v22.16.0/node-v22.16.0-win-arm64.zip (replace version and arch)
+    - [x] Delete "node" folder if it exists.
+    - [x] Expand Node into the root of the project. The zip contains a top-level folder `node-v22.16.0-win-arm64` (same as the filename). Rename that folder to "node". Verify that `node/node.exe` and `node/npm.exe` exist.
+    - [x] Test `init.sh`
 - [ ] Add a rule about running node/npm out of our local folder, and that they are _not_ installed globally in the system.
 - [ ] Begin a `server/` folder with `package.json`. This will be the MCP server.
     - [ ] Use TypeScript with `@modelcontextprotocol/sdk`
