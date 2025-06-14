@@ -3,11 +3,50 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError } from '@modelcontextprotocol/sdk/types.js';
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+// Configuration interface
+interface Config {
+  version: string;
+  server: {
+    name: string;
+    description: string;
+  };
+}
+
+// Load configuration from parent directory
+function loadConfig(): Config {
+  try {
+    // Get the directory of the current file
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+
+    // Config file is in the parent directory of the running JS file
+    const configPath = path.join(__dirname, '..', 'config.json');
+
+    if (!fs.existsSync(configPath)) {
+      throw new Error(`Configuration file not found at: ${configPath}`);
+    }
+
+    const configData = fs.readFileSync(configPath, 'utf8');
+    const config = JSON.parse(configData) as Config;
+
+    return config;
+  } catch (error) {
+    console.error('Failed to load configuration:', error);
+    process.exit(1);
+  }
+}
+
+// Load configuration at startup
+const config = loadConfig();
 
 const server = new Server(
   {
-    name: 'arcadia-server',
-    version: '1.0.0',
+    name: config.server.name,
+    version: config.version,
   },
   {
     capabilities: {

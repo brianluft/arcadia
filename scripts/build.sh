@@ -25,6 +25,13 @@ if [ -d "server" ]; then
         cp -r server/node_modules dist/server/
         echo "✓ Server dependencies copied to dist/server"
     fi
+    
+    # Copy config.json to dist/
+    if [ -f "server/config.json" ]; then
+        echo "Copying config.json to dist..."
+        cp server/config.json dist/
+        echo "✓ Config file copied to dist/"
+    fi
 fi
 
 # Build test TypeScript code
