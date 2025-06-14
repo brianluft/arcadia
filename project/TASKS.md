@@ -7,7 +7,7 @@
     - [x] Delete "node" folder if it exists.
     - [x] Expand Node into the root of the project. The zip contains a top-level folder `node-v22.16.0-win-arm64` (same as the filename). Rename that folder to "node". Verify that `node/node.exe` and `node/npm.exe` exist.
     - [x] Test `init.sh`
-- [ ] Add a rule about running node/npm out of our local folder, and that they are _not_ installed globally in the system.
+- [x] Add a rule about running node/npm out of our local folder, and that they are _not_ installed globally in the system.
 - [ ] Begin a `server/` folder with `package.json`. This will be the MCP server.
     - [ ] Use TypeScript with `@modelcontextprotocol/sdk`
     - [ ] Local prettier install. Override printWidth=120. Update `scripts/format.sh` to format the server code.
