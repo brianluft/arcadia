@@ -1,0 +1,47 @@
+- [ ] Create `scripts/init.sh` to set things up after first cloning the repo.
+    - [ ] Use a variable for the node version, currently 22.16.0
+    - [ ] Use `scripts-get-native-arch.sh` to get the string "x64" or "arm64"
+    - [ ] Navigate to root of repository with `cd "$( dirname "${BASH_SOURCE[0]}" )"` and `cd ..`
+    - [ ] Create "downloads" folder if it doesn't exist.
+    - [ ] Download Node if it hasn't already been downloaded: https://nodejs.org/dist/v22.16.0/node-v22.16.0-win-arm64.zip (replace version and arch)
+    - [ ] Delete "node" folder if it exists.
+    - [ ] Expand Node into the root of the project. The zip contains a top-level folder `node-v22.16.0-win-arm64` (same as the filename). Rename that folder to "node". Verify that `node/node.exe` and `node/npm.exe` exist.
+    - [ ] Test `init.sh`
+- [ ] Add a rule about running node/npm out of our local folder, and that they are _not_ installed globally in the system.
+- [ ] Begin a `server/` folder with `package.json`. This will be the MCP server.
+    - [ ] Use TypeScript with `@modelcontextprotocol/sdk`
+    - [ ] Update `scripts/build.sh` to run TypeScript and produce .js output in `dist/server/`. Copy node into `dist/node/`.
+    - [ ] Test `build.sh`.
+- [ ] Begin a `test/` folder with another `package.json`. This will be an MCP client that runs real automated tests against the MCP server.
+    - [ ] Use TypeScript with `@modelcontextprotocol/sdk`
+    - [ ] Create a simple way for us to write a series of MCP tool executions and then verify the responses, then tabulate the successes and failures.
+    - [ ] Update `scripts/build.sh` to build the test client into `dist/test/` and then run the test client, so that we run the tests every time after building.
+- [ ] Create a configuration system. At startup the server will read a config.json file in the parent folder of the folder containing the running js file. That is, our server is in `dist/server/` and the config file is in `dist/`.
+    - [ ] Make an example config.json and copy it into `dist/` on build.
+- [ ] New config.json option: path to a storage directory. Default: `./storage/` (path relative to config.json, but absolute path also accepted if configured)
+    - [ ] Create the directory on startup. Create a test file and delete it. If any of that fails, print an error and exit.
+- [ ] Create a system for assigning unique timestamped filenames in the storage directory. Make it one dense numeric ID with the date and time information encoded in it. Ensure the file does not exist when you return a newly assigned filename.
+- [ ] New MCP tool: `run_bash_command`
+    - [ ] Required parameter: String for the command line.
+    - [ ] Required parameter: Working directory, absolute path required. The MCP client can specify either C:\Foo\Bar.txt or /c/Foo/Bar or /c:/Foo/Bar and all of them should work, even though only the first one is proper on Windows. Throw an error if it's not one of those forms; don't make any attempt to handle a relative path. The client is in a better position to fix their input.
+    - [ ] Required parameter: Timeout in seconds. In the doc for the client, recommend a 120 second default timeout. On timeout, forcibly kill the command.
+    - [ ] New config.json option: path to bash. Default: `C:\Program Files\Git\bin\bash.exe`
+        - [ ] At startup, check that the configured shell exists, if not print an error and exit.
+    - [ ] Assign a storage filename. Write output from the command (both stdout and stderr) into this file.
+    - [ ] The command is run via bash, so that the command can be a bash command line with pipes, redirects, etc. Synchronously with the specified timeout.
+    - [ ] Returns:
+        - [ ] Last 20 lines of output.
+        - [ ] If the program exited on its own, "Exit code: {N}". Otherwise, "The command timed out after {N} seconds."
+        - [ ] If more than 20 lines of output were printed, then the last line of response is: "Truncated output. Full output is {Count} lines. Use `read_output` tool with filename "{Filename}" line 0 to read more." (the read_output tool is coming later)
+    - [ ] Write happy path tests. Since the tool accepts bash commands, just test with `echo`.
+    - [ ] Write a test for a command that doesn't exist and check how the error is presented.
+    - [ ] Write a test for timeout; make it a 1 second timeout and test with `ping -n 10 127.0.0.1`
+- [ ] New MCP tool: `read_output`
+    - [ ] Required parameter: Filename
+    - [ ] Required parameter: Start line index, zero based
+    - [ ] If file doesn't exist, return an error.
+    - [ ] If file does exist, jump to that line. If it's past the end, return a message that the requested line is past the end of the file.
+    - [ ] Start reading from that line forward and returning those lines in the response array. Tokenize by whitespace so you can count how many words we're returning, update the running total after each line. Once you exceed 1000 words, stop and append line "Truncated output. There are {N} lines left. Use `read_output` tool with filename "{Filename}" line {NextLineIndex} to read more."
+    - [ ] Make a long test file in `test/files/` that you can test with `run_bash_command` and `cat` for a truncated result.
+- [ ] Create `scripts/publish.sh`. Cleans `dist/`, runs `build.sh`, copies `node/` to `dist/node`. Makes a zip of `dist/*` except for `dist/test/`, in `arcadia.zip`
+- [ ] Write a readme that describes how to set up Cursor with our MCP server, assuming the user has downloaded `arcadia.zip` from our GitHub releases.

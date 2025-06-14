@@ -3,4 +3,14 @@ description:
 globs: 
 alwaysApply: true
 ---
-This is Arcadia, an MCP server in Node.js providing helpful tools especially for Windows users of Cursor.
+This is Arcadia, an MCP server in Node.js providing helpful tools for Windows users of Cursor.
+
+<guidelines>
+- Use the stdio MCP method.
+- When asked to add a rule, edit `.cursor/rules/global.mdc` (this file).
+- All .sh scripts should start with `cd "$( dirname "${BASH_SOURCE[0]}" )"` to set the working directory to the script's containing directory, then navigate from that known location.
+</guidelines>
+
+<information>
+- If you see `[200~` in a bash error, it's a tool bug; we don't have xterm bracketed-paste on Windows.
+</information>

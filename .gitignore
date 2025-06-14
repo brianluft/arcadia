@@ -1,6 +1,4 @@
-.vs/
-*.log
-bin/
-obj/
-*.user
-temp.sh
+*.zip
+/dist/
+/downloads/
+/node/
