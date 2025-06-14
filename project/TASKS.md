@@ -25,6 +25,9 @@
     - [x] Make an example config.json and copy it into `dist/` on build.
 - [x] New config.json option: path to a storage directory. Default: `./storage/` (path relative to config.json, but absolute path also accepted if configured)
     - [x] Create the directory on startup. Create a test file and delete it. If any of that fails, print an error and exit.
+- [ ] I have manually updated our packages. I updated jest to the latest major version. I removed ts-jest because it seems like we shouldn't need it; we can build ourselves with tsc and that will avoid issues with jest having its own tsc configuration. I removed @types/jest because I think jest ships its own typings now, and @types/jest is out of date. These changes have broken the tests.
+    - [ ] Read `context\jest-typings.md`.
+    - [ ] Fix the test errors.
 - [ ] Use currently use `import.meta.url` to resolve paths relative to the executing script file. We use this in several modules. We just upgraded to Node 24. Get the dirname from `import.meta.dirname` at startup, then pass that path down to the initialization of any other module that wants it. Use a dependency injection pattern.
     - [ ] Add a rule about never using `import.meta` outside of startup in `index.ts`.
     - [ ] Add a rule about using dependency injection for modules.
