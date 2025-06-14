@@ -88,3 +88,5 @@
         - [x] Run `npm ci --omit=dev` inside `dist/server/` to install only production dependencies
         - [x] This way the zip only contains the runtime dependencies needed to run the MCP server
 - [x] `bash.ts`: If our attempts to kill the subprocess on timeout fail to actually kill the process, you need to resolve the promise anyway. We will simply abandon the process and let it terminate on its own; we will not wait around for it. No matter what, we must resolve the promise right away after the timeout expires. We can't let a rogue subprocess hang us up; there are scenarios where killing doesn't work, or doesn't work immediately.
+- [ ] Remove the `example_tool` MCP tool.
+- [ ] Add a GitHub Actions workflow. Runs on `windows-latest`, runs `scripts/init.sh` and `scripts/publish.sh`, uploads arcadia.zip as an artifact.
