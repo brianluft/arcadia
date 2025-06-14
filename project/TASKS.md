@@ -8,12 +8,12 @@
     - [x] Expand Node into the root of the project. The zip contains a top-level folder `node-v22.16.0-win-arm64` (same as the filename). Rename that folder to "node". Verify that `node/node.exe` and `node/npm.exe` exist.
     - [x] Test `init.sh`
 - [x] Add a rule about running node/npm out of our local folder, and that they are _not_ installed globally in the system.
-- [ ] Begin a `server/` folder with `package.json`. This will be the MCP server.
-    - [ ] Use TypeScript with `@modelcontextprotocol/sdk`
-    - [ ] Local prettier install. Override printWidth=120. Update `scripts/format.sh` to format the server code.
-    - [ ] Update `scripts/init.sh` to `npm install` the server project. Run it.
-    - [ ] Update `scripts/build.sh` to run TypeScript and produce .js output in `dist/server/`. Copy node into `dist/node/`.
-    - [ ] Test `build.sh`.
+- [x] Begin a `server/` folder with `package.json`. This will be the MCP server.
+    - [x] Use TypeScript with `@modelcontextprotocol/sdk`
+    - [x] Local prettier install. Override printWidth=120. Update `scripts/format.sh` to format the server code.
+    - [x] Update `scripts/init.sh` to `npm install` the server project. Run it.
+    - [x] Update `scripts/build.sh` to run TypeScript and produce .js output in `dist/server/`. Copy node into `dist/node/`.
+    - [x] Test `build.sh`.
 - [ ] Begin a `test/` folder with another `package.json`. This will be an MCP client that runs real automated tests against the MCP server.
     - [ ] Use TypeScript with `@modelcontextprotocol/sdk`
     - [ ] Local prettier install. Override printWidth=120. Update `scripts/format.sh` to format the test code too.

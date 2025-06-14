@@ -58,4 +58,13 @@ else
     exit 1
 fi
 
+# Install server dependencies
+if [ -d "server" ]; then
+    echo "Installing server dependencies..."
+    cd server
+    ../node/npm.cmd install
+    cd ..
+    echo "✓ Server dependencies installed"
+fi
+
 echo "Setup complete!" 

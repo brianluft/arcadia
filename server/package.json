@@ -1,0 +1,23 @@
+{
+  "name": "arcadia-server",
+  "version": "1.0.0",
+  "description": "Arcadia MCP server providing helpful tools for Windows users of Cursor",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prettier": "prettier"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "type": "module"
+} 
