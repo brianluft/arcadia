@@ -26,7 +26,7 @@
 
 2. **Extract**: Extract `arcadia.zip` to a folder of your choice (e.g., `C:\Tools\arcadia\`)
 
-3. **Configure Cursor**: Add the following configuration to your `.cursor/mcp.json` file:
+3. **Configure Cursor**: Add the following configuration to your `mcp.json` file:
 
     ```json
     {

@@ -93,4 +93,4 @@
     - [x] `scripts/init.sh`: download node for arm64 and x64 both, unzip into `node-x64/` and `node-arm64/`. Continue to also have the build machine's native arch of node in `node/`. Continue to use `node/` for building.
     - [x] `scripts/publish.sh`: add CLI argument for the target arch. choose `node-x64/` or `node-arm64/` when copying into `dist/` instead of using the native `node/`. Zip into `arcadia-arm64.zip` or `arcadia-x64.zip`.
 - [ ] Add a GitHub Actions workflow. Runs on `windows-latest`, runs `scripts/init.sh`. Then for each arch (x64 and arm64) it runs `scripts/publish.sh`. Finally, uploads `arcadia-arm64.zip` and `arcadia-x64.zip` as artifacts.
-- [ ] When publishing, write a file called INSTALLING.html to the `dist/` directory explaining the same things that `.github/README.md` does about setting up mcp.json and arcadia.mdc.
+- [ ] When publishing, write a file called INSTALLING.html to the `dist/` directory explaining the same things that `.github/README.md` does about setting up `mcp.json` and `arcadia.mdc`.
