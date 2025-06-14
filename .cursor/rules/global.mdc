@@ -20,4 +20,5 @@ This is Arcadia, an MCP server in Node.js providing helpful tools for Windows us
 
 <information>
 - If you see `[200~` in a bash error, it's a tool bug; we don't have xterm bracketed-paste on Windows.
+- Documentation for the MCP TypeScript SDK and the MCP protocol are in `context/` and indexed. Use your codebase search tool.
 </information>
