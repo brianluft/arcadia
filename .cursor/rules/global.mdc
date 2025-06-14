@@ -9,7 +9,7 @@ This is Arcadia, an MCP server in Node.js providing helpful tools for Windows us
 - Use the stdio MCP method.
 - When asked to add a rule, edit `.cursor/rules/global.mdc` (this file).
 - All .sh scripts should start with `cd "$( dirname "${BASH_SOURCE[0]}" )"` to set the working directory to the script's containing directory, then navigate from that known location.
-- Always use the local Node.js and npm installations from the `node/` folder in the project root. Node.js and npm are NOT installed globally in the system - they must be run from the local `node/` directory as `node/node.exe` and `node/npm.exe`.
+- Always use the local Node.js and npm installations from the `node/` folder in the project root. Node.js and npm are NOT installed globally in the system - they must be run from the local `node/` directory. In your script, update `PATH` to include the local `node/` directory and then execute `node` and `npm` normally. Remember that $PATH must contain _absolute_ paths.
 - Never use `npx`. In your scripts, add the local `node/` folder to $PATH. Always call node/npm via your scripts.
   ```
   cd "$( dirname "${BASH_SOURCE[0]}" )"

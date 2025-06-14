@@ -6,10 +6,10 @@ cd ..
 
 export PATH=$PATH:$PWD/node
 
-# Create dist directories
-mkdir -p dist/server
-mkdir -p dist/test
-mkdir -p dist/node
+# Create build directories
+mkdir -p build/server
+mkdir -p build/test
+mkdir -p build/node
 
 # Build server TypeScript code
 echo "Building server..."
@@ -18,17 +18,17 @@ npm run build
 cd ..
 echo "✓ Server built successfully"
 
-# Copy server node_modules to dist/server for runtime dependencies
-if [ ! -d "dist/server/node_modules" ]; then
-  echo "Copying server dependencies to dist..."
-  cp -rf server/node_modules dist/server/
-  echo "✓ Server dependencies copied to dist/server"
+# Copy server node_modules to build/server for runtime dependencies
+if [ ! -d "build/server/node_modules" ]; then
+  echo "Copying server dependencies to build..."
+  cp -rf server/node_modules build/server/
+  echo "✓ Server dependencies copied to build/server"
 fi
 
-# Copy config.json to dist/
-echo "Copying config.json to dist..."
-cp -f server/config.json dist/
-echo "✓ Config file copied to dist/"
+# Copy config.json to build/
+echo "Copying config.json to build..."
+cp -f server/config.json build/
+echo "✓ Config file copied to build/"
 
 # Build test TypeScript code
 echo "Building test client..."
@@ -37,23 +37,23 @@ npm run build
 cd ..
 echo "✓ Test client built successfully"
 
-# Copy test node_modules to dist/test for runtime dependencies
-if [ ! -d "dist/test/node_modules" ]; then
-  echo "Copying test dependencies to dist..."
-  cp -rf test/node_modules dist/test/
-  echo "✓ Test dependencies copied to dist/test"
+# Copy test node_modules to build/test for runtime dependencies
+if [ ! -d "build/test/node_modules" ]; then
+  echo "Copying test dependencies to build..."
+  cp -rf test/node_modules build/test/
+  echo "✓ Test dependencies copied to build/test"
 fi
 
-# Copy node runtime to dist
-if [ ! -d "dist/node" ]; then
-  echo "Copying Node.js runtime to dist..."
-  cp -rf node/* dist/node/
-  echo "✓ Node.js runtime copied to dist/node"
+# Copy node runtime to build
+if [ ! -d "build/node" ]; then
+  echo "Copying Node.js runtime to build..."
+  cp -rf node/* build/node/
+  echo "✓ Node.js runtime copied to build/node"
 fi
 
 # Run tests
 echo "Running tests..."
-cd dist
+cd build
 ../node/node.exe test/index.js
 cd ..
 echo "✓ Tests completed"

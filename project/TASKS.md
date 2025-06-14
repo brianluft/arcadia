@@ -78,12 +78,12 @@
       }
     }
     ```
-- [ ] Fix `scripts/publish.sh` to only ship runtime dependencies, not dev dependencies.
-    - [ ] Problem: Currently `scripts/build.sh` copies `server/node_modules` (which includes dev dependencies from `npm install`) to `dist/server/node_modules`. When we publish, we're shipping all the dev dependencies unnecessarily.
-    - [ ] Solution approach: During publish, create a production-only install for the server dependencies.
-    - [ ] Modify `scripts/build.sh`: Rename `dist` to `build`. `build` will be the development build and `dist` will be the final production build.
-    - [ ] Modify `scripts/publish.sh`:
-        - [ ] `build.sh` now produces `build/` instead of `dist/`, adapt to that.
-        - [ ] Create `dist/` and copy our files from `dist` but not any `node_modules/` and not `test/`
-        - [ ] Run `npm ci --omit=dev` inside `dist/server/` to install only production dependencies
-        - [ ] This way the zip only contains the runtime dependencies needed to run the MCP server
+- [x] Fix `scripts/publish.sh` to only ship runtime dependencies, not dev dependencies.
+    - [x] Problem: Currently `scripts/build.sh` copies `server/node_modules` (which includes dev dependencies from `npm install`) to `dist/server/node_modules`. When we publish, we're shipping all the dev dependencies unnecessarily.
+    - [x] Solution approach: During publish, create a production-only install for the server dependencies.
+    - [x] Modify `scripts/build.sh`: Rename `dist` to `build`. `build` will be the development build and `dist` will be the final production build.
+    - [x] Modify `scripts/publish.sh`:
+        - [x] `build.sh` now produces `build/` instead of `dist/`, adapt to that.
+        - [x] Create `dist/` and copy our files from `build` but not any `node_modules/` and not `test/`
+        - [x] Run `npm ci --omit=dev` inside `dist/server/` to install only production dependencies
+        - [x] This way the zip only contains the runtime dependencies needed to run the MCP server

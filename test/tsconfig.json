@@ -3,7 +3,7 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "node",
-    "outDir": "../dist/test",
+    "outDir": "../build/test",
     "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
@@ -14,5 +14,5 @@
     "sourceMap": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "../dist"]
+  "exclude": ["node_modules", "../build"]
 } 
