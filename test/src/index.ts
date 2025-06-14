@@ -192,7 +192,7 @@ async function main() {
         arguments: {
           command:
             'echo "Line 1 with some words"; echo "Line 2 with different content"; echo "Line 3 has more words and text"; echo "Line 4 contains additional content"; echo "Line 5 with even more words to test"',
-          working_directory: '/c/Projects/arcadia',
+          working_directory: 'C:\\',
           timeout_seconds: 30,
         },
         expectedContent: 'Line 1 with some words',
