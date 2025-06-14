@@ -12,3 +12,11 @@ if [ -d "server" ]; then
     ../node/npm.cmd run prettier -- --write "src/**/*.{ts,js,json}"
     cd ..
 fi
+
+# Format test code with prettier
+if [ -d "test" ]; then
+    echo "Formatting test code..."
+    cd test
+    ../node/npm.cmd run prettier -- --write "src/**/*.{ts,js,json}"
+    cd ..
+fi

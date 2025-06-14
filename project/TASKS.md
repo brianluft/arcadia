@@ -14,12 +14,12 @@
     - [x] Update `scripts/init.sh` to `npm install` the server project. Run it.
     - [x] Update `scripts/build.sh` to run TypeScript and produce .js output in `dist/server/`. Copy node into `dist/node/`.
     - [x] Test `build.sh`.
-- [ ] Begin a `test/` folder with another `package.json`. This will be an MCP client that runs real automated tests against the MCP server.
-    - [ ] Use TypeScript with `@modelcontextprotocol/sdk`
-    - [ ] Local prettier install. Override printWidth=120. Update `scripts/format.sh` to format the test code too.
-    - [ ] Update `scripts/init.sh` to `npm install` the test project. Run it.
-    - [ ] Create a simple way for us to write a series of MCP tool executions and then verify the responses, then tabulate the successes and failures.
-    - [ ] Update `scripts/build.sh` to build the test client into `dist/test/` and then run the test client, so that we run the tests every time after building.
+- [x] Begin a `test/` folder with another `package.json`. This will be an MCP client that runs real automated tests against the MCP server.
+    - [x] Use TypeScript with `@modelcontextprotocol/sdk`
+    - [x] Local prettier install. Override printWidth=120. Update `scripts/format.sh` to format the test code too.
+    - [x] Update `scripts/init.sh` to `npm install` the test project. Run it.
+    - [x] Create a simple way for us to write a series of MCP tool executions and then verify the responses, then tabulate the successes and failures.
+    - [x] Update `scripts/build.sh` to build the test client into `dist/test/` and then run the test client, so that we run the tests every time after building.
 - [ ] Create a configuration system. At startup the server will read a config.json file in the parent folder of the folder containing the running js file. That is, our server is in `dist/server/` and the config file is in `dist/`.
     - [ ] Make an example config.json and copy it into `dist/` on build.
 - [ ] New config.json option: path to a storage directory. Default: `./storage/` (path relative to config.json, but absolute path also accepted if configured)

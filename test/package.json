@@ -1,0 +1,24 @@
+{
+  "name": "arcadia-test",
+  "version": "1.0.0",
+  "description": "Arcadia MCP client for automated testing of the MCP server",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "node ../dist/test/index.js",
+    "prettier": "prettier"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "type": "module"
+} 

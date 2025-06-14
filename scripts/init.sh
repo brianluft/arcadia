@@ -67,4 +67,13 @@ if [ -d "server" ]; then
     echo "✓ Server dependencies installed"
 fi
 
+# Install test dependencies
+if [ -d "test" ]; then
+    echo "Installing test dependencies..."
+    cd test
+    ../node/npm.cmd install
+    cd ..
+    echo "✓ Test dependencies installed"
+fi
+
 echo "Setup complete!" 
