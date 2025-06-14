@@ -26,6 +26,22 @@ export function loadConfig(): Config {
 }
 
 /**
+ * Load configuration from a specific directory (dependency injection pattern)
+ * @param currentModuleDir - The directory of the calling module
+ * @returns Parsed configuration object
+ * @throws Error if config file is not found or invalid
+ */
+export function loadConfigFromDirectory(currentModuleDir: string): Config {
+  try {
+    // Config file is in the parent directory of the running JS file
+    const configPath = path.join(currentModuleDir, '..', 'config.json');
+    return loadConfigFromPath(configPath);
+  } catch (error) {
+    throw new Error(`Failed to load configuration: ${error}`);
+  }
+}
+
+/**
  * Load configuration from a specific module URL
  * @param currentModuleUrl - The import.meta.url of the calling module
  * @returns Parsed configuration object

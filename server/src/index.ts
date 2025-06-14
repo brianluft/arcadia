@@ -3,13 +3,16 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError } from '@modelcontextprotocol/sdk/types.js';
-import { loadConfig } from './config.js';
-import { initializeStorageDirectory } from './storage.js';
+import { loadConfigFromDirectory } from './config.js';
+import { initializeStorageDirectoryFromDirectory } from './storage.js';
+
+// Get the directory of the current file using Node.js 24+ import.meta.dirname
+const __dirname = import.meta.dirname;
 
 // Load configuration at startup
 let config;
 try {
-  config = loadConfig();
+  config = loadConfigFromDirectory(__dirname);
 } catch (error) {
   console.error('Failed to load configuration:', error);
   process.exit(1);
@@ -18,7 +21,7 @@ try {
 // Initialize storage directory
 let storageDirectory;
 try {
-  storageDirectory = initializeStorageDirectory(config);
+  storageDirectory = initializeStorageDirectoryFromDirectory(config, __dirname);
   console.error(`Storage directory initialized: ${storageDirectory}`);
 } catch (error) {
   console.error('Failed to initialize storage directory:', error);

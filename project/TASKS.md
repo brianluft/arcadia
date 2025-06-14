@@ -28,9 +28,9 @@
 - [x] I have manually updated our packages. I updated jest to the latest major version. I removed ts-jest because it seems like we shouldn't need it; we can build ourselves with tsc and that will avoid issues with jest having its own tsc configuration. I removed @types/jest because I think jest ships its own typings now, and @types/jest is out of date. These changes have broken the tests.
     - [x] Read `context\jest-typings.md`.
     - [x] Fix the test errors.
-- [ ] Use currently use `import.meta.url` to resolve paths relative to the executing script file. We use this in several modules. We just upgraded to Node 24. Get the dirname from `import.meta.dirname` at startup, then pass that path down to the initialization of any other module that wants it. Use a dependency injection pattern.
-    - [ ] Add a rule about never using `import.meta` outside of startup in `index.ts`.
-    - [ ] Add a rule about using dependency injection for modules.
+- [x] Use currently use `import.meta.url` to resolve paths relative to the executing script file. We use this in several modules. We just upgraded to Node 24. Get the dirname from `import.meta.dirname` at startup, then pass that path down to the initialization of any other module that wants it. Use a dependency injection pattern.
+    - [x] Add a rule about never using `import.meta` outside of startup in `index.ts`.
+    - [x] Add a rule about using dependency injection for modules.
 - [ ] Create an internal system for assigning unique timestamped filenames in the storage directory. Make it one dense numeric ID with the date and time information encoded in it. Ensure the file does not exist when you return a newly assigned filename. We'll use this to store the output from tool executions so the client can page through it. This is not directly exposed as an MCP tool; it's used in tasks below.
 - [ ] New MCP tool: `run_bash_command`
     - [ ] Required parameter: String for the command line.

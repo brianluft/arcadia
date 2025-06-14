@@ -14,6 +14,22 @@ export function initializeStorageDirectory(config: Config): string {
 }
 
 /**
+ * Initialize storage directory from a specific directory (dependency injection pattern)
+ * @param config - Configuration object containing storage settings
+ * @param currentModuleDir - The directory of the calling module
+ * @returns Absolute path to the initialized storage directory
+ * @throws Error if storage directory cannot be created or is not writable
+ */
+export function initializeStorageDirectoryFromDirectory(config: Config, currentModuleDir: string): string {
+  try {
+    const configDir = path.join(currentModuleDir, '..');
+    return initializeStorageDirectoryFromBase(config, configDir);
+  } catch (error) {
+    throw new Error(`Failed to initialize storage directory: ${error}`);
+  }
+}
+
+/**
  * Initialize storage directory from a specific module URL
  * @param config - Configuration object containing storage settings
  * @param currentModuleUrl - The import.meta.url of the calling module (for resolving relative paths)
