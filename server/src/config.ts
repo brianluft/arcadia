@@ -14,6 +14,9 @@ export interface Config {
   storage?: {
     directory?: string;
   };
+  bash?: {
+    path?: string;
+  };
 }
 
 /**

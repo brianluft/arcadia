@@ -32,21 +32,21 @@
     - [x] Add a rule about never using `import.meta` outside of startup in `index.ts`.
     - [x] Add a rule about using dependency injection for modules.
 - [x] Create an internal system for assigning unique timestamped filenames in the storage directory. Make it one dense numeric ID with the date and time information encoded in it. Ensure the file does not exist when you return a newly assigned filename. We'll use this to store the output from tool executions so the client can page through it. This is not directly exposed as an MCP tool; it's used in tasks below.
-- [ ] New MCP tool: `run_bash_command`
-    - [ ] Required parameter: String for the command line.
-    - [ ] Required parameter: Working directory, absolute path required. The MCP client can specify either C:\Foo\Bar.txt or /c/Foo/Bar or /c:/Foo/Bar and all of them should work, even though only the first one is proper on Windows. Throw an error if it's not one of those forms; don't make any attempt to handle a relative path. The client is in a better position to fix their input.
-    - [ ] Required parameter: Timeout in seconds. In the doc for the client, recommend a 120 second default timeout. On timeout, forcibly kill the command.
-    - [ ] New config.json option: path to bash. Default: `C:\Program Files\Git\bin\bash.exe`
-        - [ ] At startup, check that the configured shell exists, if not print an error and exit.
-    - [ ] Assign a storage filename. Write output from the command (both stdout and stderr) into this file.
-    - [ ] The command is run via bash, so that the command can be a bash command line with pipes, redirects, etc. Synchronously with the specified timeout.
-    - [ ] Returns:
-        - [ ] Last 20 lines of output.
-        - [ ] If the program exited on its own, "Exit code: {N}". Otherwise, "The command timed out after {N} seconds."
-        - [ ] If more than 20 lines of output were printed, then the last line of response is: "Truncated output. Full output is {Count} lines. Use `read_output` tool with filename "{Filename}" line 0 to read more." (the read_output tool is coming later)
-    - [ ] Write happy path tests. Since the tool accepts bash commands, just test with `echo`.
-    - [ ] Write a test for a command that doesn't exist and check how the error is presented.
-    - [ ] Write a test for timeout; make it a 1 second timeout and test with `ping -n 10 127.0.0.1`
+- [x] New MCP tool: `run_bash_command`
+    - [x] Required parameter: String for the command line.
+    - [x] Required parameter: Working directory, absolute path required. The MCP client can specify either C:\Foo\Bar.txt or /c/Foo/Bar or /c:/Foo/Bar and all of them should work, even though only the first one is proper on Windows. Throw an error if it's not one of those forms; don't make any attempt to handle a relative path. The client is in a better position to fix their input.
+    - [x] Required parameter: Timeout in seconds. In the doc for the client, recommend a 120 second default timeout. On timeout, forcibly kill the command.
+    - [x] New config.json option: path to bash. Default: `C:\Program Files\Git\bin\bash.exe`
+        - [x] At startup, check that the configured shell exists, if not print an error and exit.
+    - [x] Assign a storage filename. Write output from the command (both stdout and stderr) into this file.
+    - [x] The command is run via bash, so that the command can be a bash command line with pipes, redirects, etc. Synchronously with the specified timeout.
+    - [x] Returns:
+        - [x] Last 20 lines of output.
+        - [x] If the program exited on its own, "Exit code: {N}". Otherwise, "The command timed out after {N} seconds."
+        - [x] If more than 20 lines of output were printed, then the last line of response is: "Truncated output. Full output is {Count} lines. Use `read_output` tool with filename "{Filename}" line 0 to read more." (the read_output tool is coming later)
+    - [x] Write happy path tests. Since the tool accepts bash commands, just test with `echo`.
+    - [x] Write a test for a command that doesn't exist and check how the error is presented.
+    - [x] Write a test for timeout; make it a 1 second timeout and test with `ping -n 10 127.0.0.1`
 - [ ] New MCP tool: `read_output`
     - [ ] Required parameter: Filename
     - [ ] Required parameter: Start line index, zero based
