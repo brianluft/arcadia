@@ -2,7 +2,6 @@
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -40,16 +39,10 @@ class TestRunner {
     console.log(`   Description: ${testCase.description}`);
 
     try {
-      const response = (await this.client.request(
-        {
-          method: 'tools/call',
-          params: {
-            name: testCase.toolName,
-            arguments: testCase.arguments,
-          },
-        },
-        CallToolRequestSchema
-      )) as any;
+      const response = await this.client.callTool({
+        name: testCase.toolName,
+        arguments: testCase.arguments,
+      });
 
       if (testCase.expectedError) {
         // Expected an error but got success
@@ -57,11 +50,14 @@ class TestRunner {
           name: testCase.name,
           passed: false,
           error: `Expected error "${testCase.expectedError}" but got success`,
-          actualContent: JSON.stringify(response.content),
+          actualContent: JSON.stringify(response.content || {}),
         };
       }
 
-      const actualContent = response.content?.[0]?.text || '';
+      const actualContent =
+        Array.isArray(response.content) && response.content.length > 0 && 'text' in response.content[0]
+          ? response.content[0].text
+          : '';
 
       if (testCase.expectedContent) {
         const passed = actualContent.includes(testCase.expectedContent);
@@ -81,7 +77,12 @@ class TestRunner {
       };
     } catch (error: any) {
       if (testCase.expectedError) {
-        const passed = error.message?.includes(testCase.expectedError) || error.code === testCase.expectedError;
+        // Check if the error message contains the expected error code or type
+        const errorMessage = error.message || '';
+        const passed =
+          errorMessage.includes(testCase.expectedError) ||
+          (errorMessage.includes('32602') && testCase.expectedError === 'InvalidParams') ||
+          (errorMessage.includes('32601') && testCase.expectedError === 'MethodNotFound');
         return {
           name: testCase.name,
           passed,
@@ -175,7 +176,7 @@ async function main() {
     console.log('✅ Connected to MCP server\n');
 
     // List available tools
-    const toolsResponse = (await client.request({ method: 'tools/list', params: {} }, ListToolsRequestSchema)) as any;
+    const toolsResponse = await client.listTools();
     console.log('🔧 Available tools:', toolsResponse.tools.map((t: any) => t.name).join(', '));
 
     // Define test cases
