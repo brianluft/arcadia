@@ -66,7 +66,7 @@ cp build/config.json dist/
 echo "✓ Config file copied"
 
 echo "Copying INSTALLING.html to dist/..."
-cp INSTALLING.html dist/
+cp server/INSTALLING.html dist/
 echo "✓ INSTALLING.html copied"
 
 echo "Copying LICENSE to dist/..."
