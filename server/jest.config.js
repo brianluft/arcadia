@@ -1,18 +1,21 @@
 /** @type {import('jest').Config} */
 export default {
-  preset: 'ts-jest/presets/default-esm',
-  extensionsToTreatAsEsm: ['.ts'],
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
   testMatch: ['**/__tests__/**/*.test.ts', '**/?(*.)+(spec|test).ts'],
+  extensionsToTreatAsEsm: ['.ts'],
   transform: {
-    '^.+\\.ts$': ['ts-jest', {
-      useESM: true,
-      tsconfig: 'tsconfig.jest.json',
+    '^.+\\.(t|j)sx?$': ['@swc/jest', {
+      jsc: {
+        target: 'es2022',
+        parser: {
+          syntax: 'typescript',
+        },
+      },
+      module: {
+        type: 'es6',
+      },
     }],
-  },
-  moduleNameMapper: {
-    '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   setupFilesAfterEnv: [],
   collectCoverageFrom: [

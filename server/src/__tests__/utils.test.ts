@@ -1,4 +1,5 @@
-import { isValidString, sanitizeFilename, createResponse, parseKeyValue } from '../utils.js';
+import { describe, it, expect } from '@jest/globals';
+import { isValidString, sanitizeFilename, createResponse, parseKeyValue } from '../utils';
 
 describe('Utils module', () => {
   describe('isValidString', () => {
