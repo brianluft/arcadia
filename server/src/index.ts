@@ -74,6 +74,22 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               minimum: 1,
               maximum: 3600,
             },
+            prependEnvironment: {
+              type: 'object',
+              description:
+                'Optional key-value pairs to prepend to environment variables (e.g., {"PATH": ";C:\\\\Path1"}). Values do not support variable substitution. Use Windows-style paths and semicolons for PATH on Windows.',
+              additionalProperties: {
+                type: 'string',
+              },
+            },
+            appendEnvironment: {
+              type: 'object',
+              description:
+                'Optional key-value pairs to append to environment variables (e.g., {"PATH": ";C:\\\\Path2"}). Values do not support variable substitution. Use Windows-style paths and semicolons for PATH on Windows.',
+              additionalProperties: {
+                type: 'string',
+              },
+            },
           },
           required: ['command', 'working_directory', 'timeout_seconds'],
         },
@@ -117,13 +133,33 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         throw new McpError(ErrorCode.InvalidParams, 'Missing or invalid timeout_seconds parameter');
       }
 
+      // Validate optional environment parameters
+      if (
+        args.prependEnvironment !== undefined &&
+        (typeof args.prependEnvironment !== 'object' ||
+          args.prependEnvironment === null ||
+          Array.isArray(args.prependEnvironment))
+      ) {
+        throw new McpError(ErrorCode.InvalidParams, 'prependEnvironment must be an object with string values');
+      }
+      if (
+        args.appendEnvironment !== undefined &&
+        (typeof args.appendEnvironment !== 'object' ||
+          args.appendEnvironment === null ||
+          Array.isArray(args.appendEnvironment))
+      ) {
+        throw new McpError(ErrorCode.InvalidParams, 'appendEnvironment must be an object with string values');
+      }
+
       try {
         const result = await runBashCommand(
           args.command,
           args.working_directory,
           args.timeout_seconds,
           config,
-          storageDirectory
+          storageDirectory,
+          args.prependEnvironment as Record<string, string> | undefined,
+          args.appendEnvironment as Record<string, string> | undefined
         );
 
         // Build response text

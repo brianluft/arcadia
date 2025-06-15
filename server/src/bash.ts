@@ -23,6 +23,8 @@ export interface BashCommandResult {
  * @param timeoutSeconds - Timeout in seconds
  * @param config - Server configuration
  * @param storageDirectory - Storage directory for output files
+ * @param prependEnvironment - Optional key-value pairs to prepend to environment variables
+ * @param appendEnvironment - Optional key-value pairs to append to environment variables
  * @returns Promise<BashCommandResult>
  */
 export async function runBashCommand(
@@ -30,7 +32,9 @@ export async function runBashCommand(
   workingDirectory: string,
   timeoutSeconds: number,
   config: Config,
-  storageDirectory: string
+  storageDirectory: string,
+  prependEnvironment?: Record<string, string>,
+  appendEnvironment?: Record<string, string>
 ): Promise<BashCommandResult> {
   // Validate working directory format
   if (!isValidWindowsPath(workingDirectory)) {
@@ -55,6 +59,25 @@ export async function runBashCommand(
     throw new Error(`Bash not found at configured path: ${bashPath}`);
   }
 
+  // Build environment variables
+  const env = { ...process.env };
+
+  // Apply prepend environment modifications
+  if (prependEnvironment) {
+    for (const [key, value] of Object.entries(prependEnvironment)) {
+      const currentValue = env[key] || '';
+      env[key] = value + currentValue;
+    }
+  }
+
+  // Apply append environment modifications
+  if (appendEnvironment) {
+    for (const [key, value] of Object.entries(appendEnvironment)) {
+      const currentValue = env[key] || '';
+      env[key] = currentValue + value;
+    }
+  }
+
   // Create output file
   const outputFile = generateTimestampedFilename(storageDirectory, 'log');
   const outputStream = fs.createWriteStream(outputFile);
@@ -65,6 +88,7 @@ export async function runBashCommand(
       cwd: normalizedWorkingDir,
       stdio: ['ignore', 'pipe', 'pipe'],
       windowsHide: true,
+      env: env,
     });
 
     let timedOut = false;
@@ -185,7 +209,7 @@ export async function runBashCommand(
 
 /**
  * Check if a path is a valid Windows absolute path format
- * Accepts: C:\Foo\Bar, /c/Foo/Bar, /c:/Foo/Bar, C:, C:\, C:/, /c, /c/, /c:/
+ * Accepts: C:\Foo\Bar, /c/Foo/Bar, /c:/Foo/Bar, C:, C:\ or C:/, /c, /c/, /c:/
  */
 function isValidWindowsPath(path: string): boolean {
   // Windows format: C:\Foo\Bar or C:\ or C: or C:/Foo/Bar or C:/

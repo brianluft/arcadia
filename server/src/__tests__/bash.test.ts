@@ -229,4 +229,118 @@ describe('runBashCommand', () => {
       expect(logContent).toContain('test output');
     });
   });
+
+  describe('environment parameter tests', () => {
+    test('should prepend to environment variables', async () => {
+      const result = await runBashCommand('echo "TEST_VAR is: $TEST_VAR"', 'C:\\temp', 10, config, storageDir, {
+        TEST_VAR: 'prepended_',
+      });
+
+      expect(result.status).toBe('Exit code: 0');
+      expect(result.output.some(line => line.includes('TEST_VAR is: prepended_'))).toBe(true);
+    });
+
+    test('should append to environment variables', async () => {
+      const result = await runBashCommand(
+        'echo "TEST_VAR is: $TEST_VAR"',
+        'C:\\temp',
+        10,
+        config,
+        storageDir,
+        undefined,
+        { TEST_VAR: '_appended' }
+      );
+
+      expect(result.status).toBe('Exit code: 0');
+      expect(result.output.some(line => line.includes('TEST_VAR is: _appended'))).toBe(true);
+    });
+
+    test('should handle prepend and append together', async () => {
+      const result = await runBashCommand(
+        'echo "TEST_VAR is: $TEST_VAR"',
+        'C:\\temp',
+        10,
+        config,
+        storageDir,
+        { TEST_VAR: 'start_' },
+        { TEST_VAR: '_end' }
+      );
+
+      expect(result.status).toBe('Exit code: 0');
+      expect(result.output.some(line => line.includes('TEST_VAR is: start__end'))).toBe(true);
+    });
+
+    test('should prepend to existing environment variable', async () => {
+      // Set an environment variable in the child process and test prepending
+      const result = await runBashCommand('echo "EXISTING_VAR is: $EXISTING_VAR"', 'C:\\temp', 10, config, storageDir, {
+        EXISTING_VAR: 'prepended_',
+      });
+
+      expect(result.status).toBe('Exit code: 0');
+      expect(result.output.some(line => line.includes('EXISTING_VAR is: prepended_'))).toBe(true);
+    });
+
+    test('should append to existing environment variable', async () => {
+      // Test appending to an environment variable that exists in the process
+      const result = await runBashCommand(
+        'echo "EXISTING_VAR is: $EXISTING_VAR"',
+        'C:\\temp',
+        10,
+        config,
+        storageDir,
+        undefined,
+        { EXISTING_VAR: '_appended' }
+      );
+
+      expect(result.status).toBe('Exit code: 0');
+      expect(result.output.some(line => line.includes('EXISTING_VAR is:') && line.includes('_appended'))).toBe(true);
+    });
+
+    test('should handle PATH manipulation with semicolons', async () => {
+      const result = await runBashCommand(
+        'echo "PATH contains our paths: $PATH"',
+        'C:\\temp',
+        10,
+        config,
+        storageDir,
+        { PATH: 'C:\\PrependedPath;' },
+        { PATH: ';C:\\AppendedPath' }
+      );
+
+      expect(result.status).toBe('Exit code: 0');
+      // In bash, Windows paths are converted to Unix-style
+      expect(result.output.some(line => line.includes('/c/PrependedPath'))).toBe(true);
+      expect(result.output.some(line => line.includes('/c/AppendedPath'))).toBe(true);
+    });
+
+    test('should work without environment parameters (backward compatibility)', async () => {
+      const result = await runBashCommand('echo "Hello World"', 'C:\\temp', 10, config, storageDir);
+
+      expect(result.output).toContain('Hello World');
+      expect(result.status).toBe('Exit code: 0');
+    });
+
+    test('should work with empty environment objects', async () => {
+      const result = await runBashCommand('echo "Hello World"', 'C:\\temp', 10, config, storageDir, {}, {});
+
+      expect(result.output).toContain('Hello World');
+      expect(result.status).toBe('Exit code: 0');
+    });
+
+    test('should handle multiple environment variables', async () => {
+      const result = await runBashCommand(
+        'echo "VAR1: $VAR1, VAR2: $VAR2"',
+        'C:\\temp',
+        10,
+        config,
+        storageDir,
+        { VAR1: 'pre_', VAR2: 'start_' },
+        { VAR1: '_post', VAR2: '_finish' }
+      );
+
+      expect(result.status).toBe('Exit code: 0');
+      expect(result.output.some(line => line.includes('VAR1: pre__post'))).toBe(true);
+      expect(result.output.some(line => line.includes('VAR2: start__finish'))).toBe(true);
+    });
+  });
 });
