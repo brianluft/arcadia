@@ -7,16 +7,14 @@ import { parse as parseJsonc } from 'jsonc-parser';
  * Configuration interface for the Arcadia MCP server
  */
 export interface Config {
-  version: string;
-  server: {
-    name: string;
-    description: string;
-  };
   storage?: {
     directory?: string;
   };
   bash?: {
     path?: string;
+  };
+  apiKeys?: {
+    openai?: string | null;
   };
 }
 

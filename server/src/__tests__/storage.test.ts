@@ -66,8 +66,6 @@ describe('Storage module', () => {
   describe('initializeStorageDirectoryFromBase', () => {
     it('should initialize storage with relative path', () => {
       const config: Config = {
-        version: '1.0.0',
-        server: { name: 'test-server', description: 'Test server' },
         storage: {
           directory: './test-storage',
         },
@@ -82,8 +80,6 @@ describe('Storage module', () => {
     it('should initialize storage with absolute path', () => {
       const absolutePath = path.join(tempDir, 'absolute-storage');
       const config: Config = {
-        version: '1.0.0',
-        server: { name: 'test-server', description: 'Test server' },
         storage: {
           directory: absolutePath,
         },
@@ -96,10 +92,7 @@ describe('Storage module', () => {
     });
 
     it('should use default storage directory when not specified', () => {
-      const config: Config = {
-        version: '1.0.0',
-        server: { name: 'test-server', description: 'Test server' },
-      };
+      const config: Config = {};
 
       const result = initializeStorageDirectoryFromBase(config, tempDir);
 

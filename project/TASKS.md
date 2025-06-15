@@ -1,7 +1,7 @@
 - [x] Remove "server" and "version" from `config.jsonc`. We shouldn't need those and we support comments now which are a better way to explain what's happening in that file.
-- [ ] Prepare for optional OpenAI use
-    - [ ] I've updated `config.jsonc` with an API keys section, and an OpenAI key.
-    - [ ] If the key is non-null, create the OpenAI client at startup so it's ready for use.
+- [x] Prepare for optional OpenAI use
+    - [x] I've updated `config.jsonc` with an API keys section, and an OpenAI key.
+    - [x] If the key is non-null, create the OpenAI client at startup so it's ready for use.
 - [ ] Support an environment variable `ARCADIA_CONFIG_FILE` that overrides our auto detected `config.jsonc` path.
     - [ ] When running our real-deal integration test in `test/`, make this environment variable _mandatory_. Furthermore, make the OpenAI key _mandatory_. On the development machine right now, it is already set. If it's not set, print an error message and exit before running the tests.
     - [ ] Update GitHub Actions to read this config file from a GitHub Actions secret, save it to a file, and then set the environment variable before running the builds.

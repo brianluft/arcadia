@@ -6,6 +6,7 @@ import { CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError } fr
 import { loadConfigFromDirectory } from './config.js';
 import { initializeStorageDirectoryFromDirectory, readOutputFile } from './storage.js';
 import { runBashCommand } from './bash.js';
+import OpenAI from 'openai';
 import * as fs from 'fs';
 
 // Get the directory of the current file using Node.js 24+ import.meta.dirname
@@ -18,6 +19,20 @@ try {
 } catch (error) {
   console.error('Failed to load configuration:', error);
   process.exit(1);
+}
+
+// Initialize OpenAI client if API key is configured
+let openaiClient: OpenAI | null = null;
+if (config.apiKeys?.openai) {
+  try {
+    openaiClient = new OpenAI({
+      apiKey: config.apiKeys.openai,
+    });
+    console.error('OpenAI client initialized');
+  } catch (error) {
+    console.error('Failed to initialize OpenAI client:', error);
+    process.exit(1);
+  }
 }
 
 // Initialize storage directory

@@ -19,11 +19,6 @@ describe('runBashCommand', () => {
 
     // Create test config
     config = {
-      version: '1.0.0',
-      server: {
-        name: 'test-server',
-        description: 'Test server',
-      },
       bash: {
         path: 'C:\\Program Files\\Git\\bin\\bash.exe',
       },
