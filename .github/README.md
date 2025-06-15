@@ -12,6 +12,13 @@
   - Improves on Cursor by automatically paging command outputs. Paging avoids blowing out the model's context from an unexpected long command output.
   - Improves on Cursor by adding mandatory timeouts to all command executions.
 
+- **Image analysis with AI**
+  - MCP tool: `read_image` (requires OpenAI API key)
+  - Uses GPT-4o to analyze and describe images, transcribe text, and answer questions about visual content
+  - Supports common image formats: BMP, GIF, JPEG, PNG, TIFF
+  - Automatically processes images (resizes if > 1080px height, format conversion as needed)
+  - Enables text-only AI clients to work with visual content
+
 ## Installation
 
 ### Prerequisites

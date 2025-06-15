@@ -6,6 +6,7 @@ import { CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError } fr
 import { loadConfigFromDirectory } from './config.js';
 import { initializeStorageDirectoryFromDirectory, readOutputFile } from './storage.js';
 import { runBashCommand } from './bash.js';
+import { readImage } from './image.js';
 import OpenAI from 'openai';
 import * as fs from 'fs';
 
@@ -66,77 +67,103 @@ const server = new Server(
 
 // List available tools
 server.setRequestHandler(ListToolsRequestSchema, async () => {
+  const tools: any[] = [
+    {
+      name: 'run_bash_command',
+      description: 'Run a bash command with timeout and output capture',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          command: {
+            type: 'string',
+            description: 'The bash command to execute',
+          },
+          working_directory: {
+            type: 'string',
+            description:
+              'Working directory (absolute path required). Accepts C:\\Foo\\Bar, /c/Foo/Bar, or /c:/Foo/Bar formats',
+          },
+          timeout_seconds: {
+            type: 'number',
+            description: 'Timeout in seconds (recommended default: 120)',
+            minimum: 1,
+            maximum: 3600,
+          },
+          prependEnvironment: {
+            type: 'object',
+            description:
+              'Optional key-value pairs to prepend to environment variables (e.g., {"PATH": ";C:\\\\Path1"}). Values do not support variable substitution. Use Windows-style paths and semicolons for PATH on Windows.',
+            additionalProperties: {
+              type: 'string',
+            },
+          },
+          appendEnvironment: {
+            type: 'object',
+            description:
+              'Optional key-value pairs to append to environment variables (e.g., {"PATH": ";C:\\\\Path2"}). Values do not support variable substitution. Use Windows-style paths and semicolons for PATH on Windows.',
+            additionalProperties: {
+              type: 'string',
+            },
+          },
+          setEnvironment: {
+            type: 'object',
+            description:
+              'Optional key-value pairs to set environment variables (completely replaces existing values). Values do not support variable substitution. Do not use this for PATH as it will clobber the entire PATH; use prependEnvironment or appendEnvironment instead unless you intend to replace the entire PATH.',
+            additionalProperties: {
+              type: 'string',
+            },
+          },
+        },
+        required: ['command', 'working_directory', 'timeout_seconds'],
+      },
+    },
+    {
+      name: 'read_output',
+      description: 'Read output from a stored file with pagination support',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          filename: {
+            type: 'string',
+            description: 'The filename to read (just the filename, not full path)',
+          },
+          start_line_index: {
+            type: 'number',
+            description: 'Zero-based line index to start reading from',
+            minimum: 0,
+          },
+        },
+        required: ['filename', 'start_line_index'],
+      },
+    },
+  ];
+
+  // Add read_image tool only if OpenAI client is available
+  if (openaiClient) {
+    tools.push({
+      name: 'read_image',
+      description: 'Ask GPT-4o a question about an image, allowing a text-only client to deal with images',
+      inputSchema: {
+        type: 'object' as const,
+        properties: {
+          image_path: {
+            type: 'string' as const,
+            description:
+              'Absolute path to a bmp/gif/jpeg/png/tiff image file. Accepts both Windows-style (C:\\path) and MSYS-style (/c/path) paths.',
+          },
+          prompt: {
+            type: 'string' as const,
+            description:
+              'Optional prompt for the OpenAI multimodal model. If not provided, defaults to "Describe this image to a blind user. Transcribe any text."',
+          },
+        },
+        required: ['image_path'] as const,
+      },
+    } as const);
+  }
+
   return {
-    tools: [
-      {
-        name: 'run_bash_command',
-        description: 'Run a bash command with timeout and output capture',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            command: {
-              type: 'string',
-              description: 'The bash command to execute',
-            },
-            working_directory: {
-              type: 'string',
-              description:
-                'Working directory (absolute path required). Accepts C:\\Foo\\Bar, /c/Foo/Bar, or /c:/Foo/Bar formats',
-            },
-            timeout_seconds: {
-              type: 'number',
-              description: 'Timeout in seconds (recommended default: 120)',
-              minimum: 1,
-              maximum: 3600,
-            },
-            prependEnvironment: {
-              type: 'object',
-              description:
-                'Optional key-value pairs to prepend to environment variables (e.g., {"PATH": ";C:\\\\Path1"}). Values do not support variable substitution. Use Windows-style paths and semicolons for PATH on Windows.',
-              additionalProperties: {
-                type: 'string',
-              },
-            },
-            appendEnvironment: {
-              type: 'object',
-              description:
-                'Optional key-value pairs to append to environment variables (e.g., {"PATH": ";C:\\\\Path2"}). Values do not support variable substitution. Use Windows-style paths and semicolons for PATH on Windows.',
-              additionalProperties: {
-                type: 'string',
-              },
-            },
-            setEnvironment: {
-              type: 'object',
-              description:
-                'Optional key-value pairs to set environment variables (completely replaces existing values). Values do not support variable substitution. Do not use this for PATH as it will clobber the entire PATH; use prependEnvironment or appendEnvironment instead unless you intend to replace the entire PATH.',
-              additionalProperties: {
-                type: 'string',
-              },
-            },
-          },
-          required: ['command', 'working_directory', 'timeout_seconds'],
-        },
-      },
-      {
-        name: 'read_output',
-        description: 'Read output from a stored file with pagination support',
-        inputSchema: {
-          type: 'object',
-          properties: {
-            filename: {
-              type: 'string',
-              description: 'The filename to read (just the filename, not full path)',
-            },
-            start_line_index: {
-              type: 'number',
-              description: 'Zero-based line index to start reading from',
-              minimum: 0,
-            },
-          },
-          required: ['filename', 'start_line_index'],
-        },
-      },
-    ],
+    tools,
   };
 });
 
@@ -240,6 +267,42 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         };
       } catch (error) {
         throw new McpError(ErrorCode.InternalError, `Failed to read output file: ${error}`);
+      }
+
+    case 'read_image':
+      // Only allow read_image if OpenAI client is available
+      if (!openaiClient) {
+        throw new McpError(ErrorCode.InternalError, 'read_image tool requires OpenAI API key to be configured');
+      }
+
+      if (!args || typeof args.image_path !== 'string') {
+        throw new McpError(ErrorCode.InvalidParams, 'Missing or invalid image_path parameter');
+      }
+
+      try {
+        const result = await readImage(
+          args.image_path,
+          args.prompt as string | undefined,
+          openaiClient,
+          storageDirectory
+        );
+
+        // Build response text
+        const responseLines = [result.analysis];
+        if (result.processedImagePath) {
+          responseLines.push(`Note: Image was processed and saved to ${result.processedImagePath}`);
+        }
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: responseLines.join('\n\n'),
+            },
+          ],
+        };
+      } catch (error) {
+        throw new McpError(ErrorCode.InternalError, `Failed to read image: ${error}`);
       }
 
     default:

@@ -193,6 +193,7 @@ async function main() {
     command: 'node',
     args: [serverPath],
     cwd: path.dirname(serverPath),
+    env: process.env as Record<string, string>, // Pass environment variables to the server process
   });
 
   const client = new Client(
@@ -262,6 +263,16 @@ async function main() {
         },
         expectedError: 'InvalidParams',
         description: 'Test read_output with missing filename parameter',
+      },
+      {
+        name: 'read_image_test',
+        toolName: 'read_image',
+        arguments: {
+          image_path: path.resolve(__dirname, '../../test/files/image.png'),
+          prompt: 'What text is visible in this image?',
+        },
+        expectedContent: 'Hello world',
+        description: 'Test read_image can analyze an image and extract text',
       },
     ];
 

@@ -129,8 +129,41 @@
         <ul>
             <li><strong>Bash Path:</strong> <code>C:\Program Files\Git\bin\bash.exe</code> (default Git Bash location)</li>
             <li><strong>Storage Directory:</strong> <code>./storage/</code> (relative to installation directory)</li>
+            <li><strong>API Keys:</strong> OpenAI API key for image analysis features</li>
         </ul>
         <p>You can modify these settings by editing the <code>config.jsonc</code> file.</p>
+
+        <h2>🖼️ Image Analysis Feature</h2>
+        <p>Arcadia includes a <code>read_image</code> tool that uses OpenAI's GPT-4o model to analyze images, describe their contents, and transcribe text. To use this feature:</p>
+        
+        <div class="step">
+            <h3><span class="step-number">1</span>Get an OpenAI API Key</h3>
+            <p>Sign up at <a href="https://platform.openai.com">platform.openai.com</a> and create an API key.</p>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>Configure the API Key</h3>
+            <p>Edit the <code>config.jsonc</code> file in your Arcadia installation directory and add your OpenAI API key:</p>
+            <pre>{
+  "storage": {
+    "directory": "./storage/"
+  },
+  "bash": {
+    "path": "C:\\Program Files\\Git\\bin\\bash.exe"
+  },
+  "apiKeys": {
+    "openai": "your-openai-api-key-here"
+  }
+}</pre>
+            <div class="highlight">
+                <strong>💡 Note:</strong> If you don't configure an OpenAI API key, the <code>read_image</code> tool will not be available. All other Arcadia features will continue to work normally.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span>Restart Cursor</h3>
+            <p>Restart Cursor after updating the configuration to enable the image analysis feature.</p>
+        </div>
     </div>
 </body>
 </html> 
