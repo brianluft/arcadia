@@ -25,6 +25,7 @@ export interface BashCommandResult {
  * @param storageDirectory - Storage directory for output files
  * @param prependEnvironment - Optional key-value pairs to prepend to environment variables
  * @param appendEnvironment - Optional key-value pairs to append to environment variables
+ * @param setEnvironment - Optional key-value pairs to set environment variables (replaces existing values)
  * @returns Promise<BashCommandResult>
  */
 export async function runBashCommand(
@@ -34,7 +35,8 @@ export async function runBashCommand(
   config: Config,
   storageDirectory: string,
   prependEnvironment?: Record<string, string>,
-  appendEnvironment?: Record<string, string>
+  appendEnvironment?: Record<string, string>,
+  setEnvironment?: Record<string, string>
 ): Promise<BashCommandResult> {
   // Validate working directory format
   if (!isValidWindowsPath(workingDirectory)) {
@@ -61,6 +63,13 @@ export async function runBashCommand(
 
   // Build environment variables
   const env = { ...process.env };
+
+  // Apply setEnvironment modifications first (these completely replace existing values)
+  if (setEnvironment) {
+    for (const [key, value] of Object.entries(setEnvironment)) {
+      env[key] = value;
+    }
+  }
 
   // Apply prepend environment modifications
   if (prependEnvironment) {

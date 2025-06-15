@@ -90,6 +90,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 type: 'string',
               },
             },
+            setEnvironment: {
+              type: 'object',
+              description:
+                'Optional key-value pairs to set environment variables (completely replaces existing values). Values do not support variable substitution. Do not use this for PATH as it will clobber the entire PATH; use prependEnvironment or appendEnvironment instead unless you intend to replace the entire PATH.',
+              additionalProperties: {
+                type: 'string',
+              },
+            },
           },
           required: ['command', 'working_directory', 'timeout_seconds'],
         },
@@ -150,6 +158,12 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
       ) {
         throw new McpError(ErrorCode.InvalidParams, 'appendEnvironment must be an object with string values');
       }
+      if (
+        args.setEnvironment !== undefined &&
+        (typeof args.setEnvironment !== 'object' || args.setEnvironment === null || Array.isArray(args.setEnvironment))
+      ) {
+        throw new McpError(ErrorCode.InvalidParams, 'setEnvironment must be an object with string values');
+      }
 
       try {
         const result = await runBashCommand(
@@ -159,7 +173,8 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
           config,
           storageDirectory,
           args.prependEnvironment as Record<string, string> | undefined,
-          args.appendEnvironment as Record<string, string> | undefined
+          args.appendEnvironment as Record<string, string> | undefined,
+          args.setEnvironment as Record<string, string> | undefined
         );
 
         // Build response text

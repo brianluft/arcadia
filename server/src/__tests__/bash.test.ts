@@ -343,4 +343,108 @@ describe('runBashCommand', () => {
       expect(result.output.some(line => line.includes('VAR2: start__finish'))).toBe(true);
     });
   });
+
+  describe('setEnvironment parameter tests', () => {
+    test('should set environment variables (replacing existing values)', async () => {
+      const result = await runBashCommand(
+        'echo "SET_VAR is: $SET_VAR"',
+        'C:\\temp',
+        10,
+        config,
+        storageDir,
+        undefined,
+        undefined,
+        { SET_VAR: 'completely_new_value' }
+      );
+
+      expect(result.status).toBe('Exit code: 0');
+      expect(result.output.some(line => line.includes('SET_VAR is: completely_new_value'))).toBe(true);
+    });
+
+    test('should set multiple environment variables', async () => {
+      const result = await runBashCommand(
+        'echo "VAR1: $VAR1, VAR2: $VAR2, VAR3: $VAR3"',
+        'C:\\temp',
+        10,
+        config,
+        storageDir,
+        undefined,
+        undefined,
+        { VAR1: 'value1', VAR2: 'value2', VAR3: 'value3' }
+      );
+
+      expect(result.status).toBe('Exit code: 0');
+      expect(result.output.some(line => line.includes('VAR1: value1'))).toBe(true);
+      expect(result.output.some(line => line.includes('VAR2: value2'))).toBe(true);
+      expect(result.output.some(line => line.includes('VAR3: value3'))).toBe(true);
+    });
+
+    test('should work with setEnvironment combined with prepend and append', async () => {
+      const result = await runBashCommand(
+        'echo "COMBINED_VAR is: $COMBINED_VAR"',
+        'C:\\temp',
+        10,
+        config,
+        storageDir,
+        { COMBINED_VAR: 'prefix_' },
+        { COMBINED_VAR: '_suffix' },
+        { COMBINED_VAR: 'base_value' }
+      );
+
+      expect(result.status).toBe('Exit code: 0');
+      // setEnvironment is applied first, then prepend, then append
+      expect(result.output.some(line => line.includes('COMBINED_VAR is: prefix_base_value_suffix'))).toBe(true);
+    });
+
+    test('should completely replace existing environment variable', async () => {
+      // First, run a command that would set an environment variable in our process
+      // Then use setEnvironment to completely replace it
+      const result = await runBashCommand(
+        'echo "REPLACE_VAR is: $REPLACE_VAR"',
+        'C:\\temp',
+        10,
+        config,
+        storageDir,
+        undefined,
+        undefined,
+        { REPLACE_VAR: 'new_replacement_value' }
+      );
+
+      expect(result.status).toBe('Exit code: 0');
+      expect(result.output.some(line => line.includes('REPLACE_VAR is: new_replacement_value'))).toBe(true);
+    });
+
+    test('should work with empty setEnvironment object', async () => {
+      const result = await runBashCommand(
+        'echo "Hello World"',
+        'C:\\temp',
+        10,
+        config,
+        storageDir,
+        undefined,
+        undefined,
+        {}
+      );
+
+      expect(result.output).toContain('Hello World');
+      expect(result.status).toBe('Exit code: 0');
+    });
+
+    test('should not affect other environment variables when setting specific ones', async () => {
+      const result = await runBashCommand(
+        'echo "PATH_EXISTS: $(if [ -n "$PATH" ]; then echo "yes"; else echo "no"; fi), CUSTOM_VAR: $CUSTOM_VAR"',
+        'C:\\temp',
+        10,
+        config,
+        storageDir,
+        undefined,
+        undefined,
+        { CUSTOM_VAR: 'my_custom_value' }
+      );
+
+      expect(result.status).toBe('Exit code: 0');
+      expect(result.output.some(line => line.includes('PATH_EXISTS: yes'))).toBe(true);
+      expect(result.output.some(line => line.includes('CUSTOM_VAR: my_custom_value'))).toBe(true);
+    });
+  });
 });
