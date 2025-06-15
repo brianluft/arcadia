@@ -49,12 +49,12 @@
 
 ## Configuration
 
-Arcadia uses a `config.json` file located in its installation directory. The default configuration includes:
+Arcadia uses a `config.jsonc` file located in its installation directory. The default configuration includes:
 
 - **Bash Path**: `C:\Program Files\Git\bin\bash.exe` (default Git Bash location)
 - **Storage Directory**: `./storage/` (relative to installation directory)
 
-You can modify these settings by editing the `config.json` file.
+You can modify these settings by editing the `config.jsonc` file.
 
 ## Usage
 

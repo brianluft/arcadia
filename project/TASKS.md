@@ -1,4 +1,4 @@
-- [ ] Allow `#` comments in our `config.json`.
-    - [ ] Rename `server/config.json` to `config.jsonc`. Update build and publish scripts accordingly.
-    - [ ] Update our code to read from `config.jsonc` with `//` comment support.
-    - [ ] Update our example `config.jsonc` with a comment before each section explaining the purpose.
+- [x] Allow `#` comments in our `config.json`.
+    - [x] Rename `server/config.json` to `config.jsonc`. Update build and publish scripts accordingly.
+    - [x] Update our code to read from `config.jsonc` with `//` comment support.
+    - [x] Update our example `config.jsonc` with a comment before each section explaining the purpose.

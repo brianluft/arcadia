@@ -62,7 +62,7 @@ cd ../..
 echo "✓ Production dependencies installed"
 
 echo "Copying config file to dist/..."
-cp build/config.json dist/
+cp build/config.jsonc dist/
 echo "✓ Config file copied"
 
 echo "Copying INSTALLING.html to dist/..."

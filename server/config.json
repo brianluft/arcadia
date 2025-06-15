@@ -1,8 +1,0 @@
-{
-  "storage": {
-    "directory": "./storage/"
-  },
-  "bash": {
-    "path": "C:\\Program Files\\Git\\bin\\bash.exe"
-  }
-}

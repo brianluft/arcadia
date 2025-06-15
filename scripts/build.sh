@@ -25,9 +25,9 @@ if [ ! -d "build/server/node_modules" ]; then
   echo "✓ Server dependencies copied to build/server"
 fi
 
-# Copy config.json to build/
-echo "Copying config.json to build..."
-cp -f server/config.json build/
+# Copy config.jsonc to build/
+echo "Copying config.jsonc to build..."
+cp -f server/config.jsonc build/
 echo "✓ Config file copied to build/"
 
 # Build test TypeScript code

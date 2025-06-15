@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { parse as parseJsonc } from 'jsonc-parser';
 
 /**
  * Configuration interface for the Arcadia MCP server
@@ -37,7 +38,7 @@ export function loadConfig(): Config {
 export function loadConfigFromDirectory(currentModuleDir: string): Config {
   try {
     // Config file is in the parent directory of the running JS file
-    const configPath = path.join(currentModuleDir, '..', 'config.json');
+    const configPath = path.join(currentModuleDir, '..', 'config.jsonc');
     return loadConfigFromPath(configPath);
   } catch (error) {
     throw new Error(`Failed to load configuration: ${error}`);
@@ -57,7 +58,7 @@ export function loadConfigFromModuleUrl(currentModuleUrl: string): Config {
     const __dirname = path.dirname(__filename);
 
     // Config file is in the parent directory of the running JS file
-    const configPath = path.join(__dirname, '..', 'config.json');
+    const configPath = path.join(__dirname, '..', 'config.jsonc');
 
     return loadConfigFromPath(configPath);
   } catch (error) {
@@ -78,7 +79,7 @@ export function loadConfigFromPath(configPath: string): Config {
     }
 
     const configData = fs.readFileSync(configPath, 'utf8');
-    const config = JSON.parse(configData) as Config;
+    const config = parseJsonc(configData) as Config;
 
     return config;
   } catch (error) {
