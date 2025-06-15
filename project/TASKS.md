@@ -1,4 +1,28 @@
-- [x] Allow `#` comments in our `config.json`.
-    - [x] Rename `server/config.json` to `config.jsonc`. Update build and publish scripts accordingly.
-    - [x] Update our code to read from `config.jsonc` with `//` comment support.
-    - [x] Update our example `config.jsonc` with a comment before each section explaining the purpose.
+- [ ] Remove "server" and "version" from `config.jsonc`. We shouldn't need those and we support comments now which are a better way to explain what's happening in that file.
+- [ ] Prepare for optional OpenAI use
+    - [ ] I've updated `config.jsonc` with an API keys section, and an OpenAI key.
+    - [ ] If the key is non-null, create the OpenAI client at startup so it's ready for use.
+- [ ] Support an environment variable `ARCADIA_CONFIG_FILE` that overrides our auto detected `config.jsonc` path.
+    - [ ] When running our real-deal integration test in `test/`, make this environment variable _mandatory_. Furthermore, make the OpenAI key _mandatory_. On the development machine right now, it is already set. If it's not set, print an error message and exit before running the tests.
+    - [ ] Update GitHub Actions to read this config file from a GitHub Actions secret, save it to a file, and then set the environment variable before running the builds.
+    - [ ] Start `CONTRIBUTING.md`. Make a "getting started" section for developers looking to build our project, and explain how `ARCADIA_CONFIG_FILE` is required to run the tests.
+- [ ] New MCP tool: `read_image`. This will ask gpt-4o (a multimodal model) a question about an image, allowing a text-only client to deal with images.
+    - [ ] Read `context\openai-vision.md` for guidance
+    - [ ] This tool is ONLY present if an OpenAI key is configured at startup. If not, the tool is not exposed to the client at all.
+    - Inputs:
+        - [ ] Mandatory parameter: absolute path to a bmp/gif/jpeg/png/tiff image file. We will accept both Windows-style and MSYS-style paths (C:\ /c/ /C:/).
+        - [ ] Optional parameter: prompt string. This is an English prompt for the OpenAI multimodal model. The client may ask some questions about the image for the multimodal model to answer. If not provided, use a default prompt: `Describe this image to a blind user. Transcribe any text.`
+    - Behavior:
+        - [ ] Use npm library `jimp` to process the image if needed.
+            - [ ] If the image is taller than 1080 pixels, then resize down to 1080p while maintaining aspect ratio.
+            - [ ] Possible file format conversion: Keep PNG as PNG. Keep JPG as JPG. Convert other types to JPG. Any time you save as JPG, use high quality; we are concerned about resolution and file type but not concerned about file size.
+            - [ ] Given the above rules, a PNG or JPG image with height <= 1080 will not be re-saved and will be used as-is, since they require neither scaling nor conversion.
+            - [ ] Use our storage directory and its auto-naming system to store the converted image. Append the correct image file extension to the automatic name.
+        - [ ] Use OpenAI to ask the 'gpt-4o' model the question about the processed image.
+    - Testing:
+        - Skip writing jest unit tests; this is all about the API interactions and once we mock the APIs, nothing interesting is left. So don't bother. Instead, we will rely on our real-deal MCP client test harness in `test/`. 
+        - [ ] Test reading `test/files/image.png` and ask the model what the text says. Verify that the model's response contains "Hello world" (it will probably do some more yapping besides that, but that's fine).
+    - Documentation:
+        - [ ] Update `.github\README.md` with a brief description of this feature
+        - [ ] Update `.cursor\rules\global.mdc` as needed
+        - [ ] Update `server\INSTALLING.html` to let the user know that `read_image` requires them to fill in the OpenAI key, and tell them how to do that.

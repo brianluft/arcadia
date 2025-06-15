@@ -12,5 +12,9 @@
   // Bash configuration - defines the path to the bash executable on Windows
   "bash": {
     "path": "C:\\Program Files\\Git\\bin\\bash.exe"
+  },
+  // API keys - OPTIONAL
+  "apiKeys": {
+    "openai": null
   }
 }
