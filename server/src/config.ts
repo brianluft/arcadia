@@ -35,6 +35,12 @@ export function loadConfig(): Config {
  */
 export function loadConfigFromDirectory(currentModuleDir: string): Config {
   try {
+    // Check for environment variable override first
+    const envConfigPath = process.env.ARCADIA_CONFIG_FILE;
+    if (envConfigPath) {
+      return loadConfigFromPath(envConfigPath);
+    }
+
     // Config file is in the parent directory of the running JS file
     const configPath = path.join(currentModuleDir, '..', 'config.jsonc');
     return loadConfigFromPath(configPath);
@@ -51,6 +57,12 @@ export function loadConfigFromDirectory(currentModuleDir: string): Config {
  */
 export function loadConfigFromModuleUrl(currentModuleUrl: string): Config {
   try {
+    // Check for environment variable override first
+    const envConfigPath = process.env.ARCADIA_CONFIG_FILE;
+    if (envConfigPath) {
+      return loadConfigFromPath(envConfigPath);
+    }
+
     // Get the directory of the current file
     const __filename = fileURLToPath(currentModuleUrl);
     const __dirname = path.dirname(__filename);

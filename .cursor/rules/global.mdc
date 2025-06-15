@@ -27,7 +27,7 @@ Arcadia is a comprehensive MCP (Model Context Protocol) server that enables Curs
   cd ..
   export PATH=$PWD/node:$PATH
   ```
-- When installing new packages, run `npm install`, don't edit `package.json` directly. Remember to set PATH to include our local `node/`
+- When installing new packages, run `npm install`, don't edit `package.json` directly. Remember to set PATH to include our local `node/`. Then, run `scripts/clean.sh` and `scripts/init.sh`, otherwise our build script will NOT copy the updated `node_modules` into the build output.
 - Never use `import.meta` outside of startup in `index.ts`. Use dependency injection to pass directory paths to modules instead.
 - Use dependency injection pattern for modules that need to resolve paths. Pass required paths as parameters from the main entry point rather than having modules determine their own paths.
 </guidelines>

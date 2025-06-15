@@ -4,6 +4,8 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { spawn } from 'child_process';
 import path from 'path';
+import * as fs from 'fs';
+import { parse as parseJsonc } from 'jsonc-parser';
 
 const __dirname = import.meta.dirname;
 
@@ -142,6 +144,40 @@ class TestRunner {
 }
 
 async function main() {
+  // Validate required environment variables and config
+  console.log('🔍 Validating test environment...');
+
+  // Check for ARCADIA_CONFIG_FILE environment variable
+  const configFilePath = process.env.ARCADIA_CONFIG_FILE;
+  if (!configFilePath) {
+    console.error('❌ ERROR: ARCADIA_CONFIG_FILE environment variable is required for running tests.');
+    console.error('   Set it to the path of your config.jsonc file.');
+    process.exit(1);
+  }
+
+  // Verify the config file exists and has OpenAI key
+  if (!fs.existsSync(configFilePath)) {
+    console.error(`❌ ERROR: Configuration file not found at: ${configFilePath}`);
+    console.error('   Make sure ARCADIA_CONFIG_FILE points to a valid config.jsonc file.');
+    process.exit(1);
+  }
+
+  try {
+    const configData = fs.readFileSync(configFilePath, 'utf8');
+    const config = parseJsonc(configData);
+
+    if (!config.apiKeys?.openai) {
+      console.error('❌ ERROR: OpenAI API key is required in the configuration file for running tests.');
+      console.error('   Add a valid OpenAI API key to the "apiKeys.openai" field in your config.jsonc file.');
+      process.exit(1);
+    }
+
+    console.log('✅ Environment validation passed');
+  } catch (error) {
+    console.error(`❌ ERROR: Failed to read configuration file: ${error}`);
+    process.exit(1);
+  }
+
   // Path to the compiled server
   const serverPath = path.resolve(__dirname, '../server/index.js');
 
