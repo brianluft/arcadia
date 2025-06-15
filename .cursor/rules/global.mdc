@@ -5,6 +5,17 @@ alwaysApply: true
 ---
 This is Arcadia, an MCP server in Node.js providing helpful tools for Windows users of Cursor.
 
+<project_summary>
+Arcadia is a comprehensive MCP (Model Context Protocol) server that enables Cursor AI to execute bash commands on Windows systems. Key components:
+• **MCP Server**: TypeScript-based server using `@modelcontextprotocol/sdk` with stdio transport
+• **Core Tools**: `run_bash_command` (executes bash commands with timeout/environment control) and `read_output` (retrieves paginated command output)
+• **Storage System**: Timestamped file storage for command outputs with unique ID generation
+• **Configuration**: JSON-based config system for bash path, storage directory, and other settings
+• **Build System**: Local Node.js installation, TypeScript compilation, and cross-platform (x64/arm64) distribution
+• **Testing**: Comprehensive test suite with both unit tests (Jest) and MCP client integration tests
+• **CI/CD**: GitHub Actions workflow for automated building and publishing of release artifacts
+</project_summary>
+
 <guidelines>
 - Use the stdio MCP method.
 - When asked to add a rule, edit `.cursor/rules/global.mdc` (this file).
