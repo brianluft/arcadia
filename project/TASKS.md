@@ -1,4 +1,4 @@
-- [ ] Remove "server" and "version" from `config.jsonc`. We shouldn't need those and we support comments now which are a better way to explain what's happening in that file.
+- [x] Remove "server" and "version" from `config.jsonc`. We shouldn't need those and we support comments now which are a better way to explain what's happening in that file.
 - [ ] Prepare for optional OpenAI use
     - [ ] I've updated `config.jsonc` with an API keys section, and an OpenAI key.
     - [ ] If the key is non-null, create the OpenAI client at startup so it's ready for use.

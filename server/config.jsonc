@@ -1,10 +1,4 @@
 {
-  // Server configuration - defines the MCP server name and version
-  "server": {
-    "name": "arcadia-server"
-  },
-  // Version of the Arcadia server
-  "version": "1.0.0",
   // Storage configuration - defines where command output files are stored
   "storage": {
     "directory": "./storage/"

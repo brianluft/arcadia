@@ -39,8 +39,8 @@ if (!fs.existsSync(bashPath)) {
 
 const server = new Server(
   {
-    name: config.server.name,
-    version: config.version,
+    name: 'arcadia-server',
+    version: '1.0.0',
   },
   {
     capabilities: {
