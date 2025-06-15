@@ -17,6 +17,7 @@ Arcadia is a comprehensive MCP (Model Context Protocol) server that enables Curs
 </project_summary>
 
 <guidelines>
+- Build the project with `scripts/build.sh`. Use a timeout of 600 seconds.
 - Use the stdio MCP method.
 - When asked to add a rule, edit `.cursor/rules/global.mdc` (this file).
 - All .sh scripts should start with `cd "$( dirname "${BASH_SOURCE[0]}" )"` to set the working directory to the script's containing directory, then navigate from that known location.
@@ -27,7 +28,7 @@ Arcadia is a comprehensive MCP (Model Context Protocol) server that enables Curs
   cd ..
   export PATH=$PWD/node:$PATH
   ```
-- When installing new packages, run `npm install`, don't edit `package.json` directly. Remember to set PATH to include our local `node/`. Then, run `scripts/clean.sh` and `scripts/init.sh`, otherwise our build script will NOT copy the updated `node_modules` into the build output.
+- When installing new packages, run `npm install`, don't edit `package.json` directly. Remember to set PATH to include our local `node/`. Then, run `scripts/clean.sh` and `scripts/init.sh`, otherwise our `scripts/build.sh` script will NOT copy the updated `node_modules` into the build output.
 - Never use `import.meta` outside of startup in `index.ts`. Use dependency injection to pass directory paths to modules instead.
 - Use dependency injection pattern for modules that need to resolve paths. Pass required paths as parameters from the main entry point rather than having modules determine their own paths.
 </guidelines>
