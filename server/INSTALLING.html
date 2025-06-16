@@ -144,17 +144,12 @@
         <div class="step">
             <h3><span class="step-number">2</span>Configure the API Key</h3>
             <p>Edit the <code>config.jsonc</code> file in your Arcadia installation directory and add your OpenAI API key:</p>
-            <pre>{
-  "storage": {
-    "directory": "./storage/"
-  },
-  "bash": {
-    "path": "C:\\Program Files\\Git\\bin\\bash.exe"
-  },
+            <pre>...
   "apiKeys": {
     "openai": "your-openai-api-key-here"
   }
-}</pre>
+...
+</pre>
             <div class="highlight">
                 <strong>💡 Note:</strong> If you don't configure an OpenAI API key, the <code>read_image</code> tool will not be available. All other Arcadia features will continue to work normally.
             </div>

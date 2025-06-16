@@ -13,11 +13,10 @@
   - Improves on Cursor by adding mandatory timeouts to all command executions.
 
 - **Image analysis with AI**
-  - MCP tool: `read_image` (requires OpenAI API key)
+  - MCP tool: `read_image`
   - Uses GPT-4o to analyze and describe images, transcribe text, and answer questions about visual content
-  - Supports common image formats: BMP, GIF, JPEG, PNG, TIFF
-  - Automatically processes images (resizes if > 1080px height, format conversion as needed)
-  - Enables text-only AI clients to work with visual content
+  - Improves on Cursor by letting the agent autonomously read images on disk. Cursor's multimodal function requires you to manually add images as context.
+  - Requires an OpenAI API key in `config.jsonc`.
 
 ## Installation
 
@@ -33,45 +32,6 @@
 
 2. **Extract**: Extract `arcadia.zip` to a folder of your choice (e.g., `C:\Tools\arcadia\`)
 
-3. **Configure Cursor**: Add the following configuration to your `mcp.json` file:
+3. **Configure Cursor**: Follow the `INSTALLING.html` guide.
 
-    ```json
-    {
-      "mcpServers": {
-        "arcadia": {
-          "command": "<arcadia path>\\node\\node.exe",
-          "args": [
-            "<arcadia path>\\server\\index.js"
-          ]
-        }
-      }
-    }
-    ```
-
-    **Replace `<arcadia path>` with the actual path where you extracted Arcadia** (e.g., `C:\\Tools\\arcadia`).
-
-4. **Restart Cursor**: Restart Cursor to load the new MCP server configuration
-
-5. **Verify Installation**: Ask the model to verify the presence of Arcadia MCP tools.
-
-## Configuration
-
-Arcadia uses a `config.jsonc` file located in its installation directory. The default configuration includes:
-
-- **Bash Path**: `C:\Program Files\Git\bin\bash.exe` (default Git Bash location)
-- **Storage Directory**: `./storage/` (relative to installation directory)
-
-You can modify these settings by editing the `config.jsonc` file.
-
-## Usage
-
-Add a `.cursor/rules/arcadia.mdc` file to your project:
-
-```
----
-description: 
-globs: 
-alwaysApply: true
----
-Never use the `run_terminal_cmd` tool. Always use `mcp_arcadia_run_bash_command` to run terminal commands. There is no state kept between command executions. You are not able to interact; pass the non-interactive flag (e.g. -y) and avoid pagers.
-```
+4. **Verify Installation**: Ask the model to verify the presence of Arcadia MCP tools.
