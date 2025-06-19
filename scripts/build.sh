@@ -6,10 +6,38 @@ cd ..
 
 export PATH=$PWD/node:$PATH
 
+# Parse command line arguments
+BUILD_MODE="development"
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --mode)
+            BUILD_MODE="$2"
+            shift 2
+            ;;
+        --mode=*)
+            BUILD_MODE="${1#*=}"
+            shift
+            ;;
+        *)
+            echo "Unknown parameter: $1"
+            echo "Usage: $0 [--mode development|release]"
+            exit 1
+            ;;
+    esac
+done
+
+if [ "$BUILD_MODE" != "development" ] && [ "$BUILD_MODE" != "release" ]; then
+    echo "Error: BUILD_MODE must be 'development' or 'release'"
+    exit 1
+fi
+
+echo "Building in $BUILD_MODE mode..."
+
 # Create build directories
 mkdir -p build/server
 mkdir -p build/test
 mkdir -p build/node
+mkdir -p build/database
 
 # Build server TypeScript code
 echo "Building server..."
@@ -29,6 +57,19 @@ fi
 echo "Copying config.jsonc to build..."
 cp -f server/config.jsonc build/
 echo "✓ Config file copied to build/"
+
+# Build database C# project
+echo "Building database project..."
+cd database
+if [ "$BUILD_MODE" = "development" ]; then
+    echo "Building database in development mode (debug, framework dependent)..."
+    dotnet build --configuration Debug --verbosity quiet --output ../build/database/
+else
+    echo "Building database in release mode (self-contained, ready-to-run, single-file)..."
+    dotnet publish --configuration Release --verbosity quiet --self-contained --runtime win-x64 --property:PublishSingleFile=true --property:PublishReadyToRun=true --output ../build/database/
+fi
+cd ..
+echo "✓ Database project built successfully"
 
 # Build test TypeScript code
 echo "Building test client..."

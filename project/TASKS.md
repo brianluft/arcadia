@@ -2,10 +2,10 @@
 This tool will be a thin wrapper around a C# .NET console application that we will write. The .NET app will be a one-shot process; we give it a request JSON file and it writes a response JSON file. It prints nothing to stdout and exits 0. If it has any error, it prints the error to stderr and exits 1.
 - [ ] C# .NET console application
     - [x] Create a C#, .NET 9, console application project in `database/`.
-    - [ ] Update `scripts/build.sh`.
-        - [ ] Build into `build/database/`.
-        - [ ] New input parameter that says whether we're building for development or release. This doesn't change anything for the existing builds but we'll need it for C#.
-        - [ ] Build the .NET application. For development use `dotnet build`, debug, framework dependent. For publish use `dotnet publish`, release, self-contained, ready-to-run, single-file. Tell `dotnet` to be quiet, we only want to see warnings/errors.
+    - [x] Update `scripts/build.sh`.
+        - [x] Build into `build/database/`.
+        - [x] New input parameter that says whether we're building for development or release. This doesn't change anything for the existing builds but we'll need it for C#.
+        - [x] Build the .NET application. For development use `dotnet build`, debug, framework dependent. For publish use `dotnet publish`, release, self-contained, ready-to-run, single-file. Tell `dotnet` to be quiet, we only want to see warnings/errors.
     - [ ] Update `scripts\publish.sh.`
         - [ ] Copy `build/database/` to `dist/database/`.
     - [ ] Add `Microsoft.Data.Sqlite` and `Microsoft.Data.SqlClient` using `dotnet`. We will test using Sqlite because it's easy, but in production our goal is to use SQL Server. It's too hard to test with SQL Server so implement it but don't test it.
