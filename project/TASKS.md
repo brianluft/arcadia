@@ -75,12 +75,12 @@ This tool will be a thin wrapper around a C# .NET console application that we wi
             - x64 runs on `windows-latest`, arm64 runs on `windows-11-arm`.
             - Download the artifact to put `downloads/` back into place.
             - Proceed like `.github\workflows\build-and-publish.yml` does now, but uploading a separate artifact for x64 and arm64.
-- [ ] I changed my mind about some of the above.
-    - [ ] Merge `download.sh` back into `init.sh`.
-    - [ ] Make `init.sh` only download the node.js for the native arch, not both.
-    - [ ] Remove our "cross-compilation" ability; we will always build for the native arch implicitly with no ability to build for the other arch.
-        - [ ] Remove the --arch parameter in build.sh.
-        - [ ] Don't expand node to `node-$ARCH/` and then copy it to `node/`. Just expand directly into `node/` since we only have the native version of node now.
+- [x] I changed my mind about some of the above.
+    - [x] Merge `download.sh` back into `init.sh`.
+    - [x] Make `init.sh` only download the node.js for the native arch, not both.
+    - [x] Remove our "cross-compilation" ability; we will always build for the native arch implicitly with no ability to build for the other arch.
+        - [x] Remove the --arch parameter in build.sh.
+        - [x] Don't expand node to `node-$ARCH/` and then copy it to `node/`. Just expand directly into `node/` since we only have the native version of node now.
         
 ## Sample input JSON
 ```
