@@ -24,6 +24,8 @@ This will be a C# .NET 9 console program. We plan to ship our existing `Database
     - [x] Update `server\src\database.ts` to look for `Database.exe` in `../dotnet/` instead of `../database/`.
     - [x] Fix `build.sh` and `publish.sh` breakages. Build the solution instead of the project, DON'T build as single-file.
     - *🤖 Created new `dotnet/` directory structure with solution file, moved existing database project files to `dotnet/Database/`, updated all references in `server/src/database.ts`, `scripts/build.sh`, `scripts/publish.sh`, and `scripts/format.sh` to use the new paths, removed single-file publishing option, and successfully tested the build.*
-- [ ] Add new `dotnet/Logs/` project with `dotnet`. Implement the app.
-    - [ ] Fix `build.sh` and `publish.sh` breakages. Ensure we get both `Database.exe` and `Logs.exe` in `build/dotnet/` / `dist/dotnet/`.
-- [ ] Update `build.sh` to test it by clearing `build/storage`, writing a test file with a test message, and then running `build/dotnet/Logs.exe --snapshot` to see if it prints the test message.
+- [x] Add new `dotnet/Logs/` project with `dotnet`. Implement the app.
+    - [x] Fix `build.sh` and `publish.sh` breakages. Ensure we get both `Database.exe` and `Logs.exe` in `build/dotnet/` / `dist/dotnet/`.
+    - *🤖 Created new `dotnet/Logs/` console project with System.CommandLine and System.Text.Json packages, implemented comprehensive log monitoring application with config reading from JSONC, file system watching, log tailing with timestamps, and --snapshot CLI option. Updated build.sh to test Logs.exe by temporarily unsetting ARCADIA_CONFIG_FILE to verify default config.jsonc search behavior. Both Database.exe and Logs.exe are now built and tested successfully.*
+- [x] Update `build.sh` to test it by clearing `build/storage`, writing a test file with a test message, and then running `build/dotnet/Logs.exe --snapshot` to see if it prints the test message.
+    - *🤖 Added test section to build.sh that creates build/storage directory, creates test.log with test message, temporarily unsets ARCADIA_CONFIG_FILE to test default config search behavior, runs Logs.exe --snapshot, and verifies the test message appears in output.*

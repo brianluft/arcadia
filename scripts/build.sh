@@ -76,6 +76,26 @@ echo "Testing database program..."
 ./build/dotnet/Database.exe --input test/files/db_test_input.json --output test/files/db_test_output.json --expect test/files/db_test_expected.json
 echo "✓ Database tests passed"
 
+# Test logs program
+echo "Testing logs program..."
+mkdir -p build/storage
+rm -f build/storage/*.log
+echo "Test log message for build verification" > build/storage/test.log
+# Temporarily unset ARCADIA_CONFIG_FILE to test default config.jsonc search behavior
+SAVED_ARCADIA_CONFIG_FILE="$ARCADIA_CONFIG_FILE"
+unset ARCADIA_CONFIG_FILE
+LOGS_OUTPUT=$(./build/dotnet/Logs.exe --snapshot 2>&1)
+# Restore ARCADIA_CONFIG_FILE for other tests
+export ARCADIA_CONFIG_FILE="$SAVED_ARCADIA_CONFIG_FILE"
+if echo "$LOGS_OUTPUT" | grep -q "Test log message for build verification"; then
+    echo "✓ Logs program test passed"
+else
+    echo "✗ Logs program test failed"
+    echo "Expected to find test message in output, but got:"
+    echo "$LOGS_OUTPUT"
+    exit 1
+fi
+
 # Build test TypeScript code
 echo "Building test client..."
 cd test
