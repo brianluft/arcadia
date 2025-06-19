@@ -37,7 +37,7 @@ echo "Building in $BUILD_MODE mode for $NATIVE_ARCH architecture..."
 mkdir -p build/server
 mkdir -p build/test
 mkdir -p build/node
-mkdir -p build/database
+mkdir -p build/dotnet
 
 # Build server TypeScript code
 echo "Building server..."
@@ -58,22 +58,22 @@ echo "Copying config.jsonc to build..."
 cp -f server/config.jsonc build/
 echo "✓ Config file copied to build/"
 
-# Build database C# project
-echo "Building database project..."
-cd database
+# Build dotnet solution
+echo "Building dotnet solution..."
+cd dotnet
 if [ "$BUILD_MODE" = "development" ]; then
-    echo "Building database in development mode (debug, framework dependent)..."
-    dotnet build --configuration Debug --verbosity quiet --output ../build/database/
+    echo "Building dotnet solution in development mode (debug, framework dependent)..."
+    dotnet build --configuration Debug --verbosity quiet --output ../build/dotnet/
 else
-    echo "Building database in release mode (self-contained, ready-to-run, single-file)..."
-    dotnet publish --configuration Release --verbosity quiet --self-contained --property:PublishSingleFile=true --property:PublishReadyToRun=true --output ../build/database/
+    echo "Building dotnet solution in release mode (self-contained, ready-to-run)..."
+    dotnet publish --configuration Release --verbosity quiet --self-contained --property:PublishReadyToRun=true --output ../build/dotnet/
 fi
 cd ..
-echo "✓ Database project built successfully"
+echo "✓ Dotnet solution built successfully"
 
 # Test database program
 echo "Testing database program..."
-./build/database/Database.exe --input test/files/db_test_input.json --output test/files/db_test_output.json --expect test/files/db_test_expected.json
+./build/dotnet/Database.exe --input test/files/db_test_input.json --output test/files/db_test_output.json --expect test/files/db_test_expected.json
 echo "✓ Database tests passed"
 
 # Build test TypeScript code

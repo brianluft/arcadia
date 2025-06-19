@@ -9,7 +9,7 @@ This will be a C# .NET 9 console program. We plan to ship our existing `Database
 - [ ] Optional CLI flag `--snapshot` that will print the current contents of the last log file as usual but then simply exit rather than waiting for new messages.
 
 ## Tasks
-- [ ] Restructure the existing single-project `database/` code into a new parent folder `dotnet/` to support a multi-project solution. Rely on unix tools and `dotnet` for this, don't read files and then rewrite them from memory when possible.
+- [x] Restructure the existing single-project `database/` code into a new parent folder `dotnet/` to support a multi-project solution. Rely on unix tools and `dotnet` for this, don't read files and then rewrite them from memory when possible.
     ``` 
     (project root)
         dotnet/
@@ -21,8 +21,9 @@ This will be a C# .NET 9 console program. We plan to ship our existing `Database
             .csharpierrc
             dotnet.sln
     ```
-    - [ ] Update `server\src\database.ts` to look for `Database.exe` in `../dotnet/` instead of `../database/`.
-    - [ ] Fix `build.sh` and `publish.sh` breakages. Build the solution instead of the project, DON'T build as single-file.
+    - [x] Update `server\src\database.ts` to look for `Database.exe` in `../dotnet/` instead of `../database/`.
+    - [x] Fix `build.sh` and `publish.sh` breakages. Build the solution instead of the project, DON'T build as single-file.
+    - *🤖 Created new `dotnet/` directory structure with solution file, moved existing database project files to `dotnet/Database/`, updated all references in `server/src/database.ts`, `scripts/build.sh`, `scripts/publish.sh`, and `scripts/format.sh` to use the new paths, removed single-file publishing option, and successfully tested the build.*
 - [ ] Add new `dotnet/Logs/` project with `dotnet`. Implement the app.
     - [ ] Fix `build.sh` and `publish.sh` breakages. Ensure we get both `Database.exe` and `Logs.exe` in `build/dotnet/` / `dist/dotnet/`.
 - [ ] Update `build.sh` to test it by clearing `build/storage`, writing a test file with a test message, and then running `build/dotnet/Logs.exe --snapshot` to see if it prints the test message.

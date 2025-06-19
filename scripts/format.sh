@@ -17,10 +17,10 @@ cd test
 ../node/npm.cmd run prettier -- --write "src/**/*.{ts,js,json}"
 cd ..
 
-# Format database code with csharpier
-echo "Formatting database code..."
-cd database
-dotnet csharpier format src
+# Format dotnet code with csharpier
+echo "Formatting dotnet code..."
+cd dotnet
+dotnet csharpier format Database
 cd ..
 
 # Fix line endings

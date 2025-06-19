@@ -53,7 +53,7 @@ export async function runDatabaseCommand(
   serverDirectory: string
 ): Promise<DatabaseCommandResult> {
   // Determine path to the C# database program
-  const databaseProgramPath = path.join(serverDirectory, '..', 'database', 'Database.exe');
+  const databaseProgramPath = path.join(serverDirectory, '..', 'dotnet', 'Database.exe');
 
   // Check if the database program exists
   if (!fs.existsSync(databaseProgramPath)) {
