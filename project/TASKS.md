@@ -81,7 +81,9 @@ This tool will be a thin wrapper around a C# .NET console application that we wi
     - [x] Remove our "cross-compilation" ability; we will always build for the native arch implicitly with no ability to build for the other arch.
         - [x] Remove the --arch parameter in build.sh.
         - [x] Don't expand node to `node-$ARCH/` and then copy it to `node/`. Just expand directly into `node/` since we only have the native version of node now.
-        
+        - [ ] Remove the arch command line argument from publish.sh
+        - [ ] Update GitHub Actions
+
 ## Sample input JSON
 ```
 {
