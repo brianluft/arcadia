@@ -64,15 +64,15 @@ This tool will be a thin wrapper around a C# .NET console application that we wi
 - Bug fixes
     - [x] Build/publish process needs to handle compiling for ARM64 vs. x64, you are only building for x64 now. Update `build.sh` to accept an optional arch just like `publish.sh` does, have publish pass it down. When not specified, use the native arch of the build machine (we are on arm64 right now).
     - [x] `publish.sh` needs to tell `build.sh` to build for release, we are publishing a debug build now.
-- [ ] GitHub Actions: `.github\workflows\build-and-publish.yml` is broken because we attempt to run the arm64 Database.exe on the x64 runner. Additionally, it's slow to build arm64 and x64 serially.
-    - [ ] Refactor `scripts/init.sh` to extract the parts that download files into a new `scripts/download.sh`. `download.sh` will be a noop if the downloaded files already exist, as is the case with `init.sh` currently. `init.sh` will now fail with an explicit error if an expected downloaded file does not exist; the message will inform the user to run `download.sh` first.
-        - [ ] Update `CONTRIBUTING.md` about running `download.sh` first.
-    - [ ] Restructure the single GitHub Actions job into a fork pattern to build x64 and arm64 in parallel.
+- [x] GitHub Actions: `.github\workflows\build-and-publish.yml` is broken because we attempt to run the arm64 Database.exe on the x64 runner. Additionally, it's slow to build arm64 and x64 serially.
+    - [x] Refactor `scripts/init.sh` to extract the parts that download files into a new `scripts/download.sh`. `download.sh` will be a noop if the downloaded files already exist, as is the case with `init.sh` currently. `init.sh` will now fail with an explicit error if an expected downloaded file does not exist; the message will inform the user to run `download.sh` first.
+        - [x] Update `CONTRIBUTING.md` about running `download.sh` first.
+    - [x] Restructure the single GitHub Actions job into a fork pattern to build x64 and arm64 in parallel.
         1. Initialization job.
             - Run `download.sh`
             - Upload the contents of the `downloads/` folder as a single artifact
         2. Fan out to two jobs: x64 and arm64.
-            - x64 runs on `windows-latest`, arm64 runs on `windows-11-arm64-4c`.
+            - x64 runs on `windows-latest`, arm64 runs on `windows-11-arm64`.
             - Download the artifact to put `downloads/` back into place.
             - Proceed like `.github\workflows\build-and-publish.yml` does now, but uploading a separate artifact for x64 and arm64.
 

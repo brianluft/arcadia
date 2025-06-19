@@ -56,7 +56,7 @@ Example `config.jsonc`:
    scripts/init.sh
    ```
 
-2. **Build the project**:
+1. **Build the project**:
    ```bash
    scripts/build.sh
    ```

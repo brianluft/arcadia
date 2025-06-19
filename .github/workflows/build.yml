@@ -1,0 +1,48 @@
+name: Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - arch: x64
+            worker: windows-latest
+          - name: arm64
+            worker: windows-11-arm
+    runs-on: ${{ matrix.worker }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Create config.jsonc from secret
+      shell: powershell
+      run: |
+        $env:ARCADIA_CONFIG_CONTENT | Out-File -FilePath "arcadia-config.jsonc" -Encoding UTF8
+        "ARCADIA_CONFIG_FILE=${{ github.workspace }}\arcadia-config.jsonc".Replace('/', '\') | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding UTF8
+      env:
+        ARCADIA_CONFIG_CONTENT: ${{ secrets.ARCADIA_CONFIG_JSONC }}
+
+    - name: Initialize environment
+      run: scripts/init.sh
+      shell: bash
+    
+    - name: Build
+      run: scripts/publish.sh ${{ matrix.arch }}
+      shell: bash
+      env:
+        ARCADIA_CONFIG_FILE: ${{ env.ARCADIA_CONFIG_FILE }}
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: arcadia-${{ matrix.arch }}
+        path: arcadia-${{ matrix.arch }}.zip
+        if-no-files-found: error

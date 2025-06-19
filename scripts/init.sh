@@ -13,30 +13,19 @@ echo "Setting up Arcadia project..."
 echo "Node.js version: $NODE_VERSION"
 echo "Native architecture: $NATIVE_ARCH"
 
-# Create downloads folder if it doesn't exist
-mkdir -p downloads
+scripts/download.sh
 
-# Function to download and setup Node.js for a specific architecture
+# Function to setup Node.js for a specific architecture
 setup_node_arch() {
     local arch=$1
     local folder_name=$2
     
     echo "Setting up Node.js for $arch..."
     
-    # Node.js download URL and filename
+    # Node.js filename and download path
     local node_filename="node-v${NODE_VERSION}-win-${arch}"
     local node_zip="${node_filename}.zip"
-    local node_url="https://nodejs.org/dist/v${NODE_VERSION}/${node_zip}"
     local download_path="downloads/${node_zip}"
-    
-    # Download Node if it hasn't already been downloaded
-    if [ ! -f "$download_path" ]; then
-        echo "Downloading Node.js for $arch..."
-        curl -L -o "$download_path" "$node_url"
-        echo "Downloaded $node_zip"
-    else
-        echo "Node.js for $arch already downloaded: $download_path"
-    fi
     
     # Delete folder if it exists
     if [ -d "$folder_name" ]; then
@@ -81,19 +70,9 @@ echo "✓ Native Node.js ($NATIVE_ARCH) copied to node/ for building"
 echo "Node.js version: $(node/node.exe --version)"
 echo "npm version: $(node/npm.cmd --version)"
 
-# 7-zip download and setup
+# 7-zip setup
 SEVENZIP_ZIP="7za920.zip"
-SEVENZIP_URL="https://www.7-zip.org/a/7za920.zip"
 SEVENZIP_DOWNLOAD_PATH="downloads/${SEVENZIP_ZIP}"
-
-# Download 7-zip if it hasn't already been downloaded
-if [ ! -f "$SEVENZIP_DOWNLOAD_PATH" ]; then
-    echo "Downloading 7-zip..."
-    curl -L -o "$SEVENZIP_DOWNLOAD_PATH" "$SEVENZIP_URL"
-    echo "Downloaded $SEVENZIP_ZIP"
-else
-    echo "7-zip already downloaded: $SEVENZIP_DOWNLOAD_PATH"
-fi
 
 # Create 7zip folder and extract files
 if [ -d "7zip" ]; then
