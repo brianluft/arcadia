@@ -1,28 +1,94 @@
-- [x] Remove "server" and "version" from `config.jsonc`. We shouldn't need those and we support comments now which are a better way to explain what's happening in that file.
-- [x] Prepare for optional OpenAI use
-    - [x] I've updated `config.jsonc` with an API keys section, and an OpenAI key.
-    - [x] If the key is non-null, create the OpenAI client at startup so it's ready for use.
-- [x] Support an environment variable `ARCADIA_CONFIG_FILE` that overrides our auto detected `config.jsonc` path.
-    - [x] When running our real-deal integration test in `test/`, make this environment variable _mandatory_. Furthermore, make the OpenAI key _mandatory_. On the development machine right now, it is already set. If it's not set, print an error message and exit before running the tests.
-    - [x] Update GitHub Actions to read this config file from a GitHub Actions secret, save it to a file, and then set the environment variable before running the builds.
-    - [x] Start `CONTRIBUTING.md`. Make a "getting started" section for developers looking to build our project, and explain how `ARCADIA_CONFIG_FILE` is required to run the tests.
-- [x] New MCP tool: `read_image`. This will ask gpt-4o (a multimodal model) a question about an image, allowing a text-only client to deal with images.
-    - [x] Read `context\openai-vision.md` for guidance
-    - [x] This tool is ONLY present if an OpenAI key is configured at startup. If not, the tool is not exposed to the client at all.
-    - Inputs:
-        - [x] Mandatory parameter: absolute path to a bmp/gif/jpeg/png/tiff image file. We will accept both Windows-style and MSYS-style paths (C:\ /c/ /C:/).
-        - [x] Optional parameter: prompt string. This is an English prompt for the OpenAI multimodal model. The client may ask some questions about the image for the multimodal model to answer. If not provided, use a default prompt: `Describe this image to a blind user. Transcribe any text.`
-    - Behavior:
-        - [x] Use npm library `jimp` to process the image if needed.
-            - [x] If the image is taller than 1080 pixels, then resize down to 1080p while maintaining aspect ratio.
-            - [x] Possible file format conversion: Keep PNG as PNG. Keep JPG as JPG. Convert other types to JPG. Any time you save as JPG, use high quality; we are concerned about resolution and file type but not concerned about file size.
-            - [x] Given the above rules, a PNG or JPG image with height <= 1080 will not be re-saved and will be used as-is, since they require neither scaling nor conversion.
-            - [x] Use our storage directory and its auto-naming system to store the converted image. Append the correct image file extension to the automatic name.
-        - [x] Use OpenAI to ask the 'gpt-4o' model the question about the processed image.
-    - Testing:
-        - Skip writing jest unit tests; this is all about the API interactions and once we mock the APIs, nothing interesting is left. So don't bother. Instead, we will rely on our real-deal MCP client test harness in `test/`. 
-        - [x] Test reading `test/files/image.png` and ask the model what the text says. Verify that the model's response contains "Hello world" (it will probably do some more yapping besides that, but that's fine).
-    - Documentation:
-        - [x] Update `.github\README.md` with a brief description of this feature
-        - [x] Update `.cursor\rules\global.mdc` as needed
-        - [x] Update `server\INSTALLING.html` to let the user know that `read_image` requires them to fill in the OpenAI key, and tell them how to do that.
+# SQL Server tool
+This tool will be a thin wrapper around a C# .NET console application that we will write. The .NET app will be a one-shot process; we give it a request JSON file and it writes a response JSON file. It prints nothing to stdout and exits 0. If it has any error, it prints the error to stderr and exits 1.
+- [ ] C# .NET console application
+    - [x] Create a C#, .NET 9, console application project in `database/`.
+    - [ ] Update `scripts/build.sh`.
+        - [ ] Build into `build/database/`.
+        - [ ] New input parameter that says whether we're building for development or release. This doesn't change anything for the existing builds but we'll need it for C#.
+        - [ ] Build the .NET application. For development use `dotnet build`, debug, framework dependent. For publish use `dotnet publish`, release, self-contained, ready-to-run, single-file. Tell `dotnet` to be quiet, we only want to see warnings/errors.
+    - [ ] Update `scripts\publish.sh.`
+        - [ ] Copy `build/database/` to `dist/database/`.
+    - [ ] Add `Microsoft.Data.Sqlite` and `Microsoft.Data.SqlClient` using `dotnet`. We will test using Sqlite because it's easy, but in production our goal is to use SQL Server. It's too hard to test with SQL Server so implement it but don't test it.
+    - [ ] Implement the C# program.
+        - [ ] Mandatory CLI argument `--input <file>`: input .json file path with this structure. All properties are mandatory. See "## Sample input JSON" below.
+        - [ ] Mandatory CLI argument `--output <file>`: output .json file path to be written to. The output format will be an array of rows, where each row is an array. The first one is the column headers. This is basically a CSV structure encoded into JSON. See "## Sample output JSON" below.
+        - [ ] Optional CLI argument `--expect <file>`: if specified, then after the output file is read, it is compared to the preexisting contents of this file. Trim leading/trailing whitespace and ignore line ending differences. If they do match, print `Pass: <output filename> matches <expect filename>` and exit 0. If they don't match, print `Fail: <output filename> does not match <expect filename>` and exit 1. This will be used for testing.
+        - [ ] Connect to the database as specified, make the query, skip the requested rows, take up the requested max rows, and write the given JSON format in the output file.
+            - [ ] Disable ADO.NET connection pooling, this is a one-shot process so it's pointless.
+    - [ ] Instead of a C# unit test, use `--expect` to test it directly from `scripts/build.sh` after building. Use the SQLite test file in `test/files/foo.sqlite3` for tests. The table `foo` has one column `a` with a thousand rows with the numbers 1 through 1000. Stick your JSON files in `test/files/`.
+- [ ] Add SQL Server connection strings to the server's `config.jsonc`. Configuration is not required for SQLite. See `## Sample config.json` below for the syntax.
+    - [ ] `connections` section is optional.
+    - [ ] Provide two example commented-out data sources:
+        - [ ] SQL Server with Windows authentication
+        - [ ] SQL Server with SQL authentication
+        - [ ] Include the Encrypt flag explicitly so the user can turn it off if needed.
+    - [ ] Read them in at startup with the rest of the config but don't do anything with this information until an MCP tool is called.
+- [ ] Create a helper in the server for executing SQL commands via our C# program.
+    - [ ] The C# program is located relative to the path of our server script which it already knows in `index.ts`, it's in `../database/`.
+    - [ ] Observe the program's exit code. If nonzero then it's a failure and the program should have printed an error message to stderr. Grab that message and throw an exception. On zero it's success and it prints nothing.
+- [ ] New MCP tools.
+    - Guidelines
+        - Outputs and paging: All tools will use the same output storage mechanism that `run_bash_command` does. We'll write the full output to a file, then return a truncated snippet from the top of the file in the MCP tool response. For this, make a new function for truncation that takes a maximum number of characters and returns as many full lines as it can before hitting that total character limit. For database tools, the output limit is 10,000 characters. Make that a constant we can adjust later. When truncated, append a line to the response indicating how much output was returned in the response, how much is actually available in the file, and what filename and line number to request to continue paging.
+        - Use fully qualified and bracket-quoted object names in SQL Server, the syntax is `[{database}].[{schema}].[{table}]`. SQLite syntax is the `"`-quoted name, `"{table}"`, if the table name actually includes a literal `"` they are doubled.
+        - For these tools, it's all about integration. Skip the jest unit tests and use our real-deal test harness to test against an SQLite database in `test/files/foo.sqlite3`. Don't test SQL Server; leave that to me to test manually.
+    - [ ] In the docs, explain that "object" here means a table, view, stored procedure, user defined function, or user defined type.
+    - [ ] Tool: `list_database_connections`. This is the list of SQL Server connections but does NOT include SQLite, because SQLite databases can be used on-the-fly without configuration. Explain this in the doc.
+        - [ ] Generate one name per line. Don't include the connection string itself since it may include passwords.
+    - [ ] Tool: `list_database_schemas`. SQL Server only. Lists databases and their schemas. No parameters. Returns a list of every `[{database}].[{schema}]`, one per line.
+    - [ ] Tool: `list_database_objects`. Go here next if you don't know where to find something in the database.
+        - [ ] Mandatory parameter: `connection`. May be the name of an SQL Server connection or the absolute path to an SQLite file.
+        - [ ] Mandatory parameter: `type`. May be:
+            - [ ] `relation`: table or view (SQL Server and SQLite)
+            - [ ] `procedure`: stored procedure (SQL Server only)
+            - [ ] `function`: user defined function (SQL Server only)
+            - [ ] `type`: user defined type (SQL Server only)
+        - [ ] Optional parameter: `search_regex`. If a pattern is provided it will be used to filter the names. Case insensitive.
+        - [ ] Optional `database` parameter: SQL Server only. If specified, it's one of the database names (no schema) from `list_database_schemas`, and the search is performed only on that database. Otherwise all databases are scanned.
+        - [ ] Generate one name per line.
+    - [ ] Tool: `describe_database_object`. Use this to get the definition of an object you found in `list_database_objects`.
+        - [ ] Mandatory parameter: `connection`. May be the name of an SQL Server connection or the absolute path to an SQLite file.
+        - [ ] Mandatory parameter: `name`. Same syntax as the output from `list_database_objects`.
+        - [ ] SQLite: just return the `sql` from `sqlite_master`, it's already literal SQL.
+        - [ ] SQL Server: reconstruct pseudo-SQL from the columns, primary key and other constraints (including constraint names), secondary indexes (including names and options), options. Don't worry about it being exactly syntactically correct, this is just documentation.
+    - [ ] Tool: `list_database_types`. This is unlike the other endpoints. It's static information, just a dump of the `DbType` enum value names. Don't page or write to an output file, just enumerate `DbType` and return the names one per line. This is to help MCP clients that need to bind parameters in `run_sql_command` and are having a hard time guessing the names.
+    - [ ] Tool: `run_sql_command`.
+        - [ ] Wrap command execution in a transaction that ALWAYS rolls back. It never commits under any circumstance. In the doc, tell the client that this will happen.
+        - [ ] Mandatory parameter: `connection`. May be the name of an SQL Server connection or the absolute path to an SQLite file.
+        - [ ] Mandatory parameter: `command`. This is the literal SQL command with `@foo` style named parameters. In the doc, remind the client that this can be multiple statements (ADO.NET handles this for us). In SQL Server, it can be a whole T-SQL script.
+        - [ ] Mandatory parameter: `timeout_seconds`. In the doc, recommend 30 seconds as a good starting place.
+        - [ ] Optional parameter: `arguments`. This provides the value for each `@foo` named parameter used in the command text. May be omitted if the command doesn't have any named parameters. This is a key-value object where the keys are the parameter names and the values are like `{ "type": "Int32", "value": 123 }`. In the doc, mention that on SQLite the only types needed are: `Int64`, `Double`, `String`. In SQL Server there are many more, use `list_database_types` for the full list. We don't support `Byte[]`.
+        - [ ] The output is line-oriented JSON. Each row is a JSON object returned in one line of the response. No "outer" array, just one JSON object per row directly into the MCP tool response.
+        - [ ] If it timed out, then return the error instead.
+
+## Sample input JSON
+```
+{
+    "provider": "Microsoft.Data.SqlClient",
+    "connectionString": "<ADO.NET connection string>",
+    "query": "SELECT * FROM Users WHERE IsActive = @isActive",
+    "parameters": {
+        "@isActive": { "type": "Boolean", "value": true }
+    },
+    "commandType": "Text",
+    "timeoutSeconds": 30,
+    "skipRows", 0,
+    "takeRows": 1000
+}
+```
+
+## Sample output JSON
+```
+[
+    ["column_name_1","column_name_2","column_name_3","column_name_4"],
+    [100,"foo",true,null]
+]
+```
+
+## Sample config.json
+```
+"connections": {
+    "sqlServer": [
+        "my_db": "Server=myServerAddress;Database=myDataBase;Trusted_Connection=True;"
+    ]
+}
+```
