@@ -777,7 +777,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         if (isSqlite) {
           input = createSqliteInput(
             args.connection,
-            `BEGIN TRANSACTION; ${args.command}; ROLLBACK;`,
+            args.command,
             parameters,
             args.timeout_seconds,
             0,
@@ -787,7 +787,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
           const connectionString = getSqlServerConnectionString(args.connection, config);
           input = createSqlServerInput(
             connectionString,
-            `BEGIN TRANSACTION; ${args.command}; ROLLBACK TRANSACTION;`,
+            args.command,
             parameters,
             args.timeout_seconds,
             0,
