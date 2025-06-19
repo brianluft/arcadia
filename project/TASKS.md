@@ -83,7 +83,7 @@ This tool will be a thin wrapper around a C# .NET console application that we wi
         - [x] Don't expand node to `node-$ARCH/` and then copy it to `node/`. Just expand directly into `node/` since we only have the native version of node now.
         - [x] Remove the arch command line argument from publish.sh
         - [x] Update GitHub Actions
--  [ ] Bug fix: The client's first attempt was the parameters below. You can see it has chosen an MSYS style with `/c:`. We incorrectly thought this was an SQL Server connection name and didn't find it. Ensure you handle MSYS style paths, both `/c/` and `/c:/` style. Add tests in your real-deal test harness that perform queries against `test/files/foo.sqlite3` using all four of these formats: `C:\` `C:/` `/c/` `/c:/`
+-  [x] Bug fix: The client's first attempt was the parameters below. You can see it has chosen an MSYS style with `/c:`. We incorrectly thought this was an SQL Server connection name and didn't find it. Ensure you handle MSYS style paths, both `/c/` and `/c:/` style. Add tests in your real-deal test harness that perform queries against `test/files/foo.sqlite3` using all four of these formats: `C:\` `C:/` `/c/` `/c:/`
     ```
     {
         "connection": "/c%3A/Projects/arcadia/test/files/foo.sqlite3",

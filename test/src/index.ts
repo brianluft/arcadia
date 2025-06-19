@@ -274,6 +274,70 @@ async function main() {
         expectedContent: 'Hello world',
         description: 'Test read_image can analyze an image and extract text',
       },
+      {
+        name: 'database_path_windows_backslash',
+        toolName: 'list_database_objects',
+        arguments: {
+          connection: path.resolve(__dirname, '../../test/files/foo.sqlite3').replace(/\//g, '\\'),
+          type: 'relation',
+        },
+        expectedContent: '\\u0022foo\\u0022',
+        description: 'Test database path handling with Windows backslash format (C:\\...)',
+      },
+      {
+        name: 'database_path_windows_forward_slash',
+        toolName: 'list_database_objects',
+        arguments: {
+          connection: path.resolve(__dirname, '../../test/files/foo.sqlite3').replace(/\\/g, '/'),
+          type: 'relation',
+        },
+        expectedContent: '\\u0022foo\\u0022',
+        description: 'Test database path handling with Windows forward slash format (C:/...)',
+      },
+      {
+        name: 'database_path_msys_simple',
+        toolName: 'list_database_objects',
+        arguments: {
+          connection: path
+            .resolve(__dirname, '../../test/files/foo.sqlite3')
+            .replace(/^([A-Z]):/i, '/$1')
+            .replace(/\\/g, '/')
+            .toLowerCase(),
+          type: 'relation',
+        },
+        expectedContent: '\\u0022foo\\u0022',
+        description: 'Test database path handling with MSYS format (/c/...)',
+      },
+      {
+        name: 'database_path_msys_with_colon',
+        toolName: 'list_database_objects',
+        arguments: {
+          connection: path
+            .resolve(__dirname, '../../test/files/foo.sqlite3')
+            .replace(/^([A-Z]):/i, '/$1:')
+            .replace(/\\/g, '/')
+            .toLowerCase(),
+          type: 'relation',
+        },
+        expectedContent: '\\u0022foo\\u0022',
+        description: 'Test database path handling with MSYS format with colon (/c:/...)',
+      },
+      {
+        name: 'database_path_url_encoded',
+        toolName: 'list_database_objects',
+        arguments: {
+          connection: encodeURIComponent(
+            path
+              .resolve(__dirname, '../../test/files/foo.sqlite3')
+              .replace(/^([A-Z]):/i, '/$1:')
+              .replace(/\\/g, '/')
+              .toLowerCase()
+          ),
+          type: 'relation',
+        },
+        expectedContent: '\\u0022foo\\u0022',
+        description: 'Test database path handling with URL-encoded MSYS format (/c%3A/...)',
+      },
     ];
 
     // Run tests

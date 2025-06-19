@@ -14,6 +14,7 @@ import {
   createSqlServerInput,
   SqlParameter,
 } from './database.js';
+import { normalizePath } from './utils.js';
 import OpenAI from 'openai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -506,7 +507,8 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         let isSqlite = false;
 
         // Determine if this is SQLite or SQL Server
-        if (fs.existsSync(args.connection)) {
+        const normalizedConnection = normalizePath(args.connection);
+        if (fs.existsSync(normalizedConnection)) {
           isSqlite = true;
         }
 
@@ -523,7 +525,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
           }
           query += ' ORDER BY name';
 
-          const input = createSqliteInput(args.connection, query, undefined, 30, 0, 1000);
+          const input = createSqliteInput(normalizedConnection, query, undefined, 30, 0, 1000);
           const result = await runDatabaseCommand(input, config, storageDirectory, __dirname);
 
           const responseLines = [result.output];
@@ -622,7 +624,8 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         let isSqlite = false;
 
         // Determine if this is SQLite or SQL Server
-        if (fs.existsSync(args.connection)) {
+        const normalizedConnection = normalizePath(args.connection);
+        if (fs.existsSync(normalizedConnection)) {
           isSqlite = true;
         }
 
@@ -631,7 +634,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
           const objectName = args.name.replace(/"/g, ''); // Remove quotes
           query = `SELECT sql FROM sqlite_master WHERE name = '${objectName.replace(/'/g, "''")}'`;
 
-          const input = createSqliteInput(args.connection, query, undefined, 30, 0, 1000);
+          const input = createSqliteInput(normalizedConnection, query, undefined, 30, 0, 1000);
           const result = await runDatabaseCommand(input, config, storageDirectory, __dirname);
 
           const responseLines = [result.output];
@@ -770,29 +773,16 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         let isSqlite = false;
 
         // Determine if this is SQLite or SQL Server
-        if (fs.existsSync(args.connection)) {
+        const normalizedConnection = normalizePath(args.connection);
+        if (fs.existsSync(normalizedConnection)) {
           isSqlite = true;
         }
 
         if (isSqlite) {
-          input = createSqliteInput(
-            args.connection,
-            args.command,
-            parameters,
-            args.timeout_seconds,
-            0,
-            1000
-          );
+          input = createSqliteInput(normalizedConnection, args.command, parameters, args.timeout_seconds, 0, 1000);
         } else {
           const connectionString = getSqlServerConnectionString(args.connection, config);
-          input = createSqlServerInput(
-            connectionString,
-            args.command,
-            parameters,
-            args.timeout_seconds,
-            0,
-            1000
-          );
+          input = createSqlServerInput(connectionString, args.command, parameters, args.timeout_seconds, 0, 1000);
         }
 
         const result = await runDatabaseCommand(input, config, storageDirectory, __dirname);

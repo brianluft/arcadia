@@ -56,3 +56,30 @@ export function parseKeyValue(input: string): { key: string; value: string } | n
 
   return { key, value };
 }
+
+/**
+ * Normalize a file path to Windows format, handling various path formats including MSYS-style paths
+ * @param filePath - The file path to normalize
+ * @returns Normalized Windows path
+ */
+export function normalizePath(filePath: string): string {
+  // URL decode the path first (handles cases like /c%3A/Projects/...)
+  let normalizedPath = decodeURIComponent(filePath);
+
+  // Handle MSYS-style paths like /c/foo/bar or /c:/foo/bar
+  if (normalizedPath.match(/^\/[a-zA-Z](\:|\/)/)) {
+    const driveLetter = normalizedPath.charAt(1).toUpperCase();
+    if (normalizedPath.charAt(2) === ':') {
+      // Format: /c:/foo/bar -> C:/foo/bar
+      normalizedPath = `${driveLetter}:${normalizedPath.substring(3)}`;
+    } else {
+      // Format: /c/foo/bar -> C:/foo/bar
+      normalizedPath = `${driveLetter}:${normalizedPath.substring(2)}`;
+    }
+  }
+
+  // Convert forward slashes to backslashes for Windows
+  normalizedPath = normalizedPath.replace(/\//g, '\\');
+
+  return normalizedPath;
+}
