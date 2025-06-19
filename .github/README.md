@@ -26,6 +26,12 @@
   - Automatic output paging prevents long query results from overwhelming the model's context
   - Configure SQL Server connections in `config.jsonc` under the `connections` section
 
+- **Real-time log monitoring**
+  - Convenient `logs.bat` launcher for viewing active MCP server logs
+  - Automatic log file monitoring with real-time updates
+  - Timestamps and organized display of command executions, database queries, and system events
+  - Supports both continuous monitoring and snapshot modes for troubleshooting
+
 ## Installation
 
 ### Prerequisites

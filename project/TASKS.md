@@ -31,5 +31,7 @@ This will be a C# .NET 9 console program. We plan to ship our existing `Database
     - *🤖 Added test section to build.sh that creates build/storage directory, creates test.log with test message, temporarily unsets ARCADIA_CONFIG_FILE to test default config search behavior, runs Logs.exe --snapshot, and verifies the test message appears in output.*
 - [x] Create `dotnet/logs.bat`, have it `@ECHO OFF`, `cd /d "%~dp0"`, `cd dotnet`, `Logs.exe`. Update `publish.sh` to copy it into the root of the zip, next to `INSTALLING.html`.
     - *🤖 Created `dotnet/logs.bat` with proper batch file commands to launch Logs.exe from the dotnet subdirectory, and updated `scripts/publish.sh` to copy logs.bat to the root of the distribution zip alongside INSTALLING.html.*
-- [ ] Update `server\INSTALLING.html` letting the user know they can click `logs.bat` to view active logs.
-- [ ] Update `.github\README.md`.
+- [x] Update `server\INSTALLING.html` letting the user know they can click `logs.bat` to view active logs.
+    - *🤖 Added a new "📋 Viewing Active Logs" section to INSTALLING.html with step-by-step instructions for using logs.bat, including information about real-time monitoring and --snapshot mode functionality.*
+- [x] Update `.github\README.md`.
+    - *🤖 Added "Real-time log monitoring" as a new feature bullet point in the Features section, describing logs.bat launcher, automatic monitoring, timestamps, and both continuous and snapshot modes.*
