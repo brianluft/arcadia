@@ -86,7 +86,46 @@ export function ensureStorageDirectory(storageDir: string): string {
   const testFilePath = path.join(storageDir, '.test-write-access');
   try {
     fs.writeFileSync(testFilePath, 'test');
-    fs.unlinkSync(testFilePath);
+
+    // Try to delete the test file with retry logic for Windows
+    let deleteSuccess = false;
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        fs.unlinkSync(testFilePath);
+        deleteSuccess = true;
+        break;
+      } catch (unlinkError) {
+        lastError = unlinkError as Error;
+        // On Windows, file deletion might be delayed due to antivirus or filesystem issues
+        // Wait a bit and retry
+        if (attempt < 2) {
+          const delay = Math.pow(2, attempt) * 100; // 100ms, 200ms
+          // Simple synchronous delay
+          const start = Date.now();
+          while (Date.now() - start < delay) {
+            // Busy wait
+          }
+        }
+      }
+    }
+
+    if (!deleteSuccess && lastError) {
+      // If we can't delete the test file, check if it's just a permission issue
+      // but the directory is still writable by trying a different approach
+      try {
+        // Try to overwrite the existing test file
+        fs.writeFileSync(testFilePath, 'test2');
+        console.error(
+          `Warning: Could not delete test file ${testFilePath}, but directory appears writable. Continuing...`
+        );
+      } catch (overwriteError) {
+        throw new Error(
+          `Storage directory is not writable: ${storageDir}. Delete error: ${lastError}. Overwrite error: ${overwriteError}`
+        );
+      }
+    }
   } catch (testError) {
     throw new Error(`Storage directory is not writable: ${storageDir}. Error: ${testError}`);
   }

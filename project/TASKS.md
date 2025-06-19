@@ -6,16 +6,16 @@ This tool will be a thin wrapper around a C# .NET console application that we wi
         - [x] Build into `build/database/`.
         - [x] New input parameter that says whether we're building for development or release. This doesn't change anything for the existing builds but we'll need it for C#.
         - [x] Build the .NET application. For development use `dotnet build`, debug, framework dependent. For publish use `dotnet publish`, release, self-contained, ready-to-run, single-file. Tell `dotnet` to be quiet, we only want to see warnings/errors.
-    - [ ] Update `scripts\publish.sh.`
-        - [ ] Copy `build/database/` to `dist/database/`.
-    - [ ] Add `Microsoft.Data.Sqlite` and `Microsoft.Data.SqlClient` using `dotnet`. We will test using Sqlite because it's easy, but in production our goal is to use SQL Server. It's too hard to test with SQL Server so implement it but don't test it.
-    - [ ] Implement the C# program.
-        - [ ] Mandatory CLI argument `--input <file>`: input .json file path with this structure. All properties are mandatory. See "## Sample input JSON" below.
-        - [ ] Mandatory CLI argument `--output <file>`: output .json file path to be written to. The output format will be an array of rows, where each row is an array. The first one is the column headers. This is basically a CSV structure encoded into JSON. See "## Sample output JSON" below.
-        - [ ] Optional CLI argument `--expect <file>`: if specified, then after the output file is read, it is compared to the preexisting contents of this file. Trim leading/trailing whitespace and ignore line ending differences. If they do match, print `Pass: <output filename> matches <expect filename>` and exit 0. If they don't match, print `Fail: <output filename> does not match <expect filename>` and exit 1. This will be used for testing.
-        - [ ] Connect to the database as specified, make the query, skip the requested rows, take up the requested max rows, and write the given JSON format in the output file.
-            - [ ] Disable ADO.NET connection pooling, this is a one-shot process so it's pointless.
-    - [ ] Instead of a C# unit test, use `--expect` to test it directly from `scripts/build.sh` after building. Use the SQLite test file in `test/files/foo.sqlite3` for tests. The table `foo` has one column `a` with a thousand rows with the numbers 1 through 1000. Stick your JSON files in `test/files/`.
+    - [x] Update `scripts\publish.sh.`
+        - [x] Copy `build/database/` to `dist/database/`.
+    - [x] Add `Microsoft.Data.Sqlite` and `Microsoft.Data.SqlClient` using `dotnet`. We will test using Sqlite because it's easy, but in production our goal is to use SQL Server. It's too hard to test with SQL Server so implement it but don't test it.
+    - [x] Implement the C# program.
+        - [x] Mandatory CLI argument `--input <file>`: input .json file path with this structure. All properties are mandatory. See "## Sample input JSON" below.
+        - [x] Mandatory CLI argument `--output <file>`: output .json file path to be written to. The output format will be an array of rows, where each row is an array. The first one is the column headers. This is basically a CSV structure encoded into JSON. See "## Sample output JSON" below.
+        - [x] Optional CLI argument `--expect <file>`: if specified, then after the output file is read, it is compared to the preexisting contents of this file. Trim leading/trailing whitespace and ignore line ending differences. If they do match, print `Pass: <output filename> matches <expect filename>` and exit 0. If they don't match, print `Fail: <output filename> does not match <expect filename>` and exit 1. This will be used for testing.
+        - [x] Connect to the database as specified, make the query, skip the requested rows, take up the requested max rows, and write the given JSON format in the output file.
+            - [x] Disable ADO.NET connection pooling, this is a one-shot process so it's pointless.
+    - [x] Instead of a C# unit test, use `--expect` to test it directly from `scripts/build.sh` after building. Use the SQLite test file in `test/files/foo.sqlite3` for tests. The table `foo` has one column `a` with a thousand rows with the numbers 1 through 1000. Stick your JSON files in `test/files/`.
 - [ ] Add SQL Server connection strings to the server's `config.jsonc`. Configuration is not required for SQLite. See `## Sample config.json` below for the syntax.
     - [ ] `connections` section is optional.
     - [ ] Provide two example commented-out data sources:

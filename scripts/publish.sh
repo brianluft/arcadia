@@ -47,12 +47,17 @@ fi
 echo "Creating production dist/ directory..."
 mkdir -p dist/server
 mkdir -p dist/node
+mkdir -p dist/database
 
 echo "Copying server files to dist/server/ (excluding node_modules)..."
 cp -r build/server/*.js dist/server/
 cp server/package.json dist/server/
 cp server/package-lock.json dist/server/
 echo "✓ Server files copied to dist/server"
+
+echo "Copying database files to dist/database/..."
+cp -r build/database/* dist/database/
+echo "✓ Database files copied to dist/database"
 
 echo "Installing production dependencies in dist/server/..."
 cd dist/server
