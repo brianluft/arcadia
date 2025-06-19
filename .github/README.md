@@ -18,6 +18,14 @@
   - Improves on Cursor by letting the agent autonomously read images on disk. Cursor's multimodal function requires you to manually add images as context.
   - Requires an OpenAI API key in `config.jsonc`.
 
+- **Database querying and exploration**
+  - MCP tools: `list_database_connections`, `list_database_schemas`, `list_database_objects`, `describe_database_object`, `list_database_types`, `run_sql_command`
+  - Connect to SQL Server databases and SQLite files to explore schemas, list objects, and execute queries
+  - All SQL commands run in transactions that automatically roll back, ensuring no accidental data modification
+  - Supports both SQL Server (with Windows or SQL authentication) and SQLite databases
+  - Automatic output paging prevents long query results from overwhelming the model's context
+  - Configure SQL Server connections in `config.jsonc` under the `connections` section
+
 ## Installation
 
 ### Prerequisites

@@ -59,7 +59,7 @@ This tool will be a thin wrapper around a C# .NET console application that we wi
         - [x] Optional parameter: `arguments`. This provides the value for each `@foo` named parameter used in the command text. May be omitted if the command doesn't have any named parameters. This is a key-value object where the keys are the parameter names and the values are like `{ "type": "Int32", "value": 123 }`. In the doc, mention that on SQLite the only types needed are: `Int64`, `Double`, `String`. In SQL Server there are many more, use `list_database_types` for the full list. We don't support `Byte[]`.
         - [x] The output is line-oriented JSON. Each row is a JSON object returned in one line of the response. No "outer" array, just one JSON object per row directly into the MCP tool response.
         - [x] If it timed out, then return the error instead.
-- [ ] Update `.github\README.md` with our new feature.
+- [x] Update `.github\README.md` with our new feature.
 - Bug fixes
     - [x] Build/publish process needs to handle compiling for ARM64 vs. x64, you are only building for x64 now. Update `build.sh` to accept an optional arch just like `publish.sh` does, have publish pass it down. When not specified, use the native arch of the build machine (we are on arm64 right now).
     - [x] `publish.sh` needs to tell `build.sh` to build for release, we are publishing a debug build now.
