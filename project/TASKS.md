@@ -29,6 +29,7 @@ This will be a C# .NET 9 console program. We plan to ship our existing `Database
     - *🤖 Created new `dotnet/Logs/` console project with System.CommandLine and System.Text.Json packages, implemented comprehensive log monitoring application with config reading from JSONC, file system watching, log tailing with timestamps, and --snapshot CLI option. Updated build.sh to test Logs.exe by temporarily unsetting ARCADIA_CONFIG_FILE to verify default config.jsonc search behavior. Both Database.exe and Logs.exe are now built and tested successfully.*
 - [x] Update `build.sh` to test it by clearing `build/storage`, writing a test file with a test message, and then running `build/dotnet/Logs.exe --snapshot` to see if it prints the test message.
     - *🤖 Added test section to build.sh that creates build/storage directory, creates test.log with test message, temporarily unsets ARCADIA_CONFIG_FILE to test default config search behavior, runs Logs.exe --snapshot, and verifies the test message appears in output.*
-- [ ] Create `dotnet/logs.bat`, have it `@ECHO OFF`, `cd /d "%~dp0"`, `cd dotnet`, `Logs.exe`. Update `publish.sh` to copy it into the root of the zip, next to `INSTALLING.html`.
+- [x] Create `dotnet/logs.bat`, have it `@ECHO OFF`, `cd /d "%~dp0"`, `cd dotnet`, `Logs.exe`. Update `publish.sh` to copy it into the root of the zip, next to `INSTALLING.html`.
+    - *🤖 Created `dotnet/logs.bat` with proper batch file commands to launch Logs.exe from the dotnet subdirectory, and updated `scripts/publish.sh` to copy logs.bat to the root of the distribution zip alongside INSTALLING.html.*
 - [ ] Update `server\INSTALLING.html` letting the user know they can click `logs.bat` to view active logs.
 - [ ] Update `.github\README.md`.

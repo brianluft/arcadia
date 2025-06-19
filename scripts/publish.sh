@@ -57,6 +57,10 @@ echo "Copying INSTALLING.html to dist/..."
 cp server/INSTALLING.html dist/
 echo "✓ INSTALLING.html copied"
 
+echo "Copying logs.bat to dist/..."
+cp dotnet/logs.bat dist/
+echo "✓ logs.bat copied"
+
 echo "Copying LICENSE to dist/..."
 cp LICENSE dist/LICENSE.txt
 echo "✓ LICENSE copied"
