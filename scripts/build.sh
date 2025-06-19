@@ -49,7 +49,7 @@ echo "✓ Server built successfully"
 # Copy server node_modules to build/server for runtime dependencies
 if [ ! -d "build/server/node_modules" ]; then
   echo "Copying server dependencies to build..."
-  cp -rf server/node_modules build/server/
+  cmd "/C robocopy server/node_modules build/server/node_modules /E /MT /NFL /NDL /NJH /NJS /NC /NS" || [ $? -le 1 ]
   echo "✓ Server dependencies copied to build/server"
 fi
 
@@ -86,14 +86,14 @@ echo "✓ Test client built successfully"
 # Copy test node_modules to build/test for runtime dependencies
 if [ ! -d "build/test/node_modules" ]; then
   echo "Copying test dependencies to build..."
-  cp -rf test/node_modules build/test/
+  cmd "/C robocopy test/node_modules build/test/node_modules /E /MT /NFL /NDL /NJH /NJS /NC /NS" || [ $? -le 1 ]
   echo "✓ Test dependencies copied to build/test"
 fi
 
 # Copy node runtime to build
 if [ ! -d "build/node" ]; then
   echo "Copying Node.js runtime to build..."
-  cp -rf node/* build/node/
+  cmd "/C robocopy node build/node /E /MT /NFL /NDL /NJH /NJS /NC /NS" || [ $? -le 1 ]
   echo "✓ Node.js runtime copied to build/node"
 fi
 
