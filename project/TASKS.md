@@ -63,6 +63,7 @@ This tool will be a thin wrapper around a C# .NET console application that we wi
 - Bug fixes
     - [x] Build/publish process needs to handle compiling for ARM64 vs. x64, you are only building for x64 now. Update `build.sh` to accept an optional arch just like `publish.sh` does, have publish pass it down. When not specified, use the native arch of the build machine (we are on arm64 right now).
     - [x] `publish.sh` needs to tell `build.sh` to build for release, we are publishing a debug build now.
+- [x] Update `server\INSTALLING.html` with guidance on how to configure SQL Server connections in `config.jsonc` if desired.
 
 ## Sample input JSON
 ```
