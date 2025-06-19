@@ -16,6 +16,11 @@ export interface Config {
   apiKeys?: {
     openai?: string | null;
   };
+  connections?: {
+    sqlServer?: {
+      [connectionName: string]: string;
+    };
+  };
 }
 
 /**

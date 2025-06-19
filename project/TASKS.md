@@ -16,49 +16,49 @@ This tool will be a thin wrapper around a C# .NET console application that we wi
         - [x] Connect to the database as specified, make the query, skip the requested rows, take up the requested max rows, and write the given JSON format in the output file.
             - [x] Disable ADO.NET connection pooling, this is a one-shot process so it's pointless.
     - [x] Instead of a C# unit test, use `--expect` to test it directly from `scripts/build.sh` after building. Use the SQLite test file in `test/files/foo.sqlite3` for tests. The table `foo` has one column `a` with a thousand rows with the numbers 1 through 1000. Stick your JSON files in `test/files/`.
-- [ ] Add SQL Server connection strings to the server's `config.jsonc`. Configuration is not required for SQLite. See `## Sample config.json` below for the syntax.
-    - [ ] `connections` section is optional.
-    - [ ] Provide two example commented-out data sources:
-        - [ ] SQL Server with Windows authentication
-        - [ ] SQL Server with SQL authentication
-        - [ ] Include the Encrypt flag explicitly so the user can turn it off if needed.
-    - [ ] Read them in at startup with the rest of the config but don't do anything with this information until an MCP tool is called.
-- [ ] Create a helper in the server for executing SQL commands via our C# program.
-    - [ ] The C# program is located relative to the path of our server script which it already knows in `index.ts`, it's in `../database/`.
-    - [ ] Observe the program's exit code. If nonzero then it's a failure and the program should have printed an error message to stderr. Grab that message and throw an exception. On zero it's success and it prints nothing.
-- [ ] New MCP tools.
+- [x] Add SQL Server connection strings to the server's `config.jsonc`. Configuration is not required for SQLite. See `## Sample config.json` below for the syntax.
+    - [x] `connections` section is optional.
+    - [x] Provide two example commented-out data sources:
+        - [x] SQL Server with Windows authentication
+        - [x] SQL Server with SQL authentication
+        - [x] Include the Encrypt flag explicitly so the user can turn it off if needed.
+    - [x] Read them in at startup with the rest of the config but don't do anything with this information until an MCP tool is called.
+- [x] Create a helper in the server for executing SQL commands via our C# program.
+    - [x] The C# program is located relative to the path of our server script which it already knows in `index.ts`, it's in `../database/`.
+    - [x] Observe the program's exit code. If nonzero then it's a failure and the program should have printed an error message to stderr. Grab that message and throw an exception. On zero it's success and it prints nothing.
+- [x] New MCP tools.
     - Guidelines
         - Outputs and paging: All tools will use the same output storage mechanism that `run_bash_command` does. We'll write the full output to a file, then return a truncated snippet from the top of the file in the MCP tool response. For this, make a new function for truncation that takes a maximum number of characters and returns as many full lines as it can before hitting that total character limit. For database tools, the output limit is 10,000 characters. Make that a constant we can adjust later. When truncated, append a line to the response indicating how much output was returned in the response, how much is actually available in the file, and what filename and line number to request to continue paging.
         - Use fully qualified and bracket-quoted object names in SQL Server, the syntax is `[{database}].[{schema}].[{table}]`. SQLite syntax is the `"`-quoted name, `"{table}"`, if the table name actually includes a literal `"` they are doubled.
         - For these tools, it's all about integration. Skip the jest unit tests and use our real-deal test harness to test against an SQLite database in `test/files/foo.sqlite3`. Don't test SQL Server; leave that to me to test manually.
-    - [ ] In the docs, explain that "object" here means a table, view, stored procedure, user defined function, or user defined type.
-    - [ ] Tool: `list_database_connections`. This is the list of SQL Server connections but does NOT include SQLite, because SQLite databases can be used on-the-fly without configuration. Explain this in the doc.
-        - [ ] Generate one name per line. Don't include the connection string itself since it may include passwords.
-    - [ ] Tool: `list_database_schemas`. SQL Server only. Lists databases and their schemas. No parameters. Returns a list of every `[{database}].[{schema}]`, one per line.
-    - [ ] Tool: `list_database_objects`. Go here next if you don't know where to find something in the database.
-        - [ ] Mandatory parameter: `connection`. May be the name of an SQL Server connection or the absolute path to an SQLite file.
-        - [ ] Mandatory parameter: `type`. May be:
-            - [ ] `relation`: table or view (SQL Server and SQLite)
-            - [ ] `procedure`: stored procedure (SQL Server only)
-            - [ ] `function`: user defined function (SQL Server only)
-            - [ ] `type`: user defined type (SQL Server only)
-        - [ ] Optional parameter: `search_regex`. If a pattern is provided it will be used to filter the names. Case insensitive.
-        - [ ] Optional `database` parameter: SQL Server only. If specified, it's one of the database names (no schema) from `list_database_schemas`, and the search is performed only on that database. Otherwise all databases are scanned.
-        - [ ] Generate one name per line.
-    - [ ] Tool: `describe_database_object`. Use this to get the definition of an object you found in `list_database_objects`.
-        - [ ] Mandatory parameter: `connection`. May be the name of an SQL Server connection or the absolute path to an SQLite file.
-        - [ ] Mandatory parameter: `name`. Same syntax as the output from `list_database_objects`.
-        - [ ] SQLite: just return the `sql` from `sqlite_master`, it's already literal SQL.
-        - [ ] SQL Server: reconstruct pseudo-SQL from the columns, primary key and other constraints (including constraint names), secondary indexes (including names and options), options. Don't worry about it being exactly syntactically correct, this is just documentation.
-    - [ ] Tool: `list_database_types`. This is unlike the other endpoints. It's static information, just a dump of the `DbType` enum value names. Don't page or write to an output file, just enumerate `DbType` and return the names one per line. This is to help MCP clients that need to bind parameters in `run_sql_command` and are having a hard time guessing the names.
-    - [ ] Tool: `run_sql_command`.
-        - [ ] Wrap command execution in a transaction that ALWAYS rolls back. It never commits under any circumstance. In the doc, tell the client that this will happen.
-        - [ ] Mandatory parameter: `connection`. May be the name of an SQL Server connection or the absolute path to an SQLite file.
-        - [ ] Mandatory parameter: `command`. This is the literal SQL command with `@foo` style named parameters. In the doc, remind the client that this can be multiple statements (ADO.NET handles this for us). In SQL Server, it can be a whole T-SQL script.
-        - [ ] Mandatory parameter: `timeout_seconds`. In the doc, recommend 30 seconds as a good starting place.
-        - [ ] Optional parameter: `arguments`. This provides the value for each `@foo` named parameter used in the command text. May be omitted if the command doesn't have any named parameters. This is a key-value object where the keys are the parameter names and the values are like `{ "type": "Int32", "value": 123 }`. In the doc, mention that on SQLite the only types needed are: `Int64`, `Double`, `String`. In SQL Server there are many more, use `list_database_types` for the full list. We don't support `Byte[]`.
-        - [ ] The output is line-oriented JSON. Each row is a JSON object returned in one line of the response. No "outer" array, just one JSON object per row directly into the MCP tool response.
-        - [ ] If it timed out, then return the error instead.
+    - [x] In the docs, explain that "object" here means a table, view, stored procedure, user defined function, or user defined type.
+    - [x] Tool: `list_database_connections`. This is the list of SQL Server connections but does NOT include SQLite, because SQLite databases can be used on-the-fly without configuration. Explain this in the doc.
+        - [x] Generate one name per line. Don't include the connection string itself since it may include passwords.
+    - [x] Tool: `list_database_schemas`. SQL Server only. Lists databases and their schemas. No parameters. Returns a list of every `[{database}].[{schema}]`, one per line.
+    - [x] Tool: `list_database_objects`. Go here next if you don't know where to find something in the database.
+        - [x] Mandatory parameter: `connection`. May be the name of an SQL Server connection or the absolute path to an SQLite file.
+        - [x] Mandatory parameter: `type`. May be:
+            - [x] `relation`: table or view (SQL Server and SQLite)
+            - [x] `procedure`: stored procedure (SQL Server only)
+            - [x] `function`: user defined function (SQL Server only)
+            - [x] `type`: user defined type (SQL Server only)
+        - [x] Optional parameter: `search_regex`. If a pattern is provided it will be used to filter the names. Case insensitive.
+        - [x] Optional `database` parameter: SQL Server only. If specified, it's one of the database names (no schema) from `list_database_schemas`, and the search is performed only on that database. Otherwise all databases are scanned.
+        - [x] Generate one name per line.
+    - [x] Tool: `describe_database_object`. Use this to get the definition of an object you found in `list_database_objects`.
+        - [x] Mandatory parameter: `connection`. May be the name of an SQL Server connection or the absolute path to an SQLite file.
+        - [x] Mandatory parameter: `name`. Same syntax as the output from `list_database_objects`.
+        - [x] SQLite: just return the `sql` from `sqlite_master`, it's already literal SQL.
+        - [x] SQL Server: reconstruct pseudo-SQL from the columns, primary key and other constraints (including constraint names), secondary indexes (including names and options), options. Don't worry about it being exactly syntactically correct, this is just documentation.
+    - [x] Tool: `list_database_types`. This is unlike the other endpoints. It's static information, just a dump of the `DbType` enum value names. Don't page or write to an output file, just enumerate `DbType` and return the names one per line. This is to help MCP clients that need to bind parameters in `run_sql_command` and are having a hard time guessing the names.
+    - [x] Tool: `run_sql_command`.
+        - [x] Wrap command execution in a transaction that ALWAYS rolls back. It never commits under any circumstance. In the doc, tell the client that this will happen.
+        - [x] Mandatory parameter: `connection`. May be the name of an SQL Server connection or the absolute path to an SQLite file.
+        - [x] Mandatory parameter: `command`. This is the literal SQL command with `@foo` style named parameters. In the doc, remind the client that this can be multiple statements (ADO.NET handles this for us). In SQL Server, it can be a whole T-SQL script.
+        - [x] Mandatory parameter: `timeout_seconds`. In the doc, recommend 30 seconds as a good starting place.
+        - [x] Optional parameter: `arguments`. This provides the value for each `@foo` named parameter used in the command text. May be omitted if the command doesn't have any named parameters. This is a key-value object where the keys are the parameter names and the values are like `{ "type": "Int32", "value": 123 }`. In the doc, mention that on SQLite the only types needed are: `Int64`, `Double`, `String`. In SQL Server there are many more, use `list_database_types` for the full list. We don't support `Byte[]`.
+        - [x] The output is line-oriented JSON. Each row is a JSON object returned in one line of the response. No "outer" array, just one JSON object per row directly into the MCP tool response.
+        - [x] If it timed out, then return the error instead.
 
 ## Sample input JSON
 ```
