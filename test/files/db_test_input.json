@@ -1,6 +1,6 @@
 {
     "provider": "Microsoft.Data.Sqlite",
-    "connectionString": "Data Source=../test/files/foo.sqlite3;Mode=ReadOnly",
+    "connectionString": "Data Source=test/files/foo.sqlite3;Mode=ReadOnly",
     "query": "SELECT * FROM \"foo\" WHERE a <= @maxValue ORDER BY a",
     "parameters": {
         "@maxValue": { "type": "Int64", "value": 5 }

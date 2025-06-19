@@ -91,15 +91,7 @@ echo "✓ Database project built successfully"
 
 # Test database program
 echo "Testing database program..."
-if [ "$BUILD_MODE" = "development" ]; then
-    # In development mode, use dotnet run
-    cd database
-    dotnet run --configuration Debug -- --input ../test/files/db_test_input.json --output ../test/files/db_test_output.json --expect ../test/files/db_test_expected.json
-    cd ..
-else
-    # In release mode, use the published executable
-    ./build/database/Database.exe --input test/files/db_test_input.json --output test/files/db_test_output.json --expect test/files/db_test_expected.json
-fi
+./build/database/Database.exe --input test/files/db_test_input.json --output test/files/db_test_output.json --expect test/files/db_test_expected.json
 echo "✓ Database tests passed"
 
 # Build test TypeScript code
