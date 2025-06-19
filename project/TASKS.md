@@ -61,8 +61,8 @@ This tool will be a thin wrapper around a C# .NET console application that we wi
         - [x] If it timed out, then return the error instead.
 - [ ] Update `.github\README.md` with our new feature.
 - Bug fixes
-    - [ ] Build/publish process needs to handle compiling for ARM64 vs. x64, you are only building for x64 now. Update `build.sh` to accept an optional arch just like `publish.sh` does, have publish pass it down. When not specified, use the native arch of the build machine (we are on arm64 right now).
-    - [ ] `publish.sh` needs to tell `build.sh` to build for release, we are publishing a debug build now.
+    - [x] Build/publish process needs to handle compiling for ARM64 vs. x64, you are only building for x64 now. Update `build.sh` to accept an optional arch just like `publish.sh` does, have publish pass it down. When not specified, use the native arch of the build machine (we are on arm64 right now).
+    - [x] `publish.sh` needs to tell `build.sh` to build for release, we are publishing a debug build now.
 
 ## Sample input JSON
 ```

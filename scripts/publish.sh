@@ -39,7 +39,7 @@ echo "Cleaning build/ and dist/ directories..."
 rm -rf build/ dist/
 
 echo "Running build..."
-if ! scripts/build.sh; then
+if ! scripts/build.sh --mode release --arch "$TARGET_ARCH"; then
     echo "Build failed, aborting publish"
     exit 1
 fi

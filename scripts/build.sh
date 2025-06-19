@@ -1,13 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 cd "$( dirname "${BASH_SOURCE[0]}" )"
-ARCH=$(./get-native-arch.sh)
 cd ..
 
 export PATH=$PWD/node:$PATH
 
 # Parse command line arguments
 BUILD_MODE="development"
+TARGET_ARCH=""
 while [[ $# -gt 0 ]]; do
     case $1 in
         --mode)
@@ -18,20 +18,38 @@ while [[ $# -gt 0 ]]; do
             BUILD_MODE="${1#*=}"
             shift
             ;;
+        --arch)
+            TARGET_ARCH="$2"
+            shift 2
+            ;;
+        --arch=*)
+            TARGET_ARCH="${1#*=}"
+            shift
+            ;;
         *)
             echo "Unknown parameter: $1"
-            echo "Usage: $0 [--mode development|release]"
+            echo "Usage: $0 [--mode development|release] [--arch x64|arm64]"
             exit 1
             ;;
     esac
 done
+
+# Set default architecture if not specified
+if [ -z "$TARGET_ARCH" ]; then
+    TARGET_ARCH=$(scripts/get-native-arch.sh)
+fi
 
 if [ "$BUILD_MODE" != "development" ] && [ "$BUILD_MODE" != "release" ]; then
     echo "Error: BUILD_MODE must be 'development' or 'release'"
     exit 1
 fi
 
-echo "Building in $BUILD_MODE mode..."
+if [ "$TARGET_ARCH" != "x64" ] && [ "$TARGET_ARCH" != "arm64" ]; then
+    echo "Error: TARGET_ARCH must be 'x64' or 'arm64'"
+    exit 1
+fi
+
+echo "Building in $BUILD_MODE mode for $TARGET_ARCH architecture..."
 
 # Create build directories
 mkdir -p build/server
@@ -66,7 +84,7 @@ if [ "$BUILD_MODE" = "development" ]; then
     dotnet build --configuration Debug --verbosity quiet --output ../build/database/
 else
     echo "Building database in release mode (self-contained, ready-to-run, single-file)..."
-    dotnet publish --configuration Release --verbosity quiet --self-contained --runtime win-x64 --property:PublishSingleFile=true --property:PublishReadyToRun=true --output ../build/database/
+    dotnet publish --configuration Release --verbosity quiet --self-contained --runtime win-${TARGET_ARCH} --property:PublishSingleFile=true --property:PublishReadyToRun=true --output ../build/database/
 fi
 cd ..
 echo "✓ Database project built successfully"
