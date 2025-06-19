@@ -6,40 +6,23 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 cd ..
 PROJECT_ROOT=$PWD
 
-# Parse command line arguments
-TARGET_ARCH=""
-if [ $# -eq 1 ]; then
-    TARGET_ARCH="$1"
-elif [ $# -eq 0 ]; then
-    # Default to native architecture if no argument provided
-    TARGET_ARCH=$(scripts/get-native-arch.sh)
-else
-    echo "Usage: $0 [x64|arm64]"
-    echo "If no architecture is specified, uses native architecture"
+# Use native architecture (no command line arguments needed)
+TARGET_ARCH=$(scripts/get-native-arch.sh)
+
+# Check that the node folder exists
+if [ ! -d "node" ]; then
+    echo "Error: Node.js folder 'node' not found. Run 'scripts/init.sh' first."
     exit 1
 fi
 
-# Validate architecture argument
-if [ "$TARGET_ARCH" != "x64" ] && [ "$TARGET_ARCH" != "arm64" ]; then
-    echo "Error: Invalid architecture '$TARGET_ARCH'. Must be 'x64' or 'arm64'"
-    exit 1
-fi
-
-# Check that the required node folder exists
-NODE_FOLDER="node-${TARGET_ARCH}"
-if [ ! -d "$NODE_FOLDER" ]; then
-    echo "Error: Node.js folder '$NODE_FOLDER' not found. Run 'scripts/init.sh' first."
-    exit 1
-fi
-
-echo "Publishing for architecture: $TARGET_ARCH"
-echo "Using Node.js from: $NODE_FOLDER"
+echo "Publishing for native architecture: $TARGET_ARCH"
+echo "Using Node.js from: node"
 
 echo "Cleaning build/ and dist/ directories..."
 rm -rf build/ dist/
 
 echo "Running build..."
-if ! scripts/build.sh --mode release --arch "$TARGET_ARCH"; then
+if ! scripts/build.sh --mode release; then
     echo "Build failed, aborting publish"
     exit 1
 fi
@@ -79,7 +62,7 @@ cp LICENSE dist/LICENSE.txt
 echo "✓ LICENSE copied"
 
 echo "Copying Node.js runtime for $TARGET_ARCH to dist/node/..."
-cp -r "$NODE_FOLDER"/* dist/node/
+cp -r node/* dist/node/
 echo "✓ Node.js runtime copied to dist/node"
 
 # Create architecture-specific zip filename

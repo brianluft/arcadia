@@ -15,7 +15,7 @@ jobs:
         include:
           - arch: x64
             worker: windows-latest
-          - name: arm64
+          - arch: arm64
             worker: windows-11-arm
     runs-on: ${{ matrix.worker }}
     steps:
@@ -35,7 +35,7 @@ jobs:
       shell: bash
     
     - name: Build
-      run: scripts/publish.sh ${{ matrix.arch }}
+      run: scripts/publish.sh
       shell: bash
       env:
         ARCADIA_CONFIG_FILE: ${{ env.ARCADIA_CONFIG_FILE }}
