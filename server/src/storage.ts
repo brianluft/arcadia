@@ -58,11 +58,24 @@ export function initializeStorageDirectoryFromModuleUrl(config: Config, currentM
  */
 export function initializeStorageDirectoryFromBase(config: Config, baseDir: string): string {
   try {
-    // Get storage directory from config, default to './storage/'
-    const storageDir = config.storage?.directory || './storage/';
+    let resolvedStorageDir: string;
 
-    // Resolve path relative to base directory if not absolute
-    const resolvedStorageDir = path.isAbsolute(storageDir) ? storageDir : path.join(baseDir, storageDir);
+    if (config.storage?.directory) {
+      // If storage directory is specified, it must be an absolute path
+      const storageDir = config.storage.directory;
+
+      if (!path.isAbsolute(storageDir)) {
+        throw new Error(
+          `Storage directory must be an absolute path when specified. Got: ${storageDir}. Use a Windows-style path like C:\\Tools\\arcadia\\storage or C:/Tools/arcadia/storage`
+        );
+      }
+
+      resolvedStorageDir = storageDir;
+    } else {
+      // If not specified, default to '../storage/' relative to the base directory
+      // This makes storage and server sibling directories
+      resolvedStorageDir = path.join(baseDir, '..', 'storage');
+    }
 
     return ensureStorageDirectory(resolvedStorageDir);
   } catch (error) {

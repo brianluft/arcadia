@@ -63,17 +63,16 @@ describe('Storage module', () => {
   });
 
   describe('initializeStorageDirectoryFromBase', () => {
-    it('should initialize storage with relative path', () => {
+    it('should throw error for relative path when specified', () => {
       const config: Config = {
         storage: {
           directory: './test-storage',
         },
       };
 
-      const result = initializeStorageDirectoryFromBase(config, tempDir);
-
-      expect(fs.existsSync(result)).toBe(true);
-      expect(result).toBe(path.resolve(tempDir, 'test-storage'));
+      expect(() => initializeStorageDirectoryFromBase(config, tempDir)).toThrow(
+        /Storage directory must be an absolute path when specified/
+      );
     });
 
     it('should initialize storage with absolute path', () => {
@@ -96,7 +95,7 @@ describe('Storage module', () => {
       const result = initializeStorageDirectoryFromBase(config, tempDir);
 
       expect(fs.existsSync(result)).toBe(true);
-      expect(result).toBe(path.resolve(tempDir, 'storage'));
+      expect(result).toBe(path.resolve(tempDir, '..', 'storage'));
     });
   });
 

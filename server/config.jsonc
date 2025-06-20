@@ -1,8 +1,10 @@
 {
   // Storage configuration - defines where command output files are stored
-  "storage": {
-    "directory": "./storage/"
-  },
+  // If not specified, defaults to ../storage/ relative to the server executable (storage and server are siblings)
+  // If specified, must be an absolute Windows-style path
+  // "storage": {
+  //   "directory": "C:\\Tools\\arcadia\\storage"
+  // },
   // Bash configuration - defines the path to the bash executable on Windows
   "bash": {
     "path": "C:\\Program Files\\Git\\bin\\bash.exe"

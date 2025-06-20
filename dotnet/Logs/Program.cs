@@ -18,7 +18,7 @@ public class Config
 public class Storage
 {
     [JsonPropertyName("directory")]
-    public string Directory { get; set; } = "./storage/";
+    public string? Directory { get; set; }
 }
 
 class Program
@@ -131,18 +131,24 @@ class Program
         };
         Config? config = JsonSerializer.Deserialize<Config>(jsonContent, options);
         
-        if (config?.Storage?.Directory == null)
-        {
-            throw new InvalidOperationException("Storage directory not found in config");
-        }
-
-        string storageDir = config.Storage.Directory;
+        string storageDir;
         
-        // If relative path, make it relative to the config file
-        if (!Path.IsPathRooted(storageDir))
+        if (!string.IsNullOrEmpty(config?.Storage?.Directory))
         {
-            string configDirectory = Path.GetDirectoryName(configPath) ?? ".";
-            storageDir = Path.GetFullPath(Path.Combine(configDirectory, storageDir));
+            // If storage directory is specified, it must be an absolute path
+            storageDir = config.Storage.Directory;
+            
+            if (!Path.IsPathRooted(storageDir))
+            {
+                throw new InvalidOperationException($"Storage directory must be an absolute path when specified. Got: {storageDir}. Use a Windows-style path like C:\\Tools\\arcadia\\storage or C:/Tools/arcadia/storage");
+            }
+        }
+        else
+        {
+            // If not specified, default to '../storage/' relative to the executable
+            // This makes storage and dotnet sibling directories
+            string exeDirectory = AppContext.BaseDirectory;
+            storageDir = Path.GetFullPath(Path.Combine(exeDirectory, "..", "storage"));
         }
 
         return storageDir;

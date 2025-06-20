@@ -128,7 +128,7 @@
         <p>Arcadia uses a <code>config.jsonc</code> file located in its installation directory. The default configuration includes:</p>
         <ul>
             <li><strong>Bash Path:</strong> <code>C:\Program Files\Git\bin\bash.exe</code> (default Git Bash location)</li>
-            <li><strong>Storage Directory:</strong> <code>./storage/</code> (relative to installation directory)</li>
+            <li><strong>Storage Directory:</strong> Defaults to <code>../storage/</code> relative to the server executable (storage and server are siblings). If specified in config, must be an absolute Windows-style path (e.g., <code>C:\Tools\arcadia\storage</code>)</li>
             <li><strong>API Keys:</strong> OpenAI API key for image analysis features</li>
         </ul>
         <p>You can modify these settings by editing the <code>config.jsonc</code> file.</p>
