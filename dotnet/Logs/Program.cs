@@ -1,11 +1,11 @@
 ﻿using System;
 using System.CommandLine;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
 
 namespace Logs;
 
@@ -31,17 +31,18 @@ class Program
     {
         var snapshotOption = new Option<bool>(
             "--snapshot",
-            description: "Print the current contents of the last log file and exit");
+            description: "Print the current contents of the last log file and exit"
+        );
 
-        var rootCommand = new RootCommand("Monitor and tail log files from the storage directory")
-        {
+        var rootCommand = new RootCommand("Monitor and tail log files from the storage directory") { snapshotOption };
+
+        rootCommand.SetHandler(
+            async (bool snapshot) =>
+            {
+                await RunAsync(snapshot);
+            },
             snapshotOption
-        };
-
-        rootCommand.SetHandler(async (bool snapshot) =>
-        {
-            await RunAsync(snapshot);
-        }, snapshotOption);
+        );
 
         return await rootCommand.InvokeAsync(args);
     }
@@ -62,7 +63,7 @@ class Program
 
             // Find the alphabetically last log file
             string? lastLogFile = GetLastLogFile(storageDirectory);
-            
+
             if (lastLogFile == null)
             {
                 if (snapshot)
@@ -70,7 +71,7 @@ class Program
                     Console.WriteLine("No log files found in storage directory.");
                     return;
                 }
-                
+
                 // Wait for a log file to appear
                 Console.WriteLine("No log files found. Waiting for log files to appear...");
                 await WaitForLogFilesToAppear(storageDirectory, snapshot);
@@ -80,7 +81,7 @@ class Program
             // Print entire content of the last log file
             _currentLogFile = lastLogFile;
             _currentPosition = 0;
-            
+
             Console.WriteLine($"Reading from: {Path.GetFileName(lastLogFile)}");
             await PrintExistingContent(lastLogFile);
 
@@ -120,27 +121,29 @@ class Program
         }
 
         string configContent = await File.ReadAllTextAsync(configPath);
-        
+
         // Remove comments from JSONC for parsing
         string jsonContent = RemoveJsonComments(configContent);
-        
+
         var options = new JsonSerializerOptions
         {
             AllowTrailingCommas = true,
-            ReadCommentHandling = JsonCommentHandling.Skip
+            ReadCommentHandling = JsonCommentHandling.Skip,
         };
         Config? config = JsonSerializer.Deserialize<Config>(jsonContent, options);
-        
+
         string storageDir;
-        
+
         if (!string.IsNullOrEmpty(config?.Storage?.Directory))
         {
             // If storage directory is specified, it must be an absolute path
             storageDir = config.Storage.Directory;
-            
+
             if (!Path.IsPathRooted(storageDir))
             {
-                throw new InvalidOperationException($"Storage directory must be an absolute path when specified. Got: {storageDir}. Use a Windows-style path like C:\\Tools\\arcadia\\storage or C:/Tools/arcadia/storage");
+                throw new InvalidOperationException(
+                    $"Storage directory must be an absolute path when specified. Got: {storageDir}. Use a Windows-style path like C:\\Tools\\arcadia\\storage or C:/Tools/arcadia/storage"
+                );
             }
         }
         else
@@ -158,7 +161,7 @@ class Program
     {
         var lines = jsonc.Split('\n');
         var result = new List<string>();
-        
+
         foreach (string line in lines)
         {
             string trimmed = line.Trim();
@@ -180,15 +183,13 @@ class Program
                 }
             }
         }
-        
+
         return string.Join('\n', result);
     }
 
     static string? GetLastLogFile(string storageDirectory)
     {
-        var logFiles = Directory.GetFiles(storageDirectory, "*.log")
-            .OrderBy(f => f, StringComparer.Ordinal)
-            .ToArray();
+        var logFiles = Directory.GetFiles(storageDirectory, "*.log").OrderBy(f => f, StringComparer.Ordinal).ToArray();
 
         return logFiles.LastOrDefault();
     }
@@ -200,7 +201,9 @@ class Program
 
         try
         {
-            using var reader = new StreamReader(new FileStream(logFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+            using var reader = new StreamReader(
+                new FileStream(logFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
+            );
             string? line;
             while ((line = await reader.ReadLineAsync()) != null)
             {
@@ -208,7 +211,7 @@ class Program
                 string filename = Path.GetFileName(logFile);
                 Console.WriteLine($"{timestamp} {filename}: {line}");
             }
-            
+
             _currentPosition = reader.BaseStream.Position;
         }
         catch (Exception ex)
@@ -232,14 +235,14 @@ class Program
         // Wait for first log file to appear
         string firstLogFile = await tcs.Task;
         Console.WriteLine($"New log file detected: {Path.GetFileName(firstLogFile)}");
-        
+
         // Find the current last log file (might be different from the one that triggered)
         string? lastLogFile = GetLastLogFile(storageDirectory);
         if (lastLogFile != null)
         {
             _currentLogFile = lastLogFile;
             _currentPosition = 0;
-            
+
             Console.WriteLine($"Reading from: {Path.GetFileName(lastLogFile)}");
             await PrintExistingContent(lastLogFile);
 
@@ -259,7 +262,7 @@ class Program
         fileWatcher.Created += async (sender, e) =>
         {
             await Task.Delay(100); // Brief delay to ensure file is ready
-            
+
             string? newLastFile = GetLastLogFile(storageDirectory);
             if (newLastFile != null && newLastFile != _currentLogFile)
             {
@@ -300,7 +303,7 @@ class Program
         {
             string? currentFile;
             long currentPos;
-            
+
             lock (_lockObject)
             {
                 currentFile = _currentLogFile;
@@ -311,12 +314,17 @@ class Program
             {
                 try
                 {
-                    using var fileStream = new FileStream(currentFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    using var fileStream = new FileStream(
+                        currentFile,
+                        FileMode.Open,
+                        FileAccess.Read,
+                        FileShare.ReadWrite
+                    );
                     fileStream.Seek(currentPos, SeekOrigin.Begin);
-                    
+
                     using var reader = new StreamReader(fileStream);
                     string? line;
-                    
+
                     while ((line = await reader.ReadLineAsync()) != null)
                     {
                         string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");

@@ -20,7 +20,7 @@ cd ..
 # Format dotnet code with csharpier
 echo "Formatting dotnet code..."
 cd dotnet
-dotnet csharpier format Database
+dotnet csharpier format .
 cd ..
 
 # Fix line endings
