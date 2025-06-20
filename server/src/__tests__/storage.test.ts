@@ -95,7 +95,7 @@ describe('Storage module', () => {
       const result = initializeStorageDirectoryFromBase(config, tempDir);
 
       expect(fs.existsSync(result)).toBe(true);
-      expect(result).toBe(path.resolve(tempDir, '..', 'storage'));
+      expect(result).toBe(path.resolve(tempDir, 'storage'));
     });
   });
 

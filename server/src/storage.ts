@@ -72,9 +72,9 @@ export function initializeStorageDirectoryFromBase(config: Config, baseDir: stri
 
       resolvedStorageDir = storageDir;
     } else {
-      // If not specified, default to '../storage/' relative to the base directory
+      // If not specified, default to './storage/' relative to the base directory
       // This makes storage and server sibling directories
-      resolvedStorageDir = path.join(baseDir, '..', 'storage');
+      resolvedStorageDir = path.join(baseDir, 'storage');
     }
 
     return ensureStorageDirectory(resolvedStorageDir);
