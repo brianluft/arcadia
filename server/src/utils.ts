@@ -83,3 +83,30 @@ export function normalizePath(filePath: string): string {
 
   return normalizedPath;
 }
+
+/**
+ * Format database output as JSONL
+ * Converts CSV-style array format to line-oriented JSON
+ * @param output - Raw JSON output from database
+ * @returns JSONL formatted string
+ */
+export function formatDatabaseOutputAsJsonl(output: string): string {
+  try {
+    const jsonData = JSON.parse(output);
+    if (Array.isArray(jsonData) && jsonData.length > 0) {
+      // Convert CSV-style array format to line-oriented JSON
+      const [headers, ...rows] = jsonData;
+      const jsonLines = rows.map(row => {
+        const obj: any = {};
+        headers.forEach((header: string, index: number) => {
+          obj[header] = row[index];
+        });
+        return JSON.stringify(obj);
+      });
+      return jsonLines.join('\n');
+    }
+  } catch (parseError) {
+    // If JSON parsing fails, use the original output
+  }
+  return output;
+}

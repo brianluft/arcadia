@@ -14,7 +14,7 @@ import {
   createSqlServerInput,
   SqlParameter,
 } from './database.js';
-import { normalizePath } from './utils.js';
+import { normalizePath, formatDatabaseOutputAsJsonl } from './utils.js';
 import OpenAI from 'openai';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -37,32 +37,6 @@ function logToolCallRequest(request: any, storageDirectory: string): void {
   } catch (error) {
     console.error(`Failed to log tool call request: ${error}`);
   }
-}
-
-/**
- * Convert database JSON output to JSONL format
- * @param output - Raw JSON output from database
- * @returns Formatted JSONL output
- */
-function formatDatabaseOutputAsJsonl(output: string): string {
-  try {
-    const jsonData = JSON.parse(output);
-    if (Array.isArray(jsonData) && jsonData.length > 0) {
-      // Convert CSV-style array format to line-oriented JSON
-      const [headers, ...rows] = jsonData;
-      const jsonLines = rows.map(row => {
-        const obj: any = {};
-        headers.forEach((header: string, index: number) => {
-          obj[header] = row[index];
-        });
-        return JSON.stringify(obj);
-      });
-      return jsonLines.join('\n');
-    }
-  } catch (parseError) {
-    // If JSON parsing fails, use the original output
-  }
-  return output;
 }
 
 // Get the directory of the current file using Node.js 24+ import.meta.dirname

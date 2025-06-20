@@ -3,6 +3,7 @@ import * as path from 'path';
 import { spawn } from 'child_process';
 import { Config } from './config.js';
 import { generateTimestampedFilename } from './storage.js';
+import { formatDatabaseOutputAsJsonl } from './utils.js';
 
 /**
  * Parameter definition for SQL commands
@@ -79,23 +80,24 @@ export async function runDatabaseCommand(
 
     // Store full output to permanent file for paging
     const permanentOutputFile = generateTimestampedFilename(storageDirectory, 'log');
-    fs.writeFileSync(permanentOutputFile, outputData);
+    const formattedOutput = formatDatabaseOutputAsJsonl(outputData);
+    fs.writeFileSync(permanentOutputFile, formattedOutput);
 
     // Apply output truncation (10,000 characters max for database tools)
-    const truncationResult = truncateOutput(outputData, 10000);
+    const truncationResult = truncateOutput(formattedOutput, 10000);
 
     // Build truncation message if needed
     let truncationMessage: string | undefined;
     if (truncationResult.truncated) {
       const filename = path.basename(permanentOutputFile);
-      const totalLines = outputData.split('\n').length;
+      const totalLines = formattedOutput.split('\n').length;
       const shownLines = truncationResult.output.split('\n').length;
       const linesLeft = totalLines - shownLines;
       truncationMessage = `Truncated output. Showing ${shownLines} lines, ${linesLeft} lines left. Use \`read_output\` tool with filename "${filename}" line ${shownLines} to continue paging.`;
     }
 
     return {
-      output: truncationResult.output,
+      output: outputData,
       status: result.status,
       truncationMessage,
     };
