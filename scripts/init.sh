@@ -19,33 +19,55 @@ mkdir -p downloads
 # Download Node.js for native architecture only
 echo "Downloading Node.js for $NATIVE_ARCH..."
 
-# Node.js download URL and filename
-node_filename="node-v${NODE_VERSION}-win-${NATIVE_ARCH}"
-node_zip="${node_filename}.zip"
-node_url="https://nodejs.org/dist/v${NODE_VERSION}/${node_zip}"
-download_path="downloads/${node_zip}"
-
-# Download Node if it hasn't already been downloaded
-if [ ! -f "$download_path" ]; then
-    echo "Downloading Node.js for $NATIVE_ARCH..."
-    curl -L -o "$download_path" "$node_url"
-    echo "Downloaded $node_zip"
+# Node.js download. Upstream: "https://nodejs.org/dist/v${NODE_VERSION}/${NODE_ZIP}"
+NODE_FILENAME="node-v${NODE_VERSION}-win-${NATIVE_ARCH}"
+NODE_ZIP="${NODE_FILENAME}.zip"
+if [ "$NATIVE_ARCH" == "x64" ]; then
+    NODE_ZIP_SHA256="9427C71B19D05F1905F151F1E67FCD535A4F671D66358DBF5B934A49C371E500"
 else
-    echo "Node.js for $NATIVE_ARCH already downloaded: $download_path"
+    NODE_ZIP_SHA256="140F820338538E3883AA78E3E6E0483D201C7F2BE0B07CDA64BD535A71B139FE"
+fi
+NODE_URL="https://brianluft-mirror.com/node/${NODE_ZIP}"
+NODE_DOWNLOAD_PATH="downloads/${NODE_ZIP}"
+if [ ! -f "$NODE_DOWNLOAD_PATH" ]; then
+    echo "Downloading Node.js from $NODE_URL"
+    curl -L -o "$NODE_DOWNLOAD_PATH" "$NODE_URL"
+    echo "Downloaded $NODE_ZIP"
+else
+    echo "Node.js for $NATIVE_ARCH already downloaded: $NODE_DOWNLOAD_PATH"
 fi
 
-# 7-zip download
-SEVENZIP_ZIP="7za920.zip"
-SEVENZIP_URL="https://www.7-zip.org/a/7za920.zip"
-SEVENZIP_DOWNLOAD_PATH="downloads/${SEVENZIP_ZIP}"
+DOWNLOADED_HASH=$(sha256sum "$NODE_DOWNLOAD_PATH" | cut -d' ' -f1 | tr '[:lower:]' '[:upper:]')
+if [ "$DOWNLOADED_HASH" = "$NODE_ZIP_SHA256" ]; then
+    echo "✓ Node.js download hash verification passed"
+else
+    echo "✗ Node.js download hash verification failed!"
+    echo "Expected: $NODE_ZIP_SHA256"
+    echo "Got:      $DOWNLOADED_HASH"
+    exit 1
+fi
 
-# Download 7-zip if it hasn't already been downloaded
+# 7-zip download. Upstream: https://www.7-zip.org/a/7za920.zip
+SEVENZIP_ZIP="7za920.zip"
+SEVENZIP_ZIP_SHA256="2A3AFE19C180F8373FA02FF00254D5394FEC0349F5804E0AD2F6067854FF28AC"
+SEVENZIP_URL="https://brianluft-mirror.com/7zip/7za920.zip"
+SEVENZIP_DOWNLOAD_PATH="downloads/${SEVENZIP_ZIP}"
 if [ ! -f "$SEVENZIP_DOWNLOAD_PATH" ]; then
-    echo "Downloading 7-zip..."
+    echo "Downloading 7-zip from $SEVENZIP_URL"
     curl -L -o "$SEVENZIP_DOWNLOAD_PATH" "$SEVENZIP_URL"
     echo "Downloaded $SEVENZIP_ZIP"
 else
     echo "7-zip already downloaded: $SEVENZIP_DOWNLOAD_PATH"
+fi
+
+DOWNLOADED_HASH=$(sha256sum "$SEVENZIP_DOWNLOAD_PATH" | cut -d' ' -f1 | tr '[:lower:]' '[:upper:]')
+if [ "$DOWNLOADED_HASH" = "$SEVENZIP_ZIP_SHA256" ]; then
+    echo "✓ 7-zip download hash verification passed"
+else
+    echo "✗ 7-zip download hash verification failed!"
+    echo "Expected: $SEVENZIP_ZIP_SHA256"
+    echo "Got:      $DOWNLOADED_HASH"
+    exit 1
 fi
 
 echo "Download complete!"
@@ -61,10 +83,10 @@ fi
 
 # Extract Node.js directly into node/ folder
 echo "Extracting Node.js for $NATIVE_ARCH..."
-unzip -q "$download_path" -d .
+unzip -q "$NODE_DOWNLOAD_PATH" -d .
 
 # Rename the extracted folder to node
-mv "$node_filename" node
+mv "$NODE_FILENAME" node
 
 # Verify that node.exe and npm.cmd exist
 if [ -f "node/node.exe" ] && [ -f "node/npm.cmd" ]; then
