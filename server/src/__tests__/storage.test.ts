@@ -58,7 +58,6 @@ describe('Storage module', () => {
         expect(() => ensureStorageDirectory(storageDir)).toThrow(/not writable/);
       } catch {
         // If chmod fails (e.g., on Windows), just skip this test
-        console.log('Skipping read-only directory test (not supported on this platform)');
       }
     });
   });

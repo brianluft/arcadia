@@ -6,6 +6,7 @@
 /dist/
 /downloads/
 /node*/
+artifacts/
 bin/
 node_modules/
 obj/
