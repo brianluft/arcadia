@@ -381,11 +381,6 @@ class Program
                 PrintLine(line);
                 lineCount++;
             }
-
-            if (lineCount > 0)
-            {
-                Console.WriteLine($"Caught up {lineCount} lines from previous file");
-            }
         }
         catch (Exception ex)
         {
