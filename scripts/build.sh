@@ -62,15 +62,15 @@ echo "✓ Config file copied to build/"
 echo "Building dotnet solution..."
 cd dotnet
 if [ "$BUILD_MODE" = "development" ]; then
-    echo "Building dotnet solution in development mode (debug, framework dependent)..."
-    dotnet build --configuration Debug --verbosity quiet
+    echo "Building dotnet solution in development mode..."
+    dotnet build --configuration Debug --verbosity quiet --self-contained
     
     # Copy artifacts to build/dotnet/
     echo "Copying dotnet artifacts to build/dotnet/..."
     cp -r artifacts/bin/Database/debug/* ../build/dotnet/
     cp -r artifacts/bin/Logs/debug/* ../build/dotnet/
 else
-    echo "Building dotnet solution in release mode (self-contained, ready-to-run)..."
+    echo "Building dotnet solution in release mode..."
     dotnet publish --configuration Release --verbosity quiet --self-contained --property:PublishReadyToRun=true
     
     # Copy artifacts to build/dotnet/
