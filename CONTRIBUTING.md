@@ -14,40 +14,13 @@ Welcome to Arcadia development! This guide will help you set up your development
 
 #### Required Environment Variable
 
-To run tests, you **must** set the `ARCADIA_CONFIG_FILE` environment variable:
+To run all tests, you **must** set the `ARCADIA_CONFIG_FILE` environment variable and include an OpenAI key.
 
 ```bash
 export ARCADIA_CONFIG_FILE="/absolute/path/to/your/config.jsonc"
 ```
 
 This environment variable tells Arcadia where to find the configuration file, overriding the default auto-detection.
-
-#### Configuration File Requirements
-
-Your configuration file must include:
-
-1. **OpenAI API Key** - Required for running tests and for image processing features
-2. **Storage directory** - Where command outputs are stored
-3. **Bash path** - Path to Git Bash executable
-
-Example `config.jsonc`:
-
-```jsonc
-{
-  // Storage configuration - defines where command output files are stored
-  "storage": {
-    "directory": "./storage/"
-  },
-  // Bash configuration - defines the path to the bash executable on Windows
-  "bash": {
-    "path": "C:\\Program Files\\Git\\bin\\bash.exe"
-  },
-  // API keys - OpenAI key is REQUIRED for tests
-  "apiKeys": {
-    "openai": "your-openai-api-key-here"
-  }
-}
-```
 
 ### Building the Project
 
