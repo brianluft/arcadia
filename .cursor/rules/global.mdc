@@ -36,4 +36,5 @@ Arcadia is a comprehensive MCP (Model Context Protocol) server that enables Curs
 <information>
 - If you see `[200~` in a bash error, it's a tool bug; we don't have xterm bracketed-paste on Windows.
 - Documentation for the MCP TypeScript SDK and the MCP protocol are in `context/` and indexed. Use your codebase search tool.
+- You may use `sqlite3 -readonly "filename.sqlite3" "SELECT * FROM foo"` to run ad-hoc queries against a SQLite database. Be careful not to open `sqlite3` in interactive mode, because you are unable to use it that way.
 </information>

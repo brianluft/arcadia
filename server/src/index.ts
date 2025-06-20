@@ -7,8 +7,17 @@ import { loadConfigFromDirectory } from './config.js';
 import { initializeStorageDirectoryFromDirectory, readOutputFile } from './storage.js';
 import { runBashCommand } from './bash.js';
 import { readImage } from './image.js';
+import {
+  runDatabaseCommand,
+  getSqlServerConnectionString,
+  createSqliteInput,
+  createSqlServerInput,
+  SqlParameter,
+} from './database.js';
+import { normalizePath } from './utils.js';
 import OpenAI from 'openai';
 import * as fs from 'fs';
+import * as path from 'path';
 
 // Get the directory of the current file using Node.js 24+ import.meta.dirname
 const __dirname = import.meta.dirname;
@@ -162,6 +171,130 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     } as const);
   }
 
+  // Add database tools
+  tools.push(
+    {
+      name: 'list_database_connections',
+      description:
+        'List configured SQL Server connections. SQLite databases can be used on-the-fly without configuration.',
+      inputSchema: {
+        type: 'object',
+        properties: {},
+        required: [],
+      },
+    },
+    {
+      name: 'list_database_schemas',
+      description: 'Lists databases and their schemas (SQL Server only).',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          connection: {
+            type: 'string',
+            description: 'Name of the SQL Server connection',
+          },
+        },
+        required: ['connection'],
+      },
+    },
+    {
+      name: 'list_database_objects',
+      description:
+        'List database objects (tables, views, procedures, functions, types). Use this if you don\'t know where to find something in the database. An "object" here means a table, view, stored procedure, user defined function, or user defined type.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          connection: {
+            type: 'string',
+            description: 'Name of an SQL Server connection or absolute path to an SQLite file',
+          },
+          type: {
+            type: 'string',
+            enum: ['relation', 'procedure', 'function', 'type'],
+            description:
+              'Type of object: relation (table or view, SQL Server and SQLite), procedure (stored procedure, SQL Server only), function (user defined function, SQL Server only), type (user defined type, SQL Server only)',
+          },
+          search_regex: {
+            type: 'string',
+            description: 'Optional case-insensitive regex pattern to filter object names',
+          },
+          database: {
+            type: 'string',
+            description:
+              'Optional database name (SQL Server only). If specified, search only this database, otherwise all databases are scanned.',
+          },
+        },
+        required: ['connection', 'type'],
+      },
+    },
+    {
+      name: 'describe_database_object',
+      description: 'Get the definition of a database object found in list_database_objects.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          connection: {
+            type: 'string',
+            description: 'Name of an SQL Server connection or absolute path to an SQLite file',
+          },
+          name: {
+            type: 'string',
+            description: 'Object name in the same syntax as returned by list_database_objects',
+          },
+        },
+        required: ['connection', 'name'],
+      },
+    },
+    {
+      name: 'list_database_types',
+      description: 'List available DbType enum values for parameter binding in run_sql_command.',
+      inputSchema: {
+        type: 'object',
+        properties: {},
+        required: [],
+      },
+    },
+    {
+      name: 'run_sql_command',
+      description:
+        'Execute a SQL command with named parameters. Command execution is wrapped in a transaction that ALWAYS rolls back - it never commits under any circumstance.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          connection: {
+            type: 'string',
+            description: 'Name of an SQL Server connection or absolute path to an SQLite file',
+          },
+          command: {
+            type: 'string',
+            description:
+              'SQL command with @foo style named parameters. Can be multiple statements (SQL Server supports full T-SQL scripts).',
+          },
+          timeout_seconds: {
+            type: 'number',
+            description: 'Query timeout in seconds (recommended starting point: 30)',
+            minimum: 1,
+            maximum: 3600,
+          },
+          arguments: {
+            type: 'object',
+            description:
+              'Optional named parameters. Object with parameter names as keys and {type, value} objects as values. For SQLite use: Int64, Double, String. For SQL Server use list_database_types for full list.',
+            additionalProperties: {
+              type: 'object',
+              properties: {
+                type: { type: 'string' },
+                value: { type: ['string', 'number', 'boolean', 'null'] },
+              },
+              required: ['type', 'value'],
+            },
+          },
+        },
+        required: ['connection', 'command', 'timeout_seconds'],
+      },
+    }
+  );
+
   return {
     tools,
   };
@@ -303,6 +436,392 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         };
       } catch (error) {
         throw new McpError(ErrorCode.InternalError, `Failed to read image: ${error}`);
+      }
+
+    case 'list_database_connections':
+      try {
+        const connections = config.connections?.sqlServer || {};
+        const connectionNames = Object.keys(connections);
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: connectionNames.join('\n'),
+            },
+          ],
+        };
+      } catch (error) {
+        throw new McpError(ErrorCode.InternalError, `Failed to list database connections: ${error}`);
+      }
+
+    case 'list_database_schemas':
+      if (!args || typeof args.connection !== 'string') {
+        throw new McpError(ErrorCode.InvalidParams, 'Missing or invalid connection parameter');
+      }
+
+      try {
+        const connectionString = getSqlServerConnectionString(args.connection, config);
+        const input = createSqlServerInput(
+          connectionString,
+          `SELECT DISTINCT '[' + name + '].[' + schema_name(schema_id) + ']' AS schema_name 
+           FROM sys.databases d
+           CROSS JOIN sys.schemas s
+           ORDER BY schema_name`,
+          undefined,
+          30,
+          0,
+          1000
+        );
+
+        const result = await runDatabaseCommand(input, config, storageDirectory, __dirname);
+
+        // Build response text
+        const responseLines = [result.output];
+        if (result.truncationMessage) {
+          responseLines.push(result.truncationMessage);
+        }
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: responseLines.join('\n'),
+            },
+          ],
+        };
+      } catch (error) {
+        throw new McpError(ErrorCode.InternalError, `Failed to list database schemas: ${error}`);
+      }
+
+    case 'list_database_objects':
+      if (!args || typeof args.connection !== 'string') {
+        throw new McpError(ErrorCode.InvalidParams, 'Missing or invalid connection parameter');
+      }
+      if (!args || typeof args.type !== 'string') {
+        throw new McpError(ErrorCode.InvalidParams, 'Missing or invalid type parameter');
+      }
+
+      try {
+        let query: string;
+        let isSqlite = false;
+
+        // Determine if this is SQLite or SQL Server
+        const normalizedConnection = normalizePath(args.connection);
+        if (fs.existsSync(normalizedConnection)) {
+          isSqlite = true;
+        }
+
+        if (isSqlite) {
+          // SQLite queries
+          if (args.type === 'relation') {
+            query = `SELECT '"' || name || '"' AS object_name FROM sqlite_master WHERE type IN ('table', 'view')`;
+          } else {
+            throw new Error(`Object type '${args.type}' is not supported for SQLite`);
+          }
+
+          if (args.search_regex && typeof args.search_regex === 'string') {
+            query += ` AND name LIKE '%${args.search_regex.replace(/'/g, "''")}%'`;
+          }
+          query += ' ORDER BY name';
+
+          const input = createSqliteInput(normalizedConnection, query, undefined, 30, 0, 1000);
+          const result = await runDatabaseCommand(input, config, storageDirectory, __dirname);
+
+          const responseLines = [result.output];
+          if (result.truncationMessage) {
+            responseLines.push(result.truncationMessage);
+          }
+
+          return {
+            content: [
+              {
+                type: 'text',
+                text: responseLines.join('\n'),
+              },
+            ],
+          };
+        } else {
+          // SQL Server queries
+          const connectionString = getSqlServerConnectionString(args.connection, config);
+
+          let whereClause = '';
+          if (args.database && typeof args.database === 'string') {
+            whereClause += ` AND d.name = '${args.database.replace(/'/g, "''")}'`;
+          }
+          if (args.search_regex && typeof args.search_regex === 'string') {
+            whereClause += ` AND o.name LIKE '%${args.search_regex.replace(/'/g, "''")}%'`;
+          }
+
+          switch (args.type) {
+            case 'relation':
+              query = `SELECT '[' + d.name + '].[' + s.name + '].[' + o.name + ']' AS object_name
+                       FROM sys.databases d
+                       CROSS JOIN sys.objects o
+                       INNER JOIN sys.schemas s ON o.schema_id = s.schema_id
+                       WHERE o.type IN ('U', 'V') ${whereClause}
+                       ORDER BY d.name, s.name, o.name`;
+              break;
+            case 'procedure':
+              query = `SELECT '[' + d.name + '].[' + s.name + '].[' + o.name + ']' AS object_name
+                       FROM sys.databases d
+                       CROSS JOIN sys.objects o
+                       INNER JOIN sys.schemas s ON o.schema_id = s.schema_id
+                       WHERE o.type IN ('P', 'PC') ${whereClause}
+                       ORDER BY d.name, s.name, o.name`;
+              break;
+            case 'function':
+              query = `SELECT '[' + d.name + '].[' + s.name + '].[' + o.name + ']' AS object_name
+                       FROM sys.databases d
+                       CROSS JOIN sys.objects o
+                       INNER JOIN sys.schemas s ON o.schema_id = s.schema_id
+                       WHERE o.type IN ('FN', 'IF', 'TF') ${whereClause}
+                       ORDER BY d.name, s.name, o.name`;
+              break;
+            case 'type':
+              query = `SELECT '[' + d.name + '].[' + s.name + '].[' + t.name + ']' AS object_name
+                       FROM sys.databases d
+                       CROSS JOIN sys.types t
+                       INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+                       WHERE t.is_user_defined = 1 ${whereClause}
+                       ORDER BY d.name, s.name, t.name`;
+              break;
+            default:
+              throw new Error(`Unknown object type: ${args.type}`);
+          }
+
+          const input = createSqlServerInput(connectionString, query, undefined, 30, 0, 1000);
+          const result = await runDatabaseCommand(input, config, storageDirectory, __dirname);
+
+          const responseLines = [result.output];
+          if (result.truncationMessage) {
+            responseLines.push(result.truncationMessage);
+          }
+
+          return {
+            content: [
+              {
+                type: 'text',
+                text: responseLines.join('\n'),
+              },
+            ],
+          };
+        }
+      } catch (error) {
+        throw new McpError(ErrorCode.InternalError, `Failed to list database objects: ${error}`);
+      }
+
+    case 'describe_database_object':
+      if (!args || typeof args.connection !== 'string') {
+        throw new McpError(ErrorCode.InvalidParams, 'Missing or invalid connection parameter');
+      }
+      if (!args || typeof args.name !== 'string') {
+        throw new McpError(ErrorCode.InvalidParams, 'Missing or invalid name parameter');
+      }
+
+      try {
+        let query: string;
+        let isSqlite = false;
+
+        // Determine if this is SQLite or SQL Server
+        const normalizedConnection = normalizePath(args.connection);
+        if (fs.existsSync(normalizedConnection)) {
+          isSqlite = true;
+        }
+
+        if (isSqlite) {
+          // SQLite: return the sql from sqlite_master
+          const objectName = args.name.replace(/"/g, ''); // Remove quotes
+          query = `SELECT sql FROM sqlite_master WHERE name = '${objectName.replace(/'/g, "''")}'`;
+
+          const input = createSqliteInput(normalizedConnection, query, undefined, 30, 0, 1000);
+          const result = await runDatabaseCommand(input, config, storageDirectory, __dirname);
+
+          const responseLines = [result.output];
+          if (result.truncationMessage) {
+            responseLines.push(result.truncationMessage);
+          }
+
+          return {
+            content: [
+              {
+                type: 'text',
+                text: responseLines.join('\n'),
+              },
+            ],
+          };
+        } else {
+          // SQL Server: reconstruct pseudo-SQL from sys tables
+          const connectionString = getSqlServerConnectionString(args.connection, config);
+
+          // Extract database, schema, and object name from bracket notation
+          const match = args.name.match(/\[([^\]]+)\]\.\[([^\]]+)\]\.\[([^\]]+)\]/);
+          if (!match) {
+            throw new Error(`Invalid object name format: ${args.name}. Expected [database].[schema].[object]`);
+          }
+
+          const [, database, schema, object] = match;
+
+          query = `USE [${database.replace(/'/g, "''")}];
+                   SELECT 
+                     'Object: ' + OBJECT_SCHEMA_NAME(OBJECT_ID('[${schema}].[${object}]')) + '.' + OBJECT_NAME(OBJECT_ID('[${schema}].[${object}]')) AS info
+                   UNION ALL
+                   SELECT 'Type: ' + o.type_desc
+                   FROM sys.objects o
+                   WHERE o.object_id = OBJECT_ID('[${schema}].[${object}]')
+                   UNION ALL
+                   SELECT 'Column: ' + c.name + ' ' + t.name + 
+                          CASE WHEN t.name IN ('varchar', 'nvarchar', 'char', 'nchar') 
+                               THEN '(' + CASE WHEN c.max_length = -1 THEN 'MAX' ELSE CAST(c.max_length AS varchar) END + ')'
+                               WHEN t.name IN ('decimal', 'numeric') 
+                               THEN '(' + CAST(c.precision AS varchar) + ',' + CAST(c.scale AS varchar) + ')'
+                               ELSE '' END +
+                          CASE WHEN c.is_nullable = 1 THEN ' NULL' ELSE ' NOT NULL' END
+                   FROM sys.columns c
+                   INNER JOIN sys.types t ON c.user_type_id = t.user_type_id
+                   WHERE c.object_id = OBJECT_ID('[${schema}].[${object}]')
+                   ORDER BY info`;
+
+          const input = createSqlServerInput(connectionString, query, undefined, 30, 0, 1000);
+          const result = await runDatabaseCommand(input, config, storageDirectory, __dirname);
+
+          const responseLines = [result.output];
+          if (result.truncationMessage) {
+            responseLines.push(result.truncationMessage);
+          }
+
+          return {
+            content: [
+              {
+                type: 'text',
+                text: responseLines.join('\n'),
+              },
+            ],
+          };
+        }
+      } catch (error) {
+        throw new McpError(ErrorCode.InternalError, `Failed to describe database object: ${error}`);
+      }
+
+    case 'list_database_types':
+      try {
+        // Static list of DbType enum values
+        const dbTypes = [
+          'AnsiString',
+          'Binary',
+          'Byte',
+          'Boolean',
+          'Currency',
+          'Date',
+          'DateTime',
+          'Decimal',
+          'Double',
+          'Guid',
+          'Int16',
+          'Int32',
+          'Int64',
+          'Object',
+          'SByte',
+          'Single',
+          'String',
+          'Time',
+          'UInt16',
+          'UInt32',
+          'UInt64',
+          'VarNumeric',
+          'AnsiStringFixedLength',
+          'StringFixedLength',
+          'Xml',
+          'DateTime2',
+          'DateTimeOffset',
+        ];
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: dbTypes.join('\n'),
+            },
+          ],
+        };
+      } catch (error) {
+        throw new McpError(ErrorCode.InternalError, `Failed to list database types: ${error}`);
+      }
+
+    case 'run_sql_command':
+      if (!args || typeof args.connection !== 'string') {
+        throw new McpError(ErrorCode.InvalidParams, 'Missing or invalid connection parameter');
+      }
+      if (!args || typeof args.command !== 'string') {
+        throw new McpError(ErrorCode.InvalidParams, 'Missing or invalid command parameter');
+      }
+      if (!args || typeof args.timeout_seconds !== 'number') {
+        throw new McpError(ErrorCode.InvalidParams, 'Missing or invalid timeout_seconds parameter');
+      }
+
+      // Validate optional arguments parameter
+      let parameters: Record<string, SqlParameter> | undefined;
+      if (args.arguments !== undefined) {
+        if (typeof args.arguments !== 'object' || args.arguments === null || Array.isArray(args.arguments)) {
+          throw new McpError(ErrorCode.InvalidParams, 'arguments must be an object with parameter definitions');
+        }
+        parameters = args.arguments as Record<string, SqlParameter>;
+      }
+
+      try {
+        let input;
+        let isSqlite = false;
+
+        // Determine if this is SQLite or SQL Server
+        const normalizedConnection = normalizePath(args.connection);
+        if (fs.existsSync(normalizedConnection)) {
+          isSqlite = true;
+        }
+
+        if (isSqlite) {
+          input = createSqliteInput(normalizedConnection, args.command, parameters, args.timeout_seconds, 0, 1000);
+        } else {
+          const connectionString = getSqlServerConnectionString(args.connection, config);
+          input = createSqlServerInput(connectionString, args.command, parameters, args.timeout_seconds, 0, 1000);
+        }
+
+        const result = await runDatabaseCommand(input, config, storageDirectory, __dirname);
+
+        // Parse JSON output and format as line-oriented JSON
+        let formattedOutput = result.output;
+        try {
+          const jsonData = JSON.parse(result.output);
+          if (Array.isArray(jsonData) && jsonData.length > 0) {
+            // Convert CSV-style array format to line-oriented JSON
+            const [headers, ...rows] = jsonData;
+            const jsonLines = rows.map(row => {
+              const obj: any = {};
+              headers.forEach((header: string, index: number) => {
+                obj[header] = row[index];
+              });
+              return JSON.stringify(obj);
+            });
+            formattedOutput = jsonLines.join('\n');
+          }
+        } catch (parseError) {
+          // If JSON parsing fails, use the original output
+        }
+
+        const responseLines = [formattedOutput];
+        if (result.truncationMessage) {
+          responseLines.push(result.truncationMessage);
+        }
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: responseLines.join('\n'),
+            },
+          ],
+        };
+      } catch (error) {
+        throw new McpError(ErrorCode.InternalError, `Failed to run SQL command: ${error}`);
       }
 
     default:

@@ -58,11 +58,24 @@ export function initializeStorageDirectoryFromModuleUrl(config: Config, currentM
  */
 export function initializeStorageDirectoryFromBase(config: Config, baseDir: string): string {
   try {
-    // Get storage directory from config, default to './storage/'
-    const storageDir = config.storage?.directory || './storage/';
+    let resolvedStorageDir: string;
 
-    // Resolve path relative to base directory if not absolute
-    const resolvedStorageDir = path.isAbsolute(storageDir) ? storageDir : path.join(baseDir, storageDir);
+    if (config.storage?.directory) {
+      // If storage directory is specified, it must be an absolute path
+      const storageDir = config.storage.directory;
+
+      if (!path.isAbsolute(storageDir)) {
+        throw new Error(
+          `Storage directory must be an absolute path when specified. Got: ${storageDir}. Use a Windows-style path like C:\\Tools\\arcadia\\storage or C:/Tools/arcadia/storage`
+        );
+      }
+
+      resolvedStorageDir = storageDir;
+    } else {
+      // If not specified, default to '../storage/' relative to the base directory
+      // This makes storage and server sibling directories
+      resolvedStorageDir = path.join(baseDir, '..', 'storage');
+    }
 
     return ensureStorageDirectory(resolvedStorageDir);
   } catch (error) {
@@ -86,7 +99,46 @@ export function ensureStorageDirectory(storageDir: string): string {
   const testFilePath = path.join(storageDir, '.test-write-access');
   try {
     fs.writeFileSync(testFilePath, 'test');
-    fs.unlinkSync(testFilePath);
+
+    // Try to delete the test file with retry logic for Windows
+    let deleteSuccess = false;
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        fs.unlinkSync(testFilePath);
+        deleteSuccess = true;
+        break;
+      } catch (unlinkError) {
+        lastError = unlinkError as Error;
+        // On Windows, file deletion might be delayed due to antivirus or filesystem issues
+        // Wait a bit and retry
+        if (attempt < 2) {
+          const delay = Math.pow(2, attempt) * 100; // 100ms, 200ms
+          // Simple synchronous delay
+          const start = Date.now();
+          while (Date.now() - start < delay) {
+            // Busy wait
+          }
+        }
+      }
+    }
+
+    if (!deleteSuccess && lastError) {
+      // If we can't delete the test file, check if it's just a permission issue
+      // but the directory is still writable by trying a different approach
+      try {
+        // Try to overwrite the existing test file
+        fs.writeFileSync(testFilePath, 'test2');
+        console.error(
+          `Warning: Could not delete test file ${testFilePath}, but directory appears writable. Continuing...`
+        );
+      } catch (overwriteError) {
+        throw new Error(
+          `Storage directory is not writable: ${storageDir}. Delete error: ${lastError}. Overwrite error: ${overwriteError}`
+        );
+      }
+    }
   } catch (testError) {
     throw new Error(`Storage directory is not writable: ${storageDir}. Error: ${testError}`);
   }

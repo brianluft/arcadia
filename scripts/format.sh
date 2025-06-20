@@ -17,6 +17,13 @@ cd test
 ../node/npm.cmd run prettier -- --write "src/**/*.{ts,js,json}"
 cd ..
 
+# Format dotnet code with csharpier
+echo "Formatting dotnet code..."
+cd dotnet
+dotnet csharpier format Database
+cd ..
+
 # Fix line endings
 echo "Fixing line endings..."
 find . -type f \( -name "*.ts" -o -name "*.json" -o -name "*.md" -o -name "*.mdc" -o -name "*.sh" \) -not -path "*/node_modules/*" | xargs dos2unix -q
+find . -type f \( -name "*.cs" -o -name "*.csproj" -o -name "*.resx" -o -name "*.sln" \) -not -path "*/obj/*" | xargs unix2dos -q

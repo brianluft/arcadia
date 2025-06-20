@@ -6,40 +6,23 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 cd ..
 PROJECT_ROOT=$PWD
 
-# Parse command line arguments
-TARGET_ARCH=""
-if [ $# -eq 1 ]; then
-    TARGET_ARCH="$1"
-elif [ $# -eq 0 ]; then
-    # Default to native architecture if no argument provided
-    TARGET_ARCH=$(scripts/get-native-arch.sh)
-else
-    echo "Usage: $0 [x64|arm64]"
-    echo "If no architecture is specified, uses native architecture"
+# Use native architecture (no command line arguments needed)
+TARGET_ARCH=$(scripts/get-native-arch.sh)
+
+# Check that the node folder exists
+if [ ! -d "node" ]; then
+    echo "Error: Node.js folder 'node' not found. Run 'scripts/init.sh' first."
     exit 1
 fi
 
-# Validate architecture argument
-if [ "$TARGET_ARCH" != "x64" ] && [ "$TARGET_ARCH" != "arm64" ]; then
-    echo "Error: Invalid architecture '$TARGET_ARCH'. Must be 'x64' or 'arm64'"
-    exit 1
-fi
-
-# Check that the required node folder exists
-NODE_FOLDER="node-${TARGET_ARCH}"
-if [ ! -d "$NODE_FOLDER" ]; then
-    echo "Error: Node.js folder '$NODE_FOLDER' not found. Run 'scripts/init.sh' first."
-    exit 1
-fi
-
-echo "Publishing for architecture: $TARGET_ARCH"
-echo "Using Node.js from: $NODE_FOLDER"
+echo "Publishing for native architecture: $TARGET_ARCH"
+echo "Using Node.js from: node"
 
 echo "Cleaning build/ and dist/ directories..."
 rm -rf build/ dist/
 
 echo "Running build..."
-if ! scripts/build.sh; then
+if ! scripts/build.sh --mode release; then
     echo "Build failed, aborting publish"
     exit 1
 fi
@@ -47,12 +30,18 @@ fi
 echo "Creating production dist/ directory..."
 mkdir -p dist/server
 mkdir -p dist/node
+mkdir -p dist/dotnet
+mkdir -p dist/storage
 
 echo "Copying server files to dist/server/ (excluding node_modules)..."
 cp -r build/server/*.js dist/server/
 cp server/package.json dist/server/
 cp server/package-lock.json dist/server/
 echo "✓ Server files copied to dist/server"
+
+echo "Copying dotnet files to dist/dotnet/..."
+cp -r build/dotnet/* dist/dotnet/
+echo "✓ Dotnet files copied to dist/dotnet"
 
 echo "Installing production dependencies in dist/server/..."
 cd dist/server
@@ -69,12 +58,16 @@ echo "Copying INSTALLING.html to dist/..."
 cp server/INSTALLING.html dist/
 echo "✓ INSTALLING.html copied"
 
+echo "Copying logs.bat to dist/..."
+cp dotnet/logs.bat dist/
+echo "✓ logs.bat copied"
+
 echo "Copying LICENSE to dist/..."
 cp LICENSE dist/LICENSE.txt
 echo "✓ LICENSE copied"
 
 echo "Copying Node.js runtime for $TARGET_ARCH to dist/node/..."
-cp -r "$NODE_FOLDER"/* dist/node/
+cp -r node/* dist/node/
 echo "✓ Node.js runtime copied to dist/node"
 
 # Create architecture-specific zip filename

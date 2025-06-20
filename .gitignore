@@ -1,7 +1,12 @@
+.vs/
+*.user
 *.zip
 /7zip/
 /build/
 /dist/
 /downloads/
 /node*/
+artifacts/
+bin/
 node_modules/
+obj/

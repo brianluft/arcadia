@@ -128,7 +128,7 @@
         <p>Arcadia uses a <code>config.jsonc</code> file located in its installation directory. The default configuration includes:</p>
         <ul>
             <li><strong>Bash Path:</strong> <code>C:\Program Files\Git\bin\bash.exe</code> (default Git Bash location)</li>
-            <li><strong>Storage Directory:</strong> <code>./storage/</code> (relative to installation directory)</li>
+            <li><strong>Storage Directory:</strong> Defaults to <code>../storage/</code> relative to the server executable (storage and server are siblings). If specified in config, must be an absolute Windows-style path (e.g., <code>C:\Tools\arcadia\storage</code>)</li>
             <li><strong>API Keys:</strong> OpenAI API key for image analysis features</li>
         </ul>
         <p>You can modify these settings by editing the <code>config.jsonc</code> file.</p>
@@ -158,6 +158,71 @@
         <div class="step">
             <h3><span class="step-number">3</span>Restart Cursor</h3>
             <p>Restart Cursor after updating the configuration to enable the image analysis feature.</p>
+        </div>
+
+        <h2>🗄️ SQL Server Database Connections</h2>
+        <p>Arcadia includes powerful SQL Server database tools that allow you to query databases, list objects, and explore schemas. You can configure SQL Server connections for easy access.</p>
+        
+        <div class="step">
+            <h3><span class="step-number">1</span>Configure Database Connections</h3>
+            <p>Edit the <code>config.jsonc</code> file in your Arcadia installation directory and add your SQL Server connections:</p>
+            <pre>{
+  ...
+  "connections": {
+    "my_production_db": "Server=prod-server.company.com;Database=ProductionDB;Trusted_Connection=True;Encrypt=True;",
+    "my_development_db": "Server=dev-server.company.com;Database=DevDB;User Id=myuser;Password=mypassword;Encrypt=False;"
+  }
+  ...
+}</pre>
+            <div class="highlight">
+                <strong>📝 Connection String Examples:</strong><br>
+                • <strong>Windows Authentication:</strong> <code>Server=ServerName;Database=DatabaseName;Trusted_Connection=True;Encrypt=True;</code><br>
+                • <strong>SQL Authentication:</strong> <code>Server=ServerName;Database=DatabaseName;User Id=username;Password=password;Encrypt=True;</code><br>
+                • <strong>Note:</strong> Set <code>Encrypt=False;</code> if your SQL Server doesn't support encryption or has certificate issues
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>Available Database Tools</h3>
+            <p>Once configured, you can use these database tools:</p>
+            <ul>
+                <li><strong>list_database_connections:</strong> Show all configured SQL Server connections</li>
+                <li><strong>list_database_schemas:</strong> List all databases and schemas on SQL Server</li>
+                <li><strong>list_database_objects:</strong> Find tables, views, procedures, functions, and types</li>
+                <li><strong>describe_database_object:</strong> Get detailed information about database objects</li>
+                <li><strong>run_sql_command:</strong> Execute SQL queries (always in read-only transactions)</li>
+                <li><strong>list_database_types:</strong> Show available parameter types for queries</li>
+            </ul>
+            <div class="highlight">
+                <strong>💡 SQLite Support:</strong> You can also work with SQLite databases directly by providing the file path instead of a connection name. No configuration needed for SQLite files.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">3</span>Restart Cursor</h3>
+            <p>Restart Cursor after updating the configuration to enable the database tools with your connections.</p>
+        </div>
+
+        <h2>📋 Viewing Active Logs</h2>
+        <p>Arcadia includes a convenient log viewer that displays real-time activity from MCP server operations.</p>
+        
+        <div class="step">
+            <h3><span class="step-number">1</span>Access Log Viewer</h3>
+            <p>Double-click <code>logs.bat</code> in your Arcadia installation directory to open the log viewer.</p>
+            <div class="highlight">
+                <strong>💡 Tip:</strong> The log viewer will automatically display the most recent log file and update in real-time as new events occur. Use <code>--snapshot</code> flag to view current logs without monitoring for new entries.
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">2</span>Understanding Log Output</h3>
+            <p>Logs are displayed in chronological order with timestamps, showing:</p>
+            <ul>
+                <li>Command executions and their results</li>
+                <li>Database queries and responses</li>
+                <li>Image analysis requests</li>
+                <li>Configuration changes and errors</li>
+            </ul>
         </div>
     </div>
 </body>
