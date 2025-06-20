@@ -123,39 +123,50 @@ public static class Program
                     }
                 }
 
-                using var reader = await command.ExecuteReaderAsync();
-
+                var reader = await command.ExecuteReaderAsync();
                 var results = new List<List<object?>>();
 
-                // Add column headers
-                var headers = new List<object?>();
-                for (int i = 0; i < reader.FieldCount; i++)
+                try
                 {
-                    headers.Add(reader.GetName(i));
-                }
-                results.Add(headers);
-
-                // Skip requested rows
-                int skipped = 0;
-                while (skipped < input.skipRows && await reader.ReadAsync())
-                {
-                    skipped++;
-                }
-
-                // Take requested rows
-                int taken = 0;
-                while (taken < input.takeRows && await reader.ReadAsync())
-                {
-                    var row = new List<object?>();
+                    // Add column headers
+                    var headers = new List<object?>();
                     for (int i = 0; i < reader.FieldCount; i++)
                     {
-                        row.Add(reader.IsDBNull(i) ? null : reader.GetValue(i));
+                        headers.Add(reader.GetName(i));
                     }
-                    results.Add(row);
-                    taken++;
+                    results.Add(headers);
+
+                    // Skip requested rows
+                    int skipped = 0;
+                    while (skipped < input.skipRows && await reader.ReadAsync())
+                    {
+                        skipped++;
+                    }
+
+                    // Take requested rows
+                    int taken = 0;
+                    while (taken < input.takeRows && await reader.ReadAsync())
+                    {
+                        var row = new List<object?>();
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            row.Add(reader.IsDBNull(i) ? null : reader.GetValue(i));
+                        }
+                        results.Add(row);
+                        taken++;
+                    }
+                }
+                finally
+                {
+                    // Ensure reader is always closed
+                    if (!reader.IsClosed)
+                    {
+                        await reader.CloseAsync();
+                    }
+                    await reader.DisposeAsync();
                 }
 
-                // Write output JSON
+                // Write output JSON (after reader is fully disposed)
                 var outputJson = JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = false });
                 await File.WriteAllTextAsync(outputFile.FullName, outputJson);
 
