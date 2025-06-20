@@ -725,19 +725,19 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
 
           query = `USE [${database.replace(/'/g, "''")}];
                    SELECT 
-                     'Object: ' + OBJECT_SCHEMA_NAME(OBJECT_ID('[${schema}].[${object}]')) + '.' + OBJECT_NAME(OBJECT_ID('[${schema}].[${object}]')) AS info
+                     ('Object: ' + OBJECT_SCHEMA_NAME(OBJECT_ID('[${schema}].[${object}]')) + '.' + OBJECT_NAME(OBJECT_ID('[${schema}].[${object}]'))) COLLATE DATABASE_DEFAULT AS info
                    UNION ALL
-                   SELECT 'Type: ' + o.type_desc
+                   SELECT ('Type: ' + o.type_desc) COLLATE DATABASE_DEFAULT
                    FROM sys.objects o
                    WHERE o.object_id = OBJECT_ID('[${schema}].[${object}]')
                    UNION ALL
-                   SELECT 'Column: ' + c.name + ' ' + t.name + 
+                   SELECT ('Column: ' + c.name + ' ' + t.name + 
                           CASE WHEN t.name IN ('varchar', 'nvarchar', 'char', 'nchar') 
                                THEN '(' + CASE WHEN c.max_length = -1 THEN 'MAX' ELSE CAST(c.max_length AS varchar) END + ')'
                                WHEN t.name IN ('decimal', 'numeric') 
                                THEN '(' + CAST(c.precision AS varchar) + ',' + CAST(c.scale AS varchar) + ')'
                                ELSE '' END +
-                          CASE WHEN c.is_nullable = 1 THEN ' NULL' ELSE ' NOT NULL' END
+                          CASE WHEN c.is_nullable = 1 THEN ' NULL' ELSE ' NOT NULL' END) COLLATE DATABASE_DEFAULT
                    FROM sys.columns c
                    INNER JOIN sys.types t ON c.user_type_id = t.user_type_id
                    WHERE c.object_id = OBJECT_ID('[${schema}].[${object}]')
