@@ -281,7 +281,7 @@ async function main() {
           connection: path.resolve(__dirname, '../../test/files/foo.sqlite3').replace(/\//g, '\\'),
           type: 'relation',
         },
-        expectedContent: '\\u0022foo\\u0022',
+        expectedContent: '{"object_name":"\\"foo\\""',
         description: 'Test database path handling with Windows backslash format (C:\\...)',
       },
       {
@@ -291,7 +291,7 @@ async function main() {
           connection: path.resolve(__dirname, '../../test/files/foo.sqlite3').replace(/\\/g, '/'),
           type: 'relation',
         },
-        expectedContent: '\\u0022foo\\u0022',
+        expectedContent: '{"object_name":"\\"foo\\""',
         description: 'Test database path handling with Windows forward slash format (C:/...)',
       },
       {
@@ -305,7 +305,7 @@ async function main() {
             .toLowerCase(),
           type: 'relation',
         },
-        expectedContent: '\\u0022foo\\u0022',
+        expectedContent: '{"object_name":"\\"foo\\""',
         description: 'Test database path handling with MSYS format (/c/...)',
       },
       {
@@ -319,7 +319,7 @@ async function main() {
             .toLowerCase(),
           type: 'relation',
         },
-        expectedContent: '\\u0022foo\\u0022',
+        expectedContent: '{"object_name":"\\"foo\\""',
         description: 'Test database path handling with MSYS format with colon (/c:/...)',
       },
       {
@@ -335,7 +335,7 @@ async function main() {
           ),
           type: 'relation',
         },
-        expectedContent: '\\u0022foo\\u0022',
+        expectedContent: '{"object_name":"\\"foo\\""',
         description: 'Test database path handling with URL-encoded MSYS format (/c%3A/...)',
       },
     ];
