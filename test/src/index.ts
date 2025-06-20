@@ -174,14 +174,12 @@ class TestRunner {
       }
 
       if (!objectName) {
-        // If no objects are found, this is not necessarily a failure - the database might be empty
-        // or the connection might not have permissions to see objects
         this.results.push({
           name: 'sql_server_describe_database_object',
-          passed: true,
-          actualContent: 'SKIPPED: No database objects found to test describe_database_object',
+          passed: false,
+          error: 'No valid database objects found to test describe_database_object',
         });
-        console.log(`   ✅ PASS (SKIPPED: No database objects found to test describe_database_object)`);
+        console.log(`   ❌ FAIL: No valid database objects found to test describe_database_object`);
         return;
       }
 
