@@ -207,9 +207,7 @@ class Program
             string? line;
             while ((line = await reader.ReadLineAsync()) != null)
             {
-                string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-                string filename = Path.GetFileName(logFile);
-                Console.WriteLine($"{timestamp} {filename}: {line}");
+                PrintLine(line);
             }
 
             _currentPosition = reader.BaseStream.Position;
@@ -327,13 +325,7 @@ class Program
 
                     while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
                     {
-                        string timestamp = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss tt");
-                        string filename = Path.GetFileName(currentFile);
-                        Console.ForegroundColor = ConsoleColor.Cyan;
-                        Console.Write($"[{timestamp}] ");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine(line);
-                        Console.ResetColor();
+                        PrintLine(line);
                     }
 
                     lock (_lockObject)
@@ -353,5 +345,15 @@ class Program
             // Wait before checking again
             await Task.Delay(1000, cancellationToken);
         }
+    }
+
+    private static void PrintLine(string line)
+    {
+        var timestamp = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss tt");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.Write($"[{timestamp}] ");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine(line);
+        Console.ResetColor();
     }
 }
