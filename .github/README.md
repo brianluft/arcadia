@@ -1,6 +1,6 @@
 <h1 align="center"><img src="icon_256.png" width=64><br>Arcadia MCP Server</h1>
 
-<p align="center">Cursor has lots of bugs on Windows and Arcadia provides workarounds for some of them.</p>
+<p align="center">Workarounds and additional tools for Cursor users on Windows.</p>
 
 ## Features
 
@@ -27,10 +27,7 @@
   - Configure SQL Server connections in `config.jsonc` under the `connections` section
 
 - **Real-time log monitoring**
-  - Convenient `logs.bat` launcher for viewing active MCP server logs
-  - Automatic log file monitoring with real-time updates
-  - Timestamps and organized display of command executions, database queries, and system events
-  - Supports both continuous monitoring and snapshot modes for troubleshooting
+  - `logs.bat` tool for viewing active command execution logs. The logs don't appear "live" inside Cursor, so use this tool in a separate terminal window to view the logs as they happen.
 
 ## Installation
 
