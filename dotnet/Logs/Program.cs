@@ -264,6 +264,24 @@ class Program
             string? newLastFile = GetLastLogFile(storageDirectory);
             if (newLastFile != null && newLastFile != _currentLogFile)
             {
+                string? previousFile;
+                long previousPosition;
+
+                lock (_lockObject)
+                {
+                    previousFile = _currentLogFile;
+                    previousPosition = _currentPosition;
+                }
+
+                // Perform final catchup read of the previous log file
+                if (previousFile != null)
+                {
+                    await CatchupPreviousFile(previousFile, previousPosition);
+                }
+
+                // Also catch up on any intermediate log files that might have been created
+                await CatchupIntermediateFiles(storageDirectory, previousFile, newLastFile);
+
                 lock (_lockObject)
                 {
                     Console.WriteLine($"Switching to new log file: {Path.GetFileName(newLastFile)}");
@@ -344,6 +362,72 @@ class Program
 
             // Wait before checking again
             await Task.Delay(1000, cancellationToken);
+        }
+    }
+
+    static async Task CatchupPreviousFile(string previousFile, long fromPosition)
+    {
+        if (!File.Exists(previousFile))
+            return;
+
+        try
+        {
+            Console.WriteLine($"Catching up on previous file: {Path.GetFileName(previousFile)}");
+
+            using var fileStream = new FileStream(previousFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            fileStream.Seek(fromPosition, SeekOrigin.Begin);
+
+            using var reader = new StreamReader(fileStream);
+            string? line;
+            int lineCount = 0;
+
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                PrintLine(line);
+                lineCount++;
+            }
+
+            if (lineCount > 0)
+            {
+                Console.WriteLine($"Caught up {lineCount} lines from previous file");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during catchup of file {previousFile}: {ex.Message}");
+        }
+    }
+
+    static async Task CatchupIntermediateFiles(string storageDirectory, string? previousFile, string newLastFile)
+    {
+        try
+        {
+            var allLogFiles = Directory
+                .GetFiles(storageDirectory, "*.log")
+                .OrderBy(f => f, StringComparer.Ordinal)
+                .ToArray();
+
+            int previousIndex = previousFile != null ? Array.IndexOf(allLogFiles, previousFile) : -1;
+            int newLastIndex = Array.IndexOf(allLogFiles, newLastFile);
+
+            // Check if there are any intermediate files between previous and new last file
+            if (previousIndex >= 0 && newLastIndex > previousIndex + 1)
+            {
+                Console.WriteLine($"Found {newLastIndex - previousIndex - 1} intermediate log files to catch up on");
+
+                for (int i = previousIndex + 1; i < newLastIndex; i++)
+                {
+                    string intermediateFile = allLogFiles[i];
+                    Console.WriteLine($"Catching up on intermediate file: {Path.GetFileName(intermediateFile)}");
+
+                    // Read the entire intermediate file
+                    await PrintExistingContent(intermediateFile);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during intermediate file catchup: {ex.Message}");
         }
     }
 
