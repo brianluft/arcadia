@@ -126,21 +126,18 @@ fi
 export PATH=$PWD/node:$PATH
 
 # Install server dependencies
-if [ -d "server" ]; then
-    echo "Installing server dependencies..."
-    cd server
-    npm install
-    cd ..
-    echo "✓ Server dependencies installed"
-fi
+echo "Installing server dependencies..."
+(cd server && npm install)
+echo "✓ Server dependencies installed"
 
 # Install test dependencies
-if [ -d "test" ]; then
-    echo "Installing test dependencies..."
-    cd test
-    npm install
-    cd ..
-    echo "✓ Test dependencies installed"
-fi
+echo "Installing test dependencies..."
+(cd test && npm install)
+echo "✓ Test dependencies installed"
+
+# Install dotnet tools
+echo "Installing dotnet tools..."
+(cd dotnet && dotnet tool restore)
+echo "✓ dotnet tools installed"
 
 echo "Setup complete!" 
