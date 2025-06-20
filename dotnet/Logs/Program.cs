@@ -325,11 +325,15 @@ class Program
                     using var reader = new StreamReader(fileStream);
                     string? line;
 
-                    while ((line = await reader.ReadLineAsync()) != null)
+                    while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
                     {
-                        string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                        string timestamp = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss tt");
                         string filename = Path.GetFileName(currentFile);
-                        Console.WriteLine($"{timestamp} {filename}: {line}");
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        Console.Write($"[{timestamp}] ");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.WriteLine(line);
+                        Console.ResetColor();
                     }
 
                     lock (_lockObject)
