@@ -31,6 +31,7 @@ echo "Creating production dist/ directory..."
 mkdir -p dist/server
 mkdir -p dist/node
 mkdir -p dist/dotnet
+mkdir -p dist/storage
 
 echo "Copying server files to dist/server/ (excluding node_modules)..."
 cp -r build/server/*.js dist/server/
