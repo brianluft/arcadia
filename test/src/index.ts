@@ -131,59 +131,8 @@ class TestRunner {
     );
 
     try {
-      // First, get a list of database objects
-      const listObjectsResponse = await this.client.callTool({
-        name: 'list_database_objects',
-        arguments: {
-          connection: 'test',
-          type: 'relation',
-        },
-      });
+      const objectName = '[master].[sys].[objects]';
 
-      const listContent =
-        Array.isArray(listObjectsResponse.content) &&
-        listObjectsResponse.content.length > 0 &&
-        'text' in listObjectsResponse.content[0]
-          ? listObjectsResponse.content[0].text
-          : '';
-
-      if (!listContent.trim()) {
-        this.results.push({
-          name: 'sql_server_describe_database_object',
-          passed: false,
-          error: 'No objects returned from list_database_objects',
-        });
-        console.log(`   ❌ FAIL: No objects returned from list_database_objects`);
-        return;
-      }
-
-      // Parse the first JSON line to get the first object (skip non-JSON lines like truncation messages)
-      const lines = listContent.trim().split('\n');
-      let objectName: string | undefined;
-
-      for (const line of lines) {
-        if (line.trim().startsWith('{')) {
-          try {
-            const firstObject = JSON.parse(line);
-            objectName = firstObject.object_name;
-            break;
-          } catch (parseError) {
-            continue; // Try next line
-          }
-        }
-      }
-
-      if (!objectName) {
-        this.results.push({
-          name: 'sql_server_describe_database_object',
-          passed: false,
-          error: 'No valid database objects found to test describe_database_object',
-        });
-        console.log(`   ❌ FAIL: No valid database objects found to test describe_database_object`);
-        return;
-      }
-
-      // Now test describe_database_object with the first object
       const describeResponse = await this.client.callTool({
         name: 'describe_database_object',
         arguments: {
