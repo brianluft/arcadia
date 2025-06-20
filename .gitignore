@@ -6,7 +6,9 @@
 /dist/
 /downloads/
 /node*/
+/temp/
 artifacts/
 bin/
 node_modules/
 obj/
+storage/

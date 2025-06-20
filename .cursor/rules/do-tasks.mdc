@@ -16,7 +16,8 @@ Carefully follow this process step by step.
 6. Re-read `.cursor/rules/do-tasks.mdc` (this file) so you don't forget to finish these steps.
 7. If everything is good, format the code with `scripts/format.sh`.
 8. Update `project/TASKS.md` to check off the tasks you completed. Insert a sub bullet point under the completed task, italicized and starting with 🤖, to briefly explain how you did it and any details that you can see will be necessary for future tasks in the file.
-9. Commit all to git with a short one-line, one-sentence commit message. Don't leave any uncommitted changes in the local worktree.
-10. STOP. You must give me an opportunity to review. Do not start more tasks.
+9. Review `git status`.
+10. Commit all to git with a short one-line, one-sentence commit message. Don't leave any uncommitted changes in the local worktree.
+11. STOP. You must give me an opportunity to review. Do not start more tasks.
 
 The tasks are expected to be doable. If you run into serious problems, STOP and ask for help.
