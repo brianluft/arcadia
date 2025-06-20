@@ -490,7 +490,7 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         const connectionString = getSqlServerConnectionString(args.connection, config);
         const input = createSqlServerInput(
           connectionString,
-          `SELECT DISTINCT '[' + name + '].[' + schema_name(schema_id) + ']' AS schema_name 
+          `SELECT DISTINCT '[' + d.name + '].[' + s.name + ']' AS schema_name 
            FROM sys.databases d
            CROSS JOIN sys.schemas s
            ORDER BY schema_name`,

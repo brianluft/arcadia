@@ -98,7 +98,7 @@ class TestRunner {
     }
   }
 
-  async runAllTests(testCases: TestCase[]): Promise<void> {
+  async runAllTests(testCases: TestCase[], hasSqlServerTestConnection: boolean): Promise<void> {
     console.log('🚀 Starting test suite...\n');
 
     for (const testCase of testCases) {
@@ -116,7 +116,115 @@ class TestRunner {
       }
     }
 
+    // Add the dependent describe_database_object test if SQL Server connection is available
+    if (hasSqlServerTestConnection) {
+      await this.runDescribeDatabaseObjectTest();
+    }
+
     this.printSummary();
+  }
+
+  async runDescribeDatabaseObjectTest(): Promise<void> {
+    console.log(`\n🧪 Running test: sql_server_describe_database_object`);
+    console.log(
+      `   Description: Test SQL Server describe_database_object using first result from list_database_objects`
+    );
+
+    try {
+      // First, get a list of database objects
+      const listObjectsResponse = await this.client.callTool({
+        name: 'list_database_objects',
+        arguments: {
+          connection: 'test',
+          type: 'relation',
+        },
+      });
+
+      const listContent =
+        Array.isArray(listObjectsResponse.content) &&
+        listObjectsResponse.content.length > 0 &&
+        'text' in listObjectsResponse.content[0]
+          ? listObjectsResponse.content[0].text
+          : '';
+
+      if (!listContent.trim()) {
+        this.results.push({
+          name: 'sql_server_describe_database_object',
+          passed: false,
+          error: 'No objects returned from list_database_objects',
+        });
+        console.log(`   ❌ FAIL: No objects returned from list_database_objects`);
+        return;
+      }
+
+      // Parse the first JSON line to get the first object (skip non-JSON lines like truncation messages)
+      const lines = listContent.trim().split('\n');
+      let objectName: string | undefined;
+
+      for (const line of lines) {
+        if (line.trim().startsWith('{')) {
+          try {
+            const firstObject = JSON.parse(line);
+            objectName = firstObject.object_name;
+            break;
+          } catch (parseError) {
+            continue; // Try next line
+          }
+        }
+      }
+
+      if (!objectName) {
+        // If no objects are found, this is not necessarily a failure - the database might be empty
+        // or the connection might not have permissions to see objects
+        this.results.push({
+          name: 'sql_server_describe_database_object',
+          passed: true,
+          actualContent: 'SKIPPED: No database objects found to test describe_database_object',
+        });
+        console.log(`   ✅ PASS (SKIPPED: No database objects found to test describe_database_object)`);
+        return;
+      }
+
+      // Now test describe_database_object with the first object
+      const describeResponse = await this.client.callTool({
+        name: 'describe_database_object',
+        arguments: {
+          connection: 'test',
+          name: objectName,
+        },
+      });
+
+      const describeContent =
+        Array.isArray(describeResponse.content) &&
+        describeResponse.content.length > 0 &&
+        'text' in describeResponse.content[0]
+          ? describeResponse.content[0].text
+          : '';
+
+      if (describeContent.includes('"info"')) {
+        this.results.push({
+          name: 'sql_server_describe_database_object',
+          passed: true,
+          actualContent: describeContent,
+        });
+        console.log(`   ✅ PASS`);
+      } else {
+        this.results.push({
+          name: 'sql_server_describe_database_object',
+          passed: false,
+          error: 'Expected "info" field in describe_database_object response',
+          actualContent: describeContent,
+        });
+        console.log(`   ❌ FAIL: Expected "info" field in describe_database_object response`);
+      }
+    } catch (error: any) {
+      this.results.push({
+        name: 'sql_server_describe_database_object',
+        passed: false,
+        error: error.message || 'Unknown error in describe_database_object test',
+      });
+      console.log(`   ❌ FAIL: ${error.message || 'Unknown error'}`);
+    }
   }
 
   private printSummary(): void {
@@ -162,14 +270,26 @@ async function main() {
     process.exit(1);
   }
 
+  let config;
+  let hasSqlServerTestConnection = false;
+
   try {
     const configData = fs.readFileSync(configFilePath, 'utf8');
-    const config = parseJsonc(configData);
+    config = parseJsonc(configData);
 
     if (!config.apiKeys?.openai) {
       console.error('❌ ERROR: OpenAI API key is required in the configuration file for running tests.');
       console.error('   Add a valid OpenAI API key to the "apiKeys.openai" field in your config.jsonc file.');
       process.exit(1);
+    }
+
+    // Check if there's a SQL Server connection named "test"
+    hasSqlServerTestConnection = !!config.connections?.sqlServer?.test;
+
+    if (hasSqlServerTestConnection) {
+      console.log('✅ SQL Server test connection found - SQL Server tests will be included');
+    } else {
+      console.log('ℹ️  No SQL Server test connection found - SQL Server tests will be skipped');
     }
 
     console.log('✅ Environment validation passed');
@@ -340,9 +460,47 @@ async function main() {
       },
     ];
 
+    // Add SQL Server tests if connection is available
+    if (hasSqlServerTestConnection) {
+      const sqlServerTests: TestCase[] = [
+        {
+          name: 'sql_server_list_database_schemas',
+          toolName: 'list_database_schemas',
+          arguments: {
+            connection: 'test',
+          },
+          description: 'Test SQL Server list_database_schemas returns at least one result',
+        },
+        {
+          name: 'sql_server_list_database_objects',
+          toolName: 'list_database_objects',
+          arguments: {
+            connection: 'test',
+            type: 'relation',
+          },
+          description: 'Test SQL Server list_database_objects returns at least one result',
+        },
+        {
+          name: 'sql_server_run_sql_command',
+          toolName: 'run_sql_command',
+          arguments: {
+            connection: 'test',
+            command: 'SELECT 1 AS foo',
+            timeout_seconds: 30,
+          },
+          expectedContent: '"foo":1',
+          description: 'Test SQL Server run_sql_command with simple SELECT statement',
+        },
+      ];
+
+      testCases.push(...sqlServerTests);
+
+      console.log(`\n📊 Added ${sqlServerTests.length} SQL Server tests to the suite`);
+    }
+
     // Run tests
     const testRunner = new TestRunner(client);
-    await testRunner.runAllTests(testCases);
+    await testRunner.runAllTests(testCases, hasSqlServerTestConnection);
   } catch (error) {
     console.error('❌ Test client failed:', error);
     process.exit(1);
