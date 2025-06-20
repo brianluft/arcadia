@@ -1,11 +1,6 @@
-﻿using System;
-using System.CommandLine;
-using System.IO;
-using System.Linq;
+﻿using System.CommandLine;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Logs;
 
@@ -23,9 +18,10 @@ public class Storage
 
 class Program
 {
-    private static string? _currentLogFile;
-    private static long _currentPosition;
-    private static readonly object _lockObject = new();
+    private static string? _currentLogFile; // Locked by _lockObject
+    private static long _currentPosition; // Locked by _lockObject
+    private static readonly Lock _lockObject = new(); // Protects _currentLogFile and _currentPosition
+    private static readonly SemaphoreSlim _fileWatcherSemaphore = new(1, 1); // Protects fileWatcher events
 
     static async Task<int> Main(string[] args)
     {
@@ -36,13 +32,7 @@ class Program
 
         var rootCommand = new RootCommand("Monitor and tail log files from the storage directory") { snapshotOption };
 
-        rootCommand.SetHandler(
-            async (bool snapshot) =>
-            {
-                await RunAsync(snapshot);
-            },
-            snapshotOption
-        );
+        rootCommand.SetHandler(RunAsync, snapshotOption);
 
         return await rootCommand.InvokeAsync(args);
     }
@@ -82,7 +72,6 @@ class Program
             _currentLogFile = lastLogFile;
             _currentPosition = 0;
 
-            Console.WriteLine($"Reading from: {Path.GetFileName(lastLogFile)}");
             await PrintExistingContent(lastLogFile);
 
             if (snapshot)
@@ -261,33 +250,41 @@ class Program
         {
             await Task.Delay(100); // Brief delay to ensure file is ready
 
-            string? newLastFile = GetLastLogFile(storageDirectory);
-            if (newLastFile != null && newLastFile != _currentLogFile)
+            await _fileWatcherSemaphore.WaitAsync();
+            try
             {
-                string? previousFile;
-                long previousPosition;
-
-                lock (_lockObject)
+                string? newLastFile = GetLastLogFile(storageDirectory);
+                if (newLastFile != null && newLastFile != _currentLogFile)
                 {
-                    previousFile = _currentLogFile;
-                    previousPosition = _currentPosition;
-                }
+                    string? previousFile;
+                    long previousPosition;
 
-                // Perform final catchup read of the previous log file
-                if (previousFile != null)
-                {
-                    await CatchupPreviousFile(previousFile, previousPosition);
-                }
+                    lock (_lockObject)
+                    {
+                        previousFile = _currentLogFile;
+                        previousPosition = _currentPosition;
+                    }
 
-                // Also catch up on any intermediate log files that might have been created
-                await CatchupIntermediateFiles(storageDirectory, previousFile, newLastFile);
+                    // Perform final catchup read of the previous log file
+                    if (previousFile != null)
+                    {
+                        await CatchupPreviousFile(previousFile, previousPosition);
+                    }
 
-                lock (_lockObject)
-                {
-                    Console.WriteLine($"Switching to new log file: {Path.GetFileName(newLastFile)}");
-                    _currentLogFile = newLastFile;
-                    _currentPosition = 0;
+                    // Also catch up on any intermediate log files that might have been created
+                    await CatchupIntermediateFiles(storageDirectory, previousFile, newLastFile);
+
+                    Console.WriteLine("----");
+                    lock (_lockObject)
+                    {
+                        _currentLogFile = newLastFile;
+                        _currentPosition = 0;
+                    }
                 }
+            }
+            finally
+            {
+                _fileWatcherSemaphore.Release();
             }
         };
 
@@ -372,8 +369,6 @@ class Program
 
         try
         {
-            Console.WriteLine($"Catching up on previous file: {Path.GetFileName(previousFile)}");
-
             using var fileStream = new FileStream(previousFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             fileStream.Seek(fromPosition, SeekOrigin.Begin);
 
@@ -413,12 +408,10 @@ class Program
             // Check if there are any intermediate files between previous and new last file
             if (previousIndex >= 0 && newLastIndex > previousIndex + 1)
             {
-                Console.WriteLine($"Found {newLastIndex - previousIndex - 1} intermediate log files to catch up on");
-
                 for (int i = previousIndex + 1; i < newLastIndex; i++)
                 {
                     string intermediateFile = allLogFiles[i];
-                    Console.WriteLine($"Catching up on intermediate file: {Path.GetFileName(intermediateFile)}");
+                    Console.WriteLine("----");
 
                     // Read the entire intermediate file
                     await PrintExistingContent(intermediateFile);
