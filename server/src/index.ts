@@ -4,7 +4,7 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { loadConfigFromDirectory } from './config.js';
-import { initializeStorageDirectoryFromDirectory, readOutputFile } from './storage.js';
+import { initializeStorageDirectoryFromDirectory, readOutputFile, generateTimestampedFilename } from './storage.js';
 import { runBashCommand } from './bash.js';
 import { readImage } from './image.js';
 import {
@@ -18,6 +18,26 @@ import { normalizePath } from './utils.js';
 import OpenAI from 'openai';
 import * as fs from 'fs';
 import * as path from 'path';
+
+/**
+ * Log MCP tool call request to a fresh .log file in the storage directory
+ * @param request - The MCP tool call request
+ * @param storageDirectory - Path to the storage directory
+ */
+function logToolCallRequest(request: any, storageDirectory: string): void {
+  try {
+    const logFilePath = generateTimestampedFilename(storageDirectory, 'log');
+    const logData = {
+      timestamp: new Date().toISOString(),
+      type: 'mcp_tool_call_request',
+      request: request,
+    };
+    const prettyJson = JSON.stringify(logData, null, 2);
+    fs.writeFileSync(logFilePath, prettyJson, 'utf8');
+  } catch (error) {
+    console.error(`Failed to log tool call request: ${error}`);
+  }
+}
 
 /**
  * Convert database JSON output to JSONL format
@@ -328,6 +348,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 // Handle tool calls
 server.setRequestHandler(CallToolRequestSchema, async request => {
+  // Log the tool call request before processing
+  logToolCallRequest(request, storageDirectory);
+
   const { name, arguments: args } = request.params;
 
   switch (name) {
