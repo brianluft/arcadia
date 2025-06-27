@@ -120,10 +120,11 @@ Before every action (screenshot, mouse click, key press) we will inform the user
     - *🤖 Modified OnStatusUpdate method in MainForm.cs to replace AppendText with direct Text assignment, removed timestamp formatting and scrolling logic since only the most recent message is shown.*
 
 ## Phase - Screenshot
-- [ ] Create static class `FormHider` with `public static void Do(Action)`.
+- [x] Create static class `FormHider` with `public static void Do(Action)`.
     - Grab `Application.OpenForms` and hide them all. Wait 500ms.
     - Invoke the `Action`
     - Re-show the forms we hid.
+    - *🤖 Created FormHider.cs with static Do method that collects all open forms, hides visible ones, waits 500ms, executes the provided action, then restores original visibility states with proper disposal checks in finally block.*
 
 - [ ] Create class `ScreenUse` with one function `TakeScreenshot`. Register DI singleton.
     - Overview: Screenshot, scale, draw a grid, generate PNG.
