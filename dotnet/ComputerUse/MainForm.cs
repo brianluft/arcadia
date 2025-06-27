@@ -7,6 +7,7 @@ public partial class MainForm : Form
     private readonly StatusReporter _statusReporter;
     private readonly TextBox _statusTextBox;
     private ICommand? _command;
+    private bool _firstShow = true;
 
     public MainForm(StatusReporter statusReporter)
     {
@@ -116,9 +117,10 @@ public partial class MainForm : Form
     {
         base.SetVisibleCore(value);
 
-        if (value && _command != null)
+        if (value && _command != null && _firstShow)
         {
-            // Execute the command when the form becomes visible
+            // Execute the command when the form first becomes visible
+            _firstShow = false;
             try
             {
                 await _command.ExecuteAsync(_statusReporter);

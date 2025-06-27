@@ -8,7 +8,7 @@
 - Must not require administrator access or UAC elevation.
 - High-DPI support. Use `TableLayoutPanel`/`FlowLayoutPanel` and auto-size for everything possible. When fixed pixel values are needed, multiply by dpi scaling factor.
 - Put all P/Invoke declarations in a global `NativeMethods.cs` class
-- When writing test scripts, mimic `scripts\test-computer-use-noop.sh` exactly.
+- When writing test scripts, mimic `scripts\test-computer-use-noop.sh` exactly. Do not build; we have `scripts\build.sh` for that. Call `build/dotnet/ComputerUse.exe`.
 - Warnings are unacceptable. Always fix them.
 
 ## Context
