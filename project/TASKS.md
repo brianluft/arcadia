@@ -17,19 +17,22 @@
 
 - [x] Create `Coord` (A-based column letter and 0-based row number, like A0 or B5, up to 16 columns and 9 rows, configurable dimensions as a code constant), `ZoomPath` (a series of `Coords` for repeatedly zooming in based on grid coords), `ArcadiaConfig` (carries what we need from config.jsonc, `string OpenAiKey`).
 
-- [ ] Set up dependency injection.
+- [x] Set up dependency injection.
+    - *🤖 Added Microsoft.Extensions.DependencyInjection NuGet package and configured DI container in Program.cs with singleton StatusReporter and transient MainForm registration.*
 
-- [ ] Create class `StatusReporter`. Register DI singleton.
-    - [ ] `StatusUpdate` event that passes the message in the `StatusUpdateEventArgs`.
-    - [ ] `Report(string message)` for firing the event
+- [x] Create class `StatusReporter`. Register DI singleton.
+    - [x] `StatusUpdate` event that passes the message in the `StatusUpdateEventArgs`.
+    - [x] `Report(string message)` for firing the event
+    - *🤖 Created StatusReporter.cs with StatusUpdateEventArgs and event-based reporting pattern.*
 
-- [ ] Our `Program.cs` needs an `Application.Run()`. Create `MainForm`.
+- [x] Our `Program.cs` needs an `Application.Run()`. Create `MainForm`.
     - Ctor injection: `StatusReporter`
     - Simple dialog
     - Label "Your computer is being controlled by AI."
     - Multi-line textbox, 500px * dpi scaling wide, 200px * dpi scaling tall, readonly. This will be for status messages. Hook `StatusReporter.StatusUpdate` and have it `BeginInvoke` over to the UI thread and update the textbox.
     - Link label label "Stop". The link calls `Process.GetCurrentProcess().Kill()` immediately
     - Always on top. Lower right corner of the workspace, inset by 5% of the workspace size.
+    - *🤖 Created MainForm.cs with all required UI elements, DPI scaling support, proper positioning, and thread-safe status message handling via BeginInvoke.*
 
 - [ ] Stub out `interface ICommand` to represent a command to be executed by the main form. Each CLI command will be an implementation of this, with its parameters as properties and an `Execute()` method. When I ask for new CLI commands, make a new `ICommand` implementation and update `Program.cs` to parse its arguments and construct the object and pass it into `MainForm` which then executes it.
 

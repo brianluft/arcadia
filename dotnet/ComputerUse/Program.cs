@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection;
+
 namespace ComputerUse;
 
 public static class Program
@@ -13,11 +15,24 @@ public static class Program
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-            //Application.Run(new Form1()); //TODO
+
+            // Set up dependency injection
+            var services = new ServiceCollection();
+
+            // Register services
+            services.AddSingleton<StatusReporter>();
+            services.AddTransient<MainForm>();
+
+            // Build service provider
+            var serviceProvider = services.BuildServiceProvider();
+
+            // Run the application
+            var mainForm = serviceProvider.GetRequiredService<MainForm>();
+            Application.Run(mainForm);
         }
         catch (Exception ex)
         {
             MessageBox.Show(ex.Message, "Arcadia Computer Use Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
-    }    
+    }
 }
