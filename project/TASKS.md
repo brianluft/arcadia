@@ -125,13 +125,15 @@ Before every action (screenshot, mouse click, key press) we will inform the user
     - Mandatory parameter: `FileInfo outputFile`. PNG file to write.
     - Optional parameter: `ZoomPath? zoomPath`. When omitted it screenshots the whole screen, otherwise it zooms into each grid cell in the path in succession.
     - Procedure
-        0. `SafetyManager.ConfirmScreenshot`
-        1. Screenshot the primary monitor only. Include the mouse pointer.
-        2. Calculate the target region of the primary screen via `zoomPath.GetRectangle()`. Crop the screenshot to that rectangle.
-        3. Scale (down _or_ up) to 1080 px height, with width according to the original aspect ratio. When scaling down, use a high quality scaling algorithm. When scaling up, use a nearest-neighbor algorithm.
-        4. Impose a grid of rectangles on the cropped image per `Coord.NUM_ROWS` and `Coord.NUM_COLUMNS`. Draw 2px inverted color grid lines.
-        5. In the dead center of each grid cell, draw a 3x3 inverted color rectangle, with the center pixel of that 3x3 rectangle being the center of the grid cell. To the right, write the grid coordinate like "A0" (via `Coord.ToString()`) in small text 12px tall (make that font size a constant in the code so we can tweak it later).
-        6. Save to PNG in `outputFile`.
+        - `SafetyManager.ConfirmScreenshot`
+        - Grab `Application.OpenForms` and hide them all. Wait 500ms
+        - Screenshot the primary monitor only. Include the mouse pointer.
+        - Re-show the forms we hid.
+        - Calculate the target region of the primary screen via `zoomPath.GetRectangle()`. Crop the screenshot to that rectangle.
+        - Scale (down _or_ up) to 1080 px height, with width according to the original aspect ratio. When scaling down, use a high quality scaling algorithm. When scaling up, use a nearest-neighbor algorithm.
+        - Impose a grid of rectangles on the cropped image per `Coord.NUM_ROWS` and `Coord.NUM_COLUMNS`. Draw 2px inverted color grid lines.
+        - In the dead center of each grid cell, draw a 3x3 inverted color rectangle, with the center pixel of that 3x3 rectangle being the center of the grid cell. To the right, write the grid coordinate like "A0" (via `Coord.ToString()`) in small text 12px tall (make that font size a constant in the code so we can tweak it later).
+        - Save to PNG in `outputFile`.
 
 - [ ] Create CLI command "screenshot".
     - Optional parameter: `--zoomPath <comma-separated Coords>`. Example `--zoomPath A2,B6`
@@ -154,7 +156,11 @@ Before every action (screenshot, mouse click, key press) we will inform the user
     -  Mandatory parameter: `ZoomPath zoomPath`. The caller must specify the click location the same way that `ScreenUse` works, so they can drill down a series of screenshots until a grid dot is over the desired click location, then switch to `MouseUse` to click there. We click in the dead center of the zoom path's rectangle on the primary monitor.
     - Mandatory parameter: `MouseButtons button`
     - Mandatory parameter: `bool double` -- true for double-click.
-    - Confirm first with `SafetyManager.ConfirmClick`
+    - Procedure
+        - Confirm with `SafetyManager.ConfirmClick`
+        - Grab `Application.OpenForms` and hide them all. Wait 500ms
+        - Click
+        - Re-show the forms we hid.
 
 - [ ] Create CLI command "mouse-click".
     - Mandatory parameter: `--zoomPath <comma-separated Coords>`. Example `--zoomPath A2,B6`
@@ -170,7 +176,11 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 - [ ] Create class `KeyboardUse`. Register DI singleton.
     - `void Press(Keys keys)` -- sends a single keystroke with modifiers, including Ctrl/Alt/Shift/Win.
     - `void Type(string text)` -- Sends a series of normal keystrokes
-    - For both, confirm first with `SafetyManager.ConfirmType`
+    - Procedure
+        - Confirm with `SafetyManager.ConfirmType`
+        - Grab `Application.OpenForms` and hide them all. Wait 500ms
+        - Type
+        - Re-show the forms we hid.
 
 - [ ] Create CLI command "key-press"
     - Mandatory parameter: `--key <Keys enum value>`
