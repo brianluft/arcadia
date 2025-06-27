@@ -184,7 +184,7 @@ public class ScreenUse
                 }
 
                 // Draw center dots and coordinate labels in white on the overlay
-                using (var font = new Font("Arial", FONT_SIZE, FontStyle.Regular))
+                using (var font = new Font("Consolas", FONT_SIZE, FontStyle.Bold))
                 using (var textBrush = new SolidBrush(Color.White))
                 using (var dotBrush = new SolidBrush(Color.White))
                 {
