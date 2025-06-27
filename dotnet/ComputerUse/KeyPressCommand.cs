@@ -13,7 +13,6 @@ public class KeyPressCommand : ICommand
     public bool Shift { get; set; }
     public bool Ctrl { get; set; }
     public bool Alt { get; set; }
-    public bool Win { get; set; }
 
     public KeyPressCommand(KeyboardUse keyboardUse)
     {
@@ -27,7 +26,7 @@ public class KeyPressCommand : ICommand
             throw new InvalidOperationException("Key is required");
         }
 
-        statusReporter.Report($"Pressing key: {Key} (Shift={Shift}, Ctrl={Ctrl}, Alt={Alt}, Win={Win})");
+        statusReporter.Report($"Pressing key: {Key} (Shift={Shift}, Ctrl={Ctrl}, Alt={Alt})");
 
         // Parse the key string to Keys enum
         if (!Enum.TryParse<Keys>(Key, true, out Keys baseKey))
@@ -43,13 +42,9 @@ public class KeyPressCommand : ICommand
             keys |= Keys.Control;
         if (Alt)
             keys |= Keys.Alt;
-        if (Win)
-            keys |= Keys.LWin; // Use LWin for Windows key
 
         // Create key description using the original parsed information
         var parts = new List<string>();
-        if (Win)
-            parts.Add("Win");
         if (Ctrl)
             parts.Add("Ctrl");
         if (Alt)

@@ -62,7 +62,6 @@ public class KeyboardUse
         bool ctrl = (keys & Keys.Control) == Keys.Control;
         bool alt = (keys & Keys.Alt) == Keys.Alt;
         bool shift = (keys & Keys.Shift) == Keys.Shift;
-        bool win = (keys & Keys.LWin) == Keys.LWin || (keys & Keys.RWin) == Keys.RWin;
 
         // Extract the base key by removing modifier flags
         // Use KeyCode property which returns the key code without modifiers
@@ -70,8 +69,6 @@ public class KeyboardUse
 
         // Build description
         var parts = new List<string>();
-        if (win)
-            parts.Add("Win");
         if (ctrl)
             parts.Add("Ctrl");
         if (alt)
@@ -126,143 +123,17 @@ public class KeyboardUse
             Keys.F11 => "F11",
             Keys.F12 => "F12",
             Keys.Space => "Space",
+            Keys.LWin => "Left Windows Key",
+            Keys.RWin => "Right Windows Key",
             _ => key.ToString(),
         };
     }
 
     private void SendKeysCombination(Keys keys)
     {
-        // Extract modifiers
-        bool ctrl = (keys & Keys.Control) == Keys.Control;
-        bool alt = (keys & Keys.Alt) == Keys.Alt;
-        bool shift = (keys & Keys.Shift) == Keys.Shift;
-        bool win = (keys & Keys.LWin) == Keys.LWin;
-
-        // Extract the base key using Keys.KeyCode mask (same as GetKeyDescription)
-        Keys baseKey = keys & Keys.KeyCode;
-
-        // Handle Windows key combinations using P/Invoke
-        if (win)
-        {
-            SendWindowsKeyCombo(baseKey, ctrl, alt, shift);
-        }
-        else
-        {
-            // Use SendKeys for non-Windows key combinations
-            string sendKeysString = ConvertKeysToSendKeysString(keys);
-            SendKeys.SendWait(sendKeysString);
-        }
-    }
-
-    private void SendWindowsKeyCombo(Keys baseKey, bool ctrl, bool alt, bool shift)
-    {
-        // Press modifiers first
-        if (shift)
-            NativeMethods.keybd_event(0x10, 0, 0, UIntPtr.Zero); // VK_SHIFT
-        if (ctrl)
-            NativeMethods.keybd_event(0x11, 0, 0, UIntPtr.Zero); // VK_CONTROL
-        if (alt)
-            NativeMethods.keybd_event(0x12, 0, 0, UIntPtr.Zero); // VK_MENU
-
-        // Press Windows key
-        NativeMethods.keybd_event(0x5B, 0, 0, UIntPtr.Zero); // VK_LWIN
-
-        // Small delay to ensure Windows key is registered
-        System.Threading.Thread.Sleep(50);
-
-        // Press the base key
-        byte vkCode = GetVirtualKeyCode(baseKey);
-        if (vkCode != 0)
-        {
-            NativeMethods.keybd_event(vkCode, 0, 0, UIntPtr.Zero);
-            System.Threading.Thread.Sleep(50); // Hold the key briefly
-            NativeMethods.keybd_event(vkCode, 0, NativeMethods.KEYEVENTF_KEYUP, UIntPtr.Zero);
-        }
-
-        // Small delay before releasing Windows key
-        System.Threading.Thread.Sleep(50);
-
-        // Release Windows key
-        NativeMethods.keybd_event(0x5B, 0, NativeMethods.KEYEVENTF_KEYUP, UIntPtr.Zero);
-
-        // Release modifiers in reverse order
-        if (alt)
-            NativeMethods.keybd_event(0x12, 0, NativeMethods.KEYEVENTF_KEYUP, UIntPtr.Zero);
-        if (ctrl)
-            NativeMethods.keybd_event(0x11, 0, NativeMethods.KEYEVENTF_KEYUP, UIntPtr.Zero);
-        if (shift)
-            NativeMethods.keybd_event(0x10, 0, NativeMethods.KEYEVENTF_KEYUP, UIntPtr.Zero);
-    }
-
-    private byte GetVirtualKeyCode(Keys key)
-    {
-        return key switch
-        {
-            Keys.A => 0x41,
-            Keys.B => 0x42,
-            Keys.C => 0x43,
-            Keys.D => 0x44,
-            Keys.E => 0x45,
-            Keys.F => 0x46,
-            Keys.G => 0x47,
-            Keys.H => 0x48,
-            Keys.I => 0x49,
-            Keys.J => 0x4A,
-            Keys.K => 0x4B,
-            Keys.L => 0x4C,
-            Keys.M => 0x4D,
-            Keys.N => 0x4E,
-            Keys.O => 0x4F,
-            Keys.P => 0x50,
-            Keys.Q => 0x51,
-            Keys.R => 0x52,
-            Keys.S => 0x53,
-            Keys.T => 0x54,
-            Keys.U => 0x55,
-            Keys.V => 0x56,
-            Keys.W => 0x57,
-            Keys.X => 0x58,
-            Keys.Y => 0x59,
-            Keys.Z => 0x5A,
-            Keys.D0 => 0x30,
-            Keys.D1 => 0x31,
-            Keys.D2 => 0x32,
-            Keys.D3 => 0x33,
-            Keys.D4 => 0x34,
-            Keys.D5 => 0x35,
-            Keys.D6 => 0x36,
-            Keys.D7 => 0x37,
-            Keys.D8 => 0x38,
-            Keys.D9 => 0x39,
-            Keys.F1 => 0x70,
-            Keys.F2 => 0x71,
-            Keys.F3 => 0x72,
-            Keys.F4 => 0x73,
-            Keys.F5 => 0x74,
-            Keys.F6 => 0x75,
-            Keys.F7 => 0x76,
-            Keys.F8 => 0x77,
-            Keys.F9 => 0x78,
-            Keys.F10 => 0x79,
-            Keys.F11 => 0x7A,
-            Keys.F12 => 0x7B,
-            Keys.Enter => 0x0D,
-            Keys.Escape => 0x1B,
-            Keys.Space => 0x20,
-            Keys.Tab => 0x09,
-            Keys.Back => 0x08,
-            Keys.Delete => 0x2E,
-            Keys.Insert => 0x2D,
-            Keys.Home => 0x24,
-            Keys.End => 0x23,
-            Keys.PageUp => 0x21,
-            Keys.PageDown => 0x22,
-            Keys.Up => 0x26,
-            Keys.Down => 0x28,
-            Keys.Left => 0x25,
-            Keys.Right => 0x27,
-            _ => 0,
-        };
+        // Use SendKeys for all key combinations
+        string sendKeysString = ConvertKeysToSendKeysString(keys);
+        SendKeys.SendWait(sendKeysString);
     }
 
     private string ConvertKeysToSendKeysString(Keys keys)
@@ -304,7 +175,8 @@ public class KeyboardUse
             Keys.F11 => "{F11}",
             Keys.F12 => "{F12}",
             Keys.Space => " ",
-            Keys.LWin or Keys.RWin => "^{ESC}", // Windows key approximation
+            Keys.LWin => "^{ESC}", // Windows key approximation using Ctrl+Esc
+            Keys.RWin => "^{ESC}", // Windows key approximation using Ctrl+Esc
             _ => baseKey.ToString().ToLower(),
         };
 

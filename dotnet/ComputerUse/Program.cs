@@ -280,9 +280,6 @@ public static class Program
                 case "--alt":
                     command.Alt = true;
                     break;
-                case "--win":
-                    command.Win = true;
-                    break;
                 default:
                     throw new ArgumentException($"Unknown parameter: {args[i]}");
             }
