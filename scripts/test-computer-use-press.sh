@@ -2,7 +2,6 @@
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 cd ..
 
-dotnet build --configuration Release dotnet/ComputerUse/
 build/dotnet/ComputerUse.exe key-press --key R --win
 sleep 1
 build/dotnet/ComputerUse.exe key-press --key Escape 

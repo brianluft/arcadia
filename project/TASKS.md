@@ -219,6 +219,10 @@ Before every action (screenshot, mouse click, key press) we will inform the user
     - `--key Escape`
     - *🤖 Created test script that builds ComputerUse project and tests Win+R key combination followed by Escape key after 1 second delay.*
 
+- [ ] Bug fix: In the prompt form, you show `AI is about to type the following text: "Press key: LWin"` which is a bit silly, it makes it look like you're literally going to type the words "Press key: LWin" instead of pressing the Win key. Update the whole text when pressing a key instead of typing text.
+
+- [ ] Bug fix: The test command is `--key R --win` but you treated it like LWin _only_. It brought up the Start menu instead of the Run dialog.
+
 # Phase - Run AI feedback loop
 
 - [ ] Create a `StorageFolder` class. NOT registered with DI. Constructed with a `string path`. Thread safe.
