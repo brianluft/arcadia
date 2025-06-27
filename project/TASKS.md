@@ -110,7 +110,8 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 - [x] Bug fix: on `confirm-screenshot`, the rectangle form isn't displayed at the expected location. A test of `--x 0 --y 0` is NOT at the top left corner of the screen; it's inset a bit. I'm guessing the location is not being applied correctly at all and we're getting the default location.
     - *🤖 Fixed SafetyRectangleForm positioning by replacing `Bounds = _targetRectangle` with explicit `Location = _targetRectangle.Location` and `Size = _targetRectangle.Size` assignments. Also added `StartPosition = FormStartPosition.Manual` and disabled control box properties to ensure precise positioning without Windows decoration offsets.*
 
-- [ ] Bug fix: on `confirm-click`, the prompt form is covering up the right portion of the crosshair. Explicitly set the prompt form location by reading the bounds of the crosshair window.
+- [x] Bug fix: on `confirm-click`, the prompt form is covering up the right portion of the crosshair. Explicitly set the prompt form location by reading the bounds of the crosshair window.
+    - *🤖 Fixed by modifying SafetyManager.ConfirmClick() to use PositionFormNearRectangle() with crosshairForm.Bounds instead of PositionFormNearPoint() with just the target point, ensuring the prompt form is positioned around the actual crosshair form area rather than overlapping it.*
 
 - [ ] Bug fix: `SafetyPromptForm` has tons of hardcoded pixel values that are _not_ multiplied by the dpi scaling, which was required by the guidelines in this file. We need to intelligently support DPI scaling. 
 

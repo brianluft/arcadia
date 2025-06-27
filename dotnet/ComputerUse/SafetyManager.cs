@@ -65,8 +65,8 @@ namespace ComputerUse
                 // Show prompt form with 5 second countdown
                 using (var promptForm = new SafetyPromptForm(message, 5))
                 {
-                    // Position prompt near target point but on-screen
-                    PositionFormNearPoint(promptForm, point);
+                    // Position prompt near crosshair form bounds, not just the target point
+                    PositionFormNearRectangle(promptForm, crosshairForm.Bounds);
 
                     var result = promptForm.ShowDialog();
                     if (result != DialogResult.OK)
