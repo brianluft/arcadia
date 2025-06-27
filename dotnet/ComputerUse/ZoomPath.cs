@@ -16,8 +16,8 @@ public readonly record struct ZoomPath(List<Coord> Coords)
             var numColumns = Coord.CalculateColumns(aspectRatio);
             var numRows = Coord.NUM_ROWS;
 
-            var x = coord.ColumnIndex * rectangle.Width / numColumns;
-            var y = coord.RowIndex * rectangle.Height / numRows;
+            var x = rectangle.X + coord.ColumnIndex * rectangle.Width / numColumns;
+            var y = rectangle.Y + coord.RowIndex * rectangle.Height / numRows;
             var width = rectangle.Width / numColumns;
             var height = rectangle.Height / numRows;
             rectangle = new Rectangle(x, y, width, height);
