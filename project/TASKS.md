@@ -157,6 +157,12 @@ Before every action (screenshot, mouse click, key press) we will inform the user
         5. `--zoomPath B1,C2`
     - *🤖 Created test script that builds the project in Release mode and tests all five screenshot scenarios (full screen, single zoom, double zoom, different positions) writing output to temp/ directory.*
 
+- [ ] Bug fix: Your grid labels are showing "650" instead of "A0". 65 is the ASCII code for A. The labels are not vertically aligned properly; you have the top of the text aligned with the dot in the center of the grid cell, but the text should be vertically centered in the grid cell. Make the text 25% smaller and unbolded.
+
+- [ ] Bug fix: I asked for inverted color but you are drawing simple white color. Try drawing the grid and text into a new off-screen bitmap, then work some image magic to cause any white pixel in the off-screen bitmap to cause the same pixel in the screenshot to have its color inverted. We want our grid and text to be visible regardless of what's underneath.
+
+- [ ] Requirement change: I asked for a fixed 16x9 grid which you did. This works for a fullscreen screenshot but works poorly for zoomed-in shots which are no longer 16:9. Instead, let's keep the grid height constant (9) but set the grid width dynamically based on the screenshot aspect ratio. 16:9 screenshot gets 16 across. 4:3 screenshot, 4:3 is 12:9, so 12 across. 1:1 screenshot, 1:1 is 9:9, so 9 across. etc. The math will be calculated on `Coord.NUM_ROWS` which is currently 9 but may change. It has to be an integer number of grid cells in each direction so round it.
+
 # Phase - Mouse
 
 - [ ] Create class `MouseUse` with one function `Click`. Register DI singleton.
