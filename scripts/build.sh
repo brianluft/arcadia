@@ -69,6 +69,7 @@ if [ "$BUILD_MODE" = "development" ]; then
     echo "Copying dotnet artifacts to build/dotnet/..."
     cp -r artifacts/bin/Database/debug/* ../build/dotnet/
     cp -r artifacts/bin/Logs/debug/* ../build/dotnet/
+    cp -r artifacts/bin/ComputerUse/debug/* ../build/dotnet/
 else
     echo "Building dotnet solution in release mode..."
     dotnet publish --configuration Release --verbosity quiet --self-contained --property:PublishReadyToRun=true
@@ -77,6 +78,7 @@ else
     echo "Copying dotnet artifacts to build/dotnet/..."
     cp -r artifacts/publish/Database/release/* ../build/dotnet/
     cp -r artifacts/publish/Logs/release/* ../build/dotnet/
+    cp -r artifacts/publish/ComputerUse/release/* ../build/dotnet/
 fi
 cd ..
 echo "✓ Dotnet solution built successfully"

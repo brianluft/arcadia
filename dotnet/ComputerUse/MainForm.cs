@@ -19,12 +19,30 @@ public partial class MainForm : Form
         using var g = CreateGraphics();
         var dpiScaling = g.DpiX / 96.0f;
 
+        // Create main layout panel
+        var tableLayoutPanel = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 3,
+            Padding = new Padding((int)(10 * dpiScaling)),
+            AutoSize = true,
+        };
+
+        // Configure row styles
+        tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Title label
+        tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Status textbox
+        tableLayoutPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Stop link
+
+        // Configure column style
+        tableLayoutPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+
         // Create controls
         var titleLabel = new Label
         {
             Text = "Your computer is being controlled by AI.",
             AutoSize = true,
-            Location = new Point(10, 10),
+            Margin = new Padding(0, 0, 0, (int)(10 * dpiScaling)),
         };
 
         _statusTextBox = new TextBox
@@ -32,18 +50,23 @@ public partial class MainForm : Form
             Multiline = true,
             ReadOnly = true,
             ScrollBars = ScrollBars.Vertical,
-            Width = (int)(500 * dpiScaling),
-            Height = (int)(200 * dpiScaling),
-            Location = new Point(10, titleLabel.Bottom + 10),
+            Size = new Size((int)(400 * dpiScaling), (int)(150 * dpiScaling)),
+            Margin = new Padding(0, 0, 0, (int)(10 * dpiScaling)),
         };
 
-        var stopLinkLabel = new LinkLabel
+        var stopButton = new Button
         {
             Text = "Stop",
             AutoSize = true,
-            Location = new Point(10, _statusTextBox.Bottom + 10),
+            Margin = new Padding(0),
+            Padding = new Padding((int)(10 * dpiScaling), (int)(4 * dpiScaling), (int)(10 * dpiScaling), (int)(4 * dpiScaling)),
         };
-        stopLinkLabel.LinkClicked += (_, _) => Process.GetCurrentProcess().Kill();
+        stopButton.Click += (_, _) => Process.GetCurrentProcess().Kill();
+
+        // Add controls to layout panel
+        tableLayoutPanel.Controls.Add(titleLabel, 0, 0);
+        tableLayoutPanel.Controls.Add(_statusTextBox, 0, 1);
+        tableLayoutPanel.Controls.Add(stopButton, 0, 2);
 
         // Configure form
         Text = "Arcadia Computer Use";
@@ -52,20 +75,27 @@ public partial class MainForm : Form
         MinimizeBox = false;
         TopMost = true;
         StartPosition = FormStartPosition.Manual;
+        AutoSize = true;
+        AutoSizeMode = AutoSizeMode.GrowAndShrink;
 
-        // Calculate form size
-        var formWidth = _statusTextBox.Right + 20;
-        var formHeight = stopLinkLabel.Bottom + 20;
-        Size = new Size(formWidth, formHeight);
+        // Add layout panel to form
+        Controls.Add(tableLayoutPanel);
+
+        // Position in lower right corner after form is laid out
+        Load += (_, _) => PositionForm();
+    }
+
+    private void PositionForm()
+    {
+        // Get DPI scaling factor
+        using var g = CreateGraphics();
+        var dpiScaling = g.DpiX / 96.0f;
 
         // Position in lower right corner, inset by 5% of workspace
         var workingArea = Screen.PrimaryScreen?.WorkingArea ?? Screen.AllScreens[0].WorkingArea;
         var insetX = (int)(workingArea.Width * 0.05);
         var insetY = (int)(workingArea.Height * 0.05);
         Location = new Point(workingArea.Right - Width - insetX, workingArea.Bottom - Height - insetY);
-
-        // Add controls to form
-        Controls.AddRange(new Control[] { titleLabel, _statusTextBox, stopLinkLabel });
     }
 
     /// <summary>

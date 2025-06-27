@@ -6,7 +6,7 @@
 - This is a WinForms project so don't write to the console.
 - Don't bother writing unit tests; this is mostly UI and needs to be tested manually.
 - Must not require administrator access or UAC elevation.
-- High-DPI support. Use auto-size for everything possible. When fixed pixel values are needed, multiply by dpi scaling factor.
+- High-DPI support. Use `TableLayoutPanel`/`FlowLayoutPanel` and auto-size for everything possible. When fixed pixel values are needed, multiply by dpi scaling factor.
 - Put all P/Invoke declarations in a global `NativeMethods.cs` class
 
 ## Context
@@ -45,6 +45,9 @@
 
 - [x] Create test script: `scripts/test-computer-use-noop.sh`
     - *🤖 Created bash script that builds the ComputerUse project in Release mode and runs the noop command to test the CLI infrastructure.*
+
+- [x] Rework `MainForm` to use `TableLayoutPanel` for layout. Your layout is all over the place. Use as few hardcoded pixel values as possible.
+    - *🤖 Replaced manual positioning with TableLayoutPanel containing 3 rows (title, textbox, stop link). Used AutoSize for labels, Percent sizing for textbox to fill space, Dock/Anchor/Margin for proper layout, and eliminated hardcoded positions. Form now uses AutoSize with GrowAndShrink mode and positioning moved to Load event.*
 
 ## Phase - Safety
 Before every action (screenshot, mouse click, key press) we will inform the user and allow them to cancel.
