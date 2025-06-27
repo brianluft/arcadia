@@ -63,7 +63,7 @@ namespace ComputerUse
             ResumeLayout(false);
         }
 
-        private void BlinkTimer_Tick(object sender, EventArgs e)
+        private void BlinkTimer_Tick(object? sender, EventArgs e)
         {
             _isVisible = !_isVisible;
             Invalidate(); // Trigger repaint

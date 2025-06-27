@@ -9,27 +9,16 @@ namespace ComputerUse
         private readonly System.Windows.Forms.Timer _timer;
         private readonly int _totalSeconds;
         private float _remainingSeconds;
-        private Label _messageLabel;
-        private ProgressBar _progressBar;
-        private Button _cancelButton;
-        private TableLayoutPanel _tableLayout;
+        private readonly Label _messageLabel;
+        private readonly ProgressBar _progressBar;
+        private readonly Button _cancelButton;
+        private readonly TableLayoutPanel _tableLayout;
 
         public SafetyPromptForm(string message, int countdownSeconds)
         {
             _totalSeconds = countdownSeconds;
             _remainingSeconds = countdownSeconds;
 
-            InitializeComponent(message);
-
-            _timer = new System.Windows.Forms.Timer
-            {
-                Interval = 100, // 100ms updates
-            };
-            _timer.Tick += Timer_Tick;
-        }
-
-        private void InitializeComponent(string message)
-        {
             SuspendLayout();
 
             // Form properties
@@ -102,6 +91,12 @@ namespace ComputerUse
 
             ResumeLayout(false);
             PerformLayout();
+
+            _timer = new System.Windows.Forms.Timer
+            {
+                Interval = 100, // 100ms updates
+            };
+            _timer.Tick += Timer_Tick;
         }
 
         protected override void OnShown(EventArgs e)
@@ -110,7 +105,7 @@ namespace ComputerUse
             _timer.Start();
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
+        private void Timer_Tick(object? sender, EventArgs e)
         {
             _remainingSeconds -= 0.1f;
 

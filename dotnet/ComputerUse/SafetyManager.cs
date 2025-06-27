@@ -8,12 +8,12 @@ namespace ComputerUse
     {
         public void ConfirmScreenshot(Rectangle rectangle)
         {
-            SafetyRectangleForm rectangleForm = null;
+            SafetyRectangleForm? rectangleForm = null;
             try
             {
                 // Check if this is a full-screen screenshot
                 var primaryScreen = Screen.PrimaryScreen;
-                bool isFullScreen = rectangle == primaryScreen.Bounds;
+                bool isFullScreen = rectangle == primaryScreen?.Bounds;
 
                 // Show rectangle form only if not full-screen
                 if (!isFullScreen)
@@ -52,7 +52,7 @@ namespace ComputerUse
 
         public void ConfirmClick(Point point)
         {
-            SafetyCrosshairForm crosshairForm = null;
+            SafetyCrosshairForm? crosshairForm = null;
             try
             {
                 // Show crosshair form at target point
