@@ -151,87 +151,136 @@ public class ScreenUse
     private static Bitmap DrawGridAndCoordinates(Bitmap source)
     {
         var result = new Bitmap(source);
-        using (var graphics = Graphics.FromImage(result))
+
+        // Create an off-screen bitmap for the overlay (grid and text)
+        using (var overlay = new Bitmap(source.Width, source.Height))
         {
-            var cellWidth = (float)source.Width / Coord.NUM_COLUMNS;
-            var cellHeight = (float)source.Height / Coord.NUM_ROWS;
-
-            // Draw grid lines with inverted colors
-            using (var pen = new Pen(Color.White, GRID_LINE_WIDTH))
+            using (var overlayGraphics = Graphics.FromImage(overlay))
             {
-                pen.DashStyle = DashStyle.Solid;
+                // Clear overlay to black (transparent areas)
+                overlayGraphics.Clear(Color.Black);
 
-                // Draw vertical lines
-                for (int col = 1; col < Coord.NUM_COLUMNS; col++)
+                var cellWidth = (float)source.Width / Coord.NUM_COLUMNS;
+                var cellHeight = (float)source.Height / Coord.NUM_ROWS;
+
+                // Draw grid lines in white on the overlay
+                using (var pen = new Pen(Color.White, GRID_LINE_WIDTH))
                 {
-                    var x = col * cellWidth;
-                    DrawInvertedLine(graphics, pen, x, 0, x, source.Height);
+                    pen.DashStyle = DashStyle.Solid;
+
+                    // Draw vertical lines
+                    for (int col = 1; col < Coord.NUM_COLUMNS; col++)
+                    {
+                        var x = col * cellWidth;
+                        overlayGraphics.DrawLine(pen, x, 0, x, source.Height);
+                    }
+
+                    // Draw horizontal lines
+                    for (int row = 1; row < Coord.NUM_ROWS; row++)
+                    {
+                        var y = row * cellHeight;
+                        overlayGraphics.DrawLine(pen, 0, y, source.Width, y);
+                    }
                 }
 
-                // Draw horizontal lines
-                for (int row = 1; row < Coord.NUM_ROWS; row++)
+                // Draw center dots and coordinate labels in white on the overlay
+                using (var font = new Font("Arial", FONT_SIZE, FontStyle.Regular))
+                using (var textBrush = new SolidBrush(Color.White))
+                using (var dotBrush = new SolidBrush(Color.White))
                 {
-                    var y = row * cellHeight;
-                    DrawInvertedLine(graphics, pen, 0, y, source.Width, y);
+                    for (int row = 0; row < Coord.NUM_ROWS; row++)
+                    {
+                        for (int col = 0; col < Coord.NUM_COLUMNS; col++)
+                        {
+                            var coord = new Coord(row, col);
+
+                            // Calculate center of cell
+                            var centerX = (col + 0.5f) * cellWidth;
+                            var centerY = (row + 0.5f) * cellHeight;
+
+                            // Draw 3x3 center dot
+                            var dotRect = new Rectangle(
+                                (int)(centerX - CENTER_DOT_SIZE / 2f),
+                                (int)(centerY - CENTER_DOT_SIZE / 2f),
+                                CENTER_DOT_SIZE,
+                                CENTER_DOT_SIZE
+                            );
+                            overlayGraphics.FillRectangle(dotBrush, dotRect);
+
+                            // Draw coordinate label to the right of center, properly vertically centered
+                            var labelText = coord.ToString();
+                            var textSize = overlayGraphics.MeasureString(labelText, font);
+                            var labelX = centerX + CENTER_DOT_SIZE / 2f + 2;
+                            var labelY = centerY - textSize.Height / 2f;
+                            overlayGraphics.DrawString(labelText, font, textBrush, labelX, labelY);
+                        }
+                    }
                 }
             }
 
-            // Draw center dots and coordinate labels
-            using (var font = new Font("Arial", FONT_SIZE, FontStyle.Regular))
-            using (var textBrush = new SolidBrush(Color.White))
-            using (var dotBrush = new SolidBrush(Color.White))
+            // Apply the inversion magic: wherever the overlay has white pixels,
+            // invert the corresponding pixels in the result
+            ApplyInversionMask(result, overlay);
+        }
+
+        return result;
+    }
+
+    private static void ApplyInversionMask(Bitmap result, Bitmap overlay)
+    {
+        // Use unsafe code for performance when processing pixels
+        var resultData = result.LockBits(
+            new Rectangle(0, 0, result.Width, result.Height),
+            ImageLockMode.ReadWrite,
+            PixelFormat.Format32bppArgb
+        );
+
+        var overlayData = overlay.LockBits(
+            new Rectangle(0, 0, overlay.Width, overlay.Height),
+            ImageLockMode.ReadOnly,
+            PixelFormat.Format32bppArgb
+        );
+
+        try
+        {
+            unsafe
             {
-                for (int row = 0; row < Coord.NUM_ROWS; row++)
+                byte* resultPtr = (byte*)resultData.Scan0;
+                byte* overlayPtr = (byte*)overlayData.Scan0;
+
+                int bytesPerPixel = 4; // ARGB = 4 bytes per pixel
+                int stride = resultData.Stride;
+
+                for (int y = 0; y < result.Height; y++)
                 {
-                    for (int col = 0; col < Coord.NUM_COLUMNS; col++)
+                    for (int x = 0; x < result.Width; x++)
                     {
-                        var coord = new Coord(row, col);
+                        int offset = y * stride + x * bytesPerPixel;
 
-                        // Calculate center of cell
-                        var centerX = (col + 0.5f) * cellWidth;
-                        var centerY = (row + 0.5f) * cellHeight;
+                        // Get overlay pixel (BGRA format)
+                        byte overlayB = overlayPtr[offset];
+                        byte overlayG = overlayPtr[offset + 1];
+                        byte overlayR = overlayPtr[offset + 2];
 
-                        // Draw 3x3 inverted color center dot
-                        var dotRect = new Rectangle(
-                            (int)(centerX - CENTER_DOT_SIZE / 2f),
-                            (int)(centerY - CENTER_DOT_SIZE / 2f),
-                            CENTER_DOT_SIZE,
-                            CENTER_DOT_SIZE
-                        );
-                        DrawInvertedRectangle(graphics, dotBrush, dotRect);
-
-                        // Draw coordinate label to the right of center, properly vertically centered
-                        var labelText = coord.ToString();
-                        var textSize = graphics.MeasureString(labelText, font);
-                        var labelX = centerX + CENTER_DOT_SIZE / 2f + 2;
-                        var labelY = centerY - textSize.Height / 2f;
-                        DrawInvertedText(graphics, labelText, font, textBrush, labelX, labelY);
+                        // Check if overlay pixel is white (or close to white)
+                        // White pixels in overlay indicate where to apply inversion
+                        if (overlayR > 128 && overlayG > 128 && overlayB > 128)
+                        {
+                            // Invert the corresponding pixel in the result
+                            resultPtr[offset] = (byte)(255 - resultPtr[offset]); // Blue
+                            resultPtr[offset + 1] = (byte)(255 - resultPtr[offset + 1]); // Green
+                            resultPtr[offset + 2] = (byte)(255 - resultPtr[offset + 2]); // Red
+                            // Alpha channel (offset + 3) remains unchanged
+                        }
                     }
                 }
             }
         }
-        return result;
-    }
-
-    private static void DrawInvertedLine(Graphics graphics, Pen pen, float x1, float y1, float x2, float y2)
-    {
-        // This is a simplified inversion - in a real implementation you'd need to
-        // sample the background colors and invert them
-        graphics.DrawLine(pen, x1, y1, x2, y2);
-    }
-
-    private static void DrawInvertedRectangle(Graphics graphics, Brush brush, Rectangle rect)
-    {
-        // This is a simplified inversion - in a real implementation you'd need to
-        // sample the background colors and invert them
-        graphics.FillRectangle(brush, rect);
-    }
-
-    private static void DrawInvertedText(Graphics graphics, string text, Font font, Brush brush, float x, float y)
-    {
-        // This is a simplified inversion - in a real implementation you'd need to
-        // sample the background colors and invert them
-        graphics.DrawString(text, font, brush, x, y);
+        finally
+        {
+            result.UnlockBits(resultData);
+            overlay.UnlockBits(overlayData);
+        }
     }
 
     // P/Invoke declarations for cursor capture
