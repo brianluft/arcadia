@@ -50,7 +50,7 @@ public partial class MainForm : Form
             Multiline = true,
             ReadOnly = true,
             ScrollBars = ScrollBars.Vertical,
-            Size = new Size((int)(400 * dpiScaling), (int)(150 * dpiScaling)),
+            Size = new Size((int)(300 * dpiScaling), (int)(100 * dpiScaling)),
             Margin = new Padding(0, 0, 0, (int)(10 * dpiScaling)),
         };
 
@@ -96,10 +96,10 @@ public partial class MainForm : Form
         using var g = CreateGraphics();
         var dpiScaling = g.DpiX / 96.0f;
 
-        // Position in lower right corner, inset by 5% of workspace
+        // Position in lower right corner, inset slightly
         var workingArea = Screen.PrimaryScreen?.WorkingArea ?? Screen.AllScreens[0].WorkingArea;
-        var insetX = (int)(workingArea.Width * 0.05);
-        var insetY = (int)(workingArea.Height * 0.05);
+        var insetX = (int)(workingArea.Width * 0.01);
+        var insetY = (int)(workingArea.Height * 0.01);
         Location = new Point(workingArea.Right - Width - insetX, workingArea.Bottom - Height - insetY);
     }
 
