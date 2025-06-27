@@ -16,29 +16,19 @@ namespace ComputerUse
             _safetyManager = safetyManager;
         }
 
-        public void Execute(StatusReporter statusReporter)
+        public Task ExecuteAsync(StatusReporter statusReporter)
         {
             try
             {
                 var point = new Point(X, Y);
-
-                statusReporter.Report($"Confirming click at position: X={X}, Y={Y}");
-
                 _safetyManager.ConfirmClick(point);
-
-                statusReporter.Report("Click confirmed successfully");
-
-                // Small delay to show the completion message
-                Thread.Sleep(1000);
             }
             catch (OperationCanceledException)
             {
-                statusReporter.Report("Click was canceled by user");
                 throw;
             }
             catch (Exception ex)
             {
-                statusReporter.Report($"Error during click confirmation: {ex.Message}");
                 MessageBox.Show(
                     $"Error during click confirmation: {ex.Message}",
                     "Error",
@@ -47,6 +37,8 @@ namespace ComputerUse
                 );
                 throw;
             }
+
+            return Task.CompletedTask;
         }
     }
 }

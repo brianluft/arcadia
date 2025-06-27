@@ -18,31 +18,19 @@ namespace ComputerUse
             _safetyManager = safetyManager;
         }
 
-        public void Execute(StatusReporter statusReporter)
+        public Task ExecuteAsync(StatusReporter statusReporter)
         {
             try
             {
                 var rectangle = new Rectangle(X, Y, Width, Height);
-
-                statusReporter.Report(
-                    $"Confirming screenshot for region: X={X}, Y={Y}, Width={Width}, Height={Height}"
-                );
-
                 _safetyManager.ConfirmScreenshot(rectangle);
-
-                statusReporter.Report("Screenshot confirmed successfully");
-
-                // Small delay to show the completion message
-                Thread.Sleep(1000);
             }
             catch (OperationCanceledException)
             {
-                statusReporter.Report("Screenshot was canceled by user");
                 throw;
             }
             catch (Exception ex)
             {
-                statusReporter.Report($"Error during screenshot confirmation: {ex.Message}");
                 MessageBox.Show(
                     $"Error during screenshot confirmation: {ex.Message}",
                     "Error",
@@ -51,6 +39,8 @@ namespace ComputerUse
                 );
                 throw;
             }
+
+            return Task.CompletedTask;
         }
     }
 }

@@ -14,27 +14,18 @@ namespace ComputerUse
             _safetyManager = safetyManager;
         }
 
-        public void Execute(StatusReporter statusReporter)
+        public Task ExecuteAsync(StatusReporter statusReporter)
         {
             try
             {
-                statusReporter.Report($"Confirming type operation for text: \"{Text}\"");
-
                 _safetyManager.ConfirmType(Text);
-
-                statusReporter.Report("Type operation confirmed successfully");
-
-                // Small delay to show the completion message
-                Thread.Sleep(1000);
             }
             catch (OperationCanceledException)
             {
-                statusReporter.Report("Type operation was canceled by user");
                 throw;
             }
             catch (Exception ex)
             {
-                statusReporter.Report($"Error during type confirmation: {ex.Message}");
                 MessageBox.Show(
                     $"Error during type confirmation: {ex.Message}",
                     "Error",
@@ -43,6 +34,8 @@ namespace ComputerUse
                 );
                 throw;
             }
+
+            return Task.CompletedTask;
         }
     }
 }

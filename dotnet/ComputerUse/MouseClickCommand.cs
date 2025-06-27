@@ -13,17 +13,13 @@ public class MouseClickCommand : ICommand
         _mouseUse = mouseUse;
     }
 
-    public void Execute(StatusReporter statusReporter)
+    public Task ExecuteAsync(StatusReporter statusReporter)
     {
         if (string.IsNullOrEmpty(ZoomPathString))
             throw new InvalidOperationException("ZoomPath is required");
 
         if (string.IsNullOrEmpty(Button))
             throw new InvalidOperationException("Button is required");
-
-        statusReporter.Report(
-            $"Executing mouse {Button} click at zoom path: {ZoomPathString}" + (Double ? " (double-click)" : "")
-        );
 
         // Parse zoom path
         var coordStrings = ZoomPathString.Split(',', StringSplitOptions.RemoveEmptyEntries);
@@ -48,8 +44,6 @@ public class MouseClickCommand : ICommand
         // Perform the click
         _mouseUse.Click(zoomPath, mouseButton, Double);
 
-        statusReporter.Report("Mouse click completed successfully");
-
-        Thread.Sleep(100);
+        return Task.CompletedTask;
     }
 }

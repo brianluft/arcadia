@@ -123,14 +123,13 @@ public partial class MainForm : Form
             _firstShow = false;
             try
             {
-                _command.Execute(_statusReporter);
+                await _command.ExecuteAsync(_statusReporter);
                 // After command execution, close the form
                 await Task.Delay(1000); // Give user time to see final status
                 Close();
             }
             catch (Exception ex)
             {
-                _statusReporter.Report($"Command execution failed: {ex.Message}");
                 MessageBox.Show(
                     $"Command execution failed: {ex.Message}",
                     "Error",

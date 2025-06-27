@@ -6,10 +6,8 @@ namespace ComputerUse;
 /// </summary>
 public class NoopCommand : ICommand
 {
-    public void Execute(StatusReporter statusReporter)
+    public Task ExecuteAsync(StatusReporter statusReporter)
     {
-        statusReporter.Report("Executing noop command...");
-        Thread.Sleep(100); // Brief delay to show the status message
-        statusReporter.Report("Noop command completed.");
+        return Task.CompletedTask;
     }
 }

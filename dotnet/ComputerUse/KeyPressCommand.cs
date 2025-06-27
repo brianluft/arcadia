@@ -19,14 +19,12 @@ public class KeyPressCommand : ICommand
         _keyboardUse = keyboardUse;
     }
 
-    public void Execute(StatusReporter statusReporter)
+    public Task ExecuteAsync(StatusReporter statusReporter)
     {
         if (string.IsNullOrEmpty(Key))
         {
             throw new InvalidOperationException("Key is required");
         }
-
-        statusReporter.Report($"Pressing key: {Key} (Shift={Shift}, Ctrl={Ctrl}, Alt={Alt})");
 
         // Parse the key string to Keys enum
         if (!Enum.TryParse<Keys>(Key, true, out Keys baseKey))
@@ -56,6 +54,6 @@ public class KeyPressCommand : ICommand
         string keyDescription = string.Join(" + ", parts);
 
         _keyboardUse.Press(keys, keyDescription);
-        statusReporter.Report("Key press completed");
+        return Task.CompletedTask;
     }
 }

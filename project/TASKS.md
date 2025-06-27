@@ -277,7 +277,13 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 - [x] I'm getting an error about a trailing comma in `config.jsonc`. That file has comments and trailing commas. Furthermore, that error is showing up in the status report in `MainForm` and not in a message box, so I could only briefly catch it before the window closed. All exceptions should be shown in message boxes.
     - *🤖 Fixed JSONC parsing by adding regex to remove trailing commas before closing braces/brackets `cleanJson = Regex.Replace(cleanJson, @",(\s*[}\]])", "$1")`. Updated all exception handling in MainForm, RunCommand, and all Confirm\*Commands to show MessageBox.Show() in addition to status reporting, ensuring users can see error messages even when forms close quickly.*
 
+- [ ] Write and flush the output file as we go, so that if the process is killed, we have the output up to that point.
+
+- [ ] `MouseUse`: Require at least _two_ coords in the zoomPath; it's too inaccurate when it tries to click directly from a fullscreen screenshot. If less, send an error message in our function call response to OpenAI telling it that it must zoom in at least once before clicking, and that 2+ coords are required in the zoomPath. Add the same information to the system prompt.
+
 # Phase - Code cleanup
+
+- [ ] Don't pass `StatusReporter` as a parameter to `ICommand.ExecuteAsync()`. If a command wants `StatusReporter` it can DI inject one itself into its own ctor.
 
 - [ ] You are creating _multiple_ DI trees, one for each command. Don't do that. Make a single DI tree for the whole application before parsing any commands.
 

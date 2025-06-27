@@ -34,7 +34,7 @@ public class RunCommand : ICommand
         _statusReporter = statusReporter;
     }
 
-    public void Execute(StatusReporter statusReporter)
+    public async Task ExecuteAsync(StatusReporter statusReporter)
     {
         try
         {
@@ -59,24 +59,23 @@ public class RunCommand : ICommand
             // Set up OpenAI client
             var client = new ChatClient("gpt-4o", config.OpenAIKey);
 
-            RunComputerUseLoop(client, promptText, storageFolder, outputFileInfo).GetAwaiter().GetResult();
+            await RunComputerUseLoopAsync(client, promptText, storageFolder, outputFileInfo);
         }
         catch (Exception ex)
         {
-            _statusReporter.Report($"Error: {ex.Message}");
             MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             throw;
         }
     }
 
-    private async Task RunComputerUseLoop(
+    private async Task RunComputerUseLoopAsync(
         ChatClient client,
         string promptText,
         StorageFolder storageFolder,
         FileInfo outputFile
     )
     {
-        _statusReporter.Report($"Submitting prompt:\n{promptText}");
+        _statusReporter.Report($"> {promptText}");
 
         // Take initial screenshot
         var initialScreenshot = storageFolder.GenerateFilename("png");
@@ -110,7 +109,6 @@ public class RunCommand : ICommand
             while (continueLoop && iteration < maxIterations)
             {
                 iteration++;
-                _statusReporter.Report($"Iteration {iteration}");
 
                 // Get current window information
                 var focusedWindow = _windowWalker.GetFocusedWindow();
@@ -134,6 +132,7 @@ public class RunCommand : ICommand
                 logEntries.Add("");
 
                 // Submit to GPT
+                _statusReporter.Report("Thinking...");
                 var completionResult = await client.CompleteChatAsync(messages, options);
                 var completion = completionResult.Value;
 
@@ -144,7 +143,7 @@ public class RunCommand : ICommand
                 logEntries.Add($"Tool Calls: {completion.ToolCalls.Count}");
                 logEntries.Add("");
 
-                _statusReporter.Report($"GPT Response: {completion.Content.FirstOrDefault()?.Text ?? "No content"}");
+                _statusReporter.Report(completion.Content.FirstOrDefault()?.Text ?? "No content");
 
                 // Handle the response
                 switch (completion.FinishReason)
@@ -212,7 +211,6 @@ public class RunCommand : ICommand
         {
             // Write log file
             await File.WriteAllLinesAsync(outputFile.FullName, logEntries);
-            _statusReporter.Report($"Log written to: {outputFile.FullName}");
         }
     }
 

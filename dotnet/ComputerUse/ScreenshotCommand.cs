@@ -12,14 +12,12 @@ public class ScreenshotCommand : ICommand
     public string? ZoomPathString { get; set; }
     public string OutputFile { get; set; } = string.Empty;
 
-    public void Execute(StatusReporter statusReporter)
+    public Task ExecuteAsync(StatusReporter statusReporter)
     {
         if (string.IsNullOrEmpty(OutputFile))
         {
             throw new InvalidOperationException("OutputFile is required");
         }
-
-        statusReporter.Report("Taking screenshot...");
 
         // Parse zoom path if provided
         ZoomPath? zoomPath = null;
@@ -34,11 +32,6 @@ public class ScreenshotCommand : ICommand
             }
 
             zoomPath = new ZoomPath(coords);
-            statusReporter.Report($"Using zoom path: {ZoomPathString}");
-        }
-        else
-        {
-            statusReporter.Report("Taking full screen screenshot");
         }
 
         var outputFileInfo = new FileInfo(OutputFile);
@@ -48,8 +41,6 @@ public class ScreenshotCommand : ICommand
 
         _screenUse.TakeScreenshot(outputFileInfo, zoomPath);
 
-        statusReporter.Report($"Screenshot saved to: {outputFileInfo.FullName}");
-
-        Thread.Sleep(100); // Small delay to ensure operation completes
+        return Task.CompletedTask;
     }
 }

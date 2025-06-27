@@ -10,5 +10,5 @@ public interface ICommand
     /// Executes the command.
     /// </summary>
     /// <param name="statusReporter">The status reporter for logging messages.</param>
-    void Execute(StatusReporter statusReporter);
+    Task ExecuteAsync(StatusReporter statusReporter);
 }

@@ -14,15 +14,15 @@ public class TypeCommand : ICommand
         _keyboardUse = keyboardUse;
     }
 
-    public void Execute(StatusReporter statusReporter)
+    public Task ExecuteAsync(StatusReporter statusReporter)
     {
         if (string.IsNullOrEmpty(Text))
         {
             throw new InvalidOperationException("Text is required");
         }
 
-        statusReporter.Report($"Typing text: {Text}");
         _keyboardUse.Type(Text);
-        statusReporter.Report("Text typing completed");
+
+        return Task.CompletedTask;
     }
 }
