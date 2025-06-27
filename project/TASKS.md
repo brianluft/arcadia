@@ -274,6 +274,14 @@ Before every action (screenshot, mouse click, key press) we will inform the user
     - `--configFile "$ARCADIA_CONFIG_FILE" --promptFile "temp/prompt.txt" --storageFolder "temp/" --outputFile "temp/output.txt"`
     - *🤖 Created test script that writes the specified prompt to temp/prompt.txt and calls ComputerUse.exe run with all required parameters including ARCADIA_CONFIG_FILE environment variable.*
 
+- [ ] I'm getting an error about a trailing comma in `config.jsonc`. That file has comments and trailing commas. Furthermore, that error is showing up in the status report in `MainForm` and not in a message box, so I could only briefly catch it before the window closed. All exceptions should be shown in message boxes.
+
+# Phase - Code cleanup
+
+- [ ] You are creating _multiple_ DI trees, one for each command. Don't do that. Make a single DI tree for the whole application before parsing any commands.
+
+- [ ] Review all .cs files and make sure they are using file-scoped namespaces like `namespace ComputerUse;`
+
 # Phase - MCP Integration
 
 - [ ] Add `computerUse` section to `config.jsonc` with optional `enable` property that defaults to false. Computer use tool is available only when an OpenAI key is present AND enable is true.
