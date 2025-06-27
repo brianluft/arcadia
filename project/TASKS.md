@@ -274,7 +274,8 @@ Before every action (screenshot, mouse click, key press) we will inform the user
     - `--configFile "$ARCADIA_CONFIG_FILE" --promptFile "temp/prompt.txt" --storageFolder "temp/" --outputFile "temp/output.txt"`
     - *🤖 Created test script that writes the specified prompt to temp/prompt.txt and calls ComputerUse.exe run with all required parameters including ARCADIA_CONFIG_FILE environment variable.*
 
-- [ ] I'm getting an error about a trailing comma in `config.jsonc`. That file has comments and trailing commas. Furthermore, that error is showing up in the status report in `MainForm` and not in a message box, so I could only briefly catch it before the window closed. All exceptions should be shown in message boxes.
+- [x] I'm getting an error about a trailing comma in `config.jsonc`. That file has comments and trailing commas. Furthermore, that error is showing up in the status report in `MainForm` and not in a message box, so I could only briefly catch it before the window closed. All exceptions should be shown in message boxes.
+    - *🤖 Fixed JSONC parsing by adding regex to remove trailing commas before closing braces/brackets `cleanJson = Regex.Replace(cleanJson, @",(\s*[}\]])", "$1")`. Updated all exception handling in MainForm, RunCommand, and all Confirm\*Commands to show MessageBox.Show() in addition to status reporting, ensuring users can see error messages even when forms close quickly.*
 
 # Phase - Code cleanup
 

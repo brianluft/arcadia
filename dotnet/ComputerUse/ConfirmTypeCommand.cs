@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace ComputerUse
 {
@@ -34,6 +35,12 @@ namespace ComputerUse
             catch (Exception ex)
             {
                 statusReporter.Report($"Error during type confirmation: {ex.Message}");
+                MessageBox.Show(
+                    $"Error during type confirmation: {ex.Message}",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
                 throw;
             }
         }

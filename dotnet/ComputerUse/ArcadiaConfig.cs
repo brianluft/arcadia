@@ -14,7 +14,7 @@ public class ArcadiaConfig
 
         string jsonContent = File.ReadAllText(filePath);
 
-        // Remove comments from JSONC (lines starting with # or //)
+        // Remove comments and trailing commas from JSONC
         string[] lines = jsonContent.Split('\n');
         var cleanedLines = new List<string>();
 
@@ -31,6 +31,9 @@ public class ArcadiaConfig
         }
 
         string cleanJson = string.Join("\n", cleanedLines);
+
+        // Remove trailing commas before } or ]
+        cleanJson = Regex.Replace(cleanJson, @",(\s*[}\]])", "$1");
 
         try
         {

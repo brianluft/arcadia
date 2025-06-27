@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Windows.Forms;
 using OpenAI;
 using OpenAI.Chat;
 
@@ -63,6 +64,7 @@ public class RunCommand : ICommand
         catch (Exception ex)
         {
             _statusReporter.Report($"Error: {ex.Message}");
+            MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             throw;
         }
     }

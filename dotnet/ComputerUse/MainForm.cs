@@ -131,7 +131,12 @@ public partial class MainForm : Form
             catch (Exception ex)
             {
                 _statusReporter.Report($"Command execution failed: {ex.Message}");
-                await Task.Delay(2000); // Give user time to see error
+                MessageBox.Show(
+                    $"Command execution failed: {ex.Message}",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
                 Close();
             }
         }

@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace ComputerUse
 {
@@ -38,6 +39,12 @@ namespace ComputerUse
             catch (Exception ex)
             {
                 statusReporter.Report($"Error during click confirmation: {ex.Message}");
+                MessageBox.Show(
+                    $"Error during click confirmation: {ex.Message}",
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
                 throw;
             }
         }
