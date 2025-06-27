@@ -116,6 +116,8 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 - [x] Bug fix: `SafetyPromptForm` has tons of hardcoded pixel values that are _not_ multiplied by the dpi scaling, which was required by the guidelines in this file. We need to intelligently support DPI scaling.
     - *🤖 Added DPI scaling support to SafetyPromptForm by calculating the DPI scaling factor using `CreateGraphics().DpiX / 96.0f` and applying it to all hardcoded pixel values including form size (400x200), padding (20), maximum size (350), margins (10), and progress bar height (20). This follows the same pattern already established in MainForm.* 
 
+- [ ] Tweak MainForm -- instead of appending new log messages to the textbox, always overwrite the textbox, showing the most recent message only. No timestamp needed.
+
 ## Phase - Screenshot
 - [ ] Create class `ScreenUse` with one function `TakeScreenshot`. Register DI singleton.
     - Overview: Screenshot, scale, draw a grid, generate PNG.
