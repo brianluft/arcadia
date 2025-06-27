@@ -10,7 +10,7 @@ Carefully follow this process step by step.
     - If the user's prompt includes a task assignment, then do that.
     - If there are any errors or warnings, then your assigned task is to fix that.
     - If the build succeeded, read the file `project/TASKS.md`. Your assignment is the next unchecked task. You may do multiple consecutive related tasks at once if it makes sense. Choose the tasks you intend to perform ahead of time and stick to those tasks ONLY.
-3. Run `git log --oneline | head -n 20` to understand our recent activity.
+3. Run `git log --oneline | head -n 10` to understand our recent activity.
 4. Perform the chosen tasks to completion.
 5. Run `scripts/build.sh` again to confirm with 600 second timeout.
 6. Re-read `.cursor/rules/do-tasks.mdc` (this file) so you don't forget to finish these steps.
