@@ -14,7 +14,7 @@ public class TypeCommand : ICommand
         _keyboardUse = keyboardUse;
     }
 
-    public async Task ExecuteAsync(StatusReporter statusReporter)
+    public void Execute(StatusReporter statusReporter)
     {
         if (string.IsNullOrEmpty(Text))
         {
@@ -22,7 +22,7 @@ public class TypeCommand : ICommand
         }
 
         statusReporter.Report($"Typing text: {Text}");
-        await _keyboardUse.Type(Text);
+        _keyboardUse.Type(Text);
         statusReporter.Report("Text typing completed");
     }
 }

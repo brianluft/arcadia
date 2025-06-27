@@ -13,7 +13,7 @@ public class MouseClickCommand : ICommand
         _mouseUse = mouseUse;
     }
 
-    public async Task ExecuteAsync(StatusReporter statusReporter)
+    public void Execute(StatusReporter statusReporter)
     {
         if (string.IsNullOrEmpty(ZoomPathString))
             throw new InvalidOperationException("ZoomPath is required");
@@ -50,6 +50,6 @@ public class MouseClickCommand : ICommand
 
         statusReporter.Report("Mouse click completed successfully");
 
-        await Task.CompletedTask;
+        Thread.Sleep(100);
     }
 }

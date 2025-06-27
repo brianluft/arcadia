@@ -14,45 +14,36 @@ public class KeyboardUse
         _safetyManager = safetyManager;
     }
 
-    public async Task Press(Keys keys)
+    public void Press(Keys keys)
     {
         // Create a user-friendly description of the key combination
         string keyDescription = GetKeyDescription(keys);
         _safetyManager.ConfirmKeyPress(keyDescription);
 
-        await Task.Run(() =>
+        FormHider.Do(() =>
         {
-            FormHider.Do(() =>
-            {
-                SendKeysCombination(keys);
-            });
+            SendKeysCombination(keys);
         });
     }
 
-    public async Task Press(Keys keys, string keyDescription)
+    public void Press(Keys keys, string keyDescription)
     {
         // Use the provided key description for the safety confirmation
         _safetyManager.ConfirmKeyPress(keyDescription);
 
-        await Task.Run(() =>
+        FormHider.Do(() =>
         {
-            FormHider.Do(() =>
-            {
-                SendKeysCombination(keys);
-            });
+            SendKeysCombination(keys);
         });
     }
 
-    public async Task Type(string text)
+    public void Type(string text)
     {
         _safetyManager.ConfirmType(text);
 
-        await Task.Run(() =>
+        FormHider.Do(() =>
         {
-            FormHider.Do(() =>
-            {
-                SendKeys.SendWait(EscapeSendKeysString(text));
-            });
+            SendKeys.SendWait(EscapeSendKeysString(text));
         });
     }
 

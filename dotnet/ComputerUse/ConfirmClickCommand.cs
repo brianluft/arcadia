@@ -15,7 +15,7 @@ namespace ComputerUse
             _safetyManager = safetyManager;
         }
 
-        public async Task ExecuteAsync(StatusReporter statusReporter)
+        public void Execute(StatusReporter statusReporter)
         {
             try
             {
@@ -28,7 +28,7 @@ namespace ComputerUse
                 statusReporter.Report("Click confirmed successfully");
 
                 // Small delay to show the completion message
-                await Task.Delay(1000);
+                Thread.Sleep(1000);
             }
             catch (OperationCanceledException)
             {

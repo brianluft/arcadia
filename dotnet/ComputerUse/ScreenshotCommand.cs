@@ -12,7 +12,7 @@ public class ScreenshotCommand : ICommand
     public string? ZoomPathString { get; set; }
     public string OutputFile { get; set; } = string.Empty;
 
-    public async Task ExecuteAsync(StatusReporter statusReporter)
+    public void Execute(StatusReporter statusReporter)
     {
         if (string.IsNullOrEmpty(OutputFile))
         {
@@ -50,6 +50,6 @@ public class ScreenshotCommand : ICommand
 
         statusReporter.Report($"Screenshot saved to: {outputFileInfo.FullName}");
 
-        await Task.Delay(100); // Small delay to ensure operation completes
+        Thread.Sleep(100); // Small delay to ensure operation completes
     }
 }

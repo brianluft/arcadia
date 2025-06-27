@@ -19,7 +19,7 @@ public class KeyPressCommand : ICommand
         _keyboardUse = keyboardUse;
     }
 
-    public async Task ExecuteAsync(StatusReporter statusReporter)
+    public void Execute(StatusReporter statusReporter)
     {
         if (string.IsNullOrEmpty(Key))
         {
@@ -55,7 +55,7 @@ public class KeyPressCommand : ICommand
 
         string keyDescription = string.Join(" + ", parts);
 
-        await _keyboardUse.Press(keys, keyDescription);
+        _keyboardUse.Press(keys, keyDescription);
         statusReporter.Report("Key press completed");
     }
 }
