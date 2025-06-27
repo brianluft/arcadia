@@ -157,7 +157,8 @@ Before every action (screenshot, mouse click, key press) we will inform the user
         5. `--zoomPath B1,C2`
     - *🤖 Created test script that builds the project in Release mode and tests all five screenshot scenarios (full screen, single zoom, double zoom, different positions) writing output to temp/ directory.*
 
-- [ ] Bug fix: Your grid labels are showing "650" instead of "A0". 65 is the ASCII code for A. The labels are not vertically aligned properly; you have the top of the text aligned with the dot in the center of the grid cell, but the text should be vertically centered in the grid cell. Make the text 25% smaller and unbolded.
+- [x] Bug fix: Your grid labels are showing "650" instead of "A0". 65 is the ASCII code for A. The labels are not vertically aligned properly; you have the top of the text aligned with the dot in the center of the grid cell, but the text should be vertically centered in the grid cell. Make the text 25% smaller and unbolded.
+    - *🤖 Fixed by changing `'A' + ColumnIndex` to `(char)('A' + ColumnIndex)` in Coord.ToString() to properly convert ASCII to character, reduced font size from 12 to 9 (25% smaller), changed from FontStyle.Bold to FontStyle.Regular, and used graphics.MeasureString() to properly center text vertically in grid cells.*
 
 - [ ] Bug fix: I asked for inverted color but you are drawing simple white color. Try drawing the grid and text into a new off-screen bitmap, then work some image magic to cause any white pixel in the off-screen bitmap to cause the same pixel in the screenshot to have its color inverted. We want our grid and text to be visible regardless of what's underneath.
 

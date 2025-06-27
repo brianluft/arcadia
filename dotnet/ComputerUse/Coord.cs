@@ -5,7 +5,7 @@ public readonly record struct Coord(int RowIndex, int ColumnIndex)
     public const int NUM_COLUMNS = 16;
     public const int NUM_ROWS = 9;
 
-    public override string ToString() => $"{'A' + ColumnIndex}{RowIndex}";
+    public override string ToString() => $"{(char)('A' + ColumnIndex)}{RowIndex}";
 
     public static Coord Parse(string s)
     {

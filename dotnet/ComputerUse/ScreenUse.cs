@@ -9,7 +9,7 @@ public class ScreenUse
 {
     private const int GRID_LINE_WIDTH = 2;
     private const int CENTER_DOT_SIZE = 3;
-    private const int FONT_SIZE = 12;
+    private const int FONT_SIZE = 9;
 
     private readonly SafetyManager _safetyManager;
 
@@ -177,7 +177,7 @@ public class ScreenUse
             }
 
             // Draw center dots and coordinate labels
-            using (var font = new Font("Arial", FONT_SIZE, FontStyle.Bold))
+            using (var font = new Font("Arial", FONT_SIZE, FontStyle.Regular))
             using (var textBrush = new SolidBrush(Color.White))
             using (var dotBrush = new SolidBrush(Color.White))
             {
@@ -200,10 +200,12 @@ public class ScreenUse
                         );
                         DrawInvertedRectangle(graphics, dotBrush, dotRect);
 
-                        // Draw coordinate label to the right of center
+                        // Draw coordinate label to the right of center, properly vertically centered
+                        var labelText = coord.ToString();
+                        var textSize = graphics.MeasureString(labelText, font);
                         var labelX = centerX + CENTER_DOT_SIZE / 2f + 2;
-                        var labelY = centerY - FONT_SIZE / 2f;
-                        DrawInvertedText(graphics, coord.ToString(), font, textBrush, labelX, labelY);
+                        var labelY = centerY - textSize.Height / 2f;
+                        DrawInvertedText(graphics, labelText, font, textBrush, labelX, labelY);
                     }
                 }
             }
