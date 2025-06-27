@@ -14,30 +14,28 @@ namespace ComputerUse
         {
             _targetRectangle = rectangle;
 
-            InitializeComponent();
-
-            _blinkTimer = new System.Windows.Forms.Timer
-            {
-                Interval = 250, // 250ms blink interval
-            };
-            _blinkTimer.Tick += BlinkTimer_Tick;
-            _blinkTimer.Start();
-        }
-
-        private void InitializeComponent()
-        {
             SuspendLayout();
 
             // Form properties for transparent overlay
             FormBorderStyle = FormBorderStyle.None;
             WindowState = FormWindowState.Normal;
+            StartPosition = FormStartPosition.Manual;
             TopMost = true;
             ShowInTaskbar = false;
             BackColor = Color.Lime; // Will be made transparent
             TransparencyKey = Color.Lime;
 
+            // Ensure no control box or minimize/maximize buttons
+            ControlBox = false;
+            MaximizeBox = false;
+            MinimizeBox = false;
+
             // Set form size and position to match target rectangle
-            Bounds = _targetRectangle;
+            Load += delegate
+            {
+                Location = _targetRectangle.Location;
+                Size = _targetRectangle.Size;
+            };
 
             // Enable double buffering to reduce flicker
             SetStyle(
@@ -49,6 +47,13 @@ namespace ComputerUse
             );
 
             ResumeLayout(false);
+
+            _blinkTimer = new System.Windows.Forms.Timer
+            {
+                Interval = 250, // 250ms blink interval
+            };
+            _blinkTimer.Tick += BlinkTimer_Tick;
+            _blinkTimer.Start();
         }
 
         private void BlinkTimer_Tick(object? sender, EventArgs e)

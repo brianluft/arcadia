@@ -107,7 +107,8 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 - [x] You have lots of C# warnings. I have enabled "treat warnings as errors". Fix them all.
     - *🤖 Fixed all C# nullability warnings by: 1) Making event handler parameters nullable (object? sender), 2) Making nullable form references explicit (SafetyRectangleForm? rectangleForm = null), 3) Making nullable property access safe (primaryScreen?.Bounds), and 4) Moving field initialization from InitializeComponent into constructor for SafetyPromptForm to properly satisfy nullability requirements.*
 
-- [ ] Bug fix: on `confirm-screenshot`, the rectangle form isn't displayed at the expected location. A test of `--x 0 --y 0` is NOT at the top left corner of the screen; it's inset a bit. I'm guessing the location is not being applied correctly at all and we're getting the default location.
+- [x] Bug fix: on `confirm-screenshot`, the rectangle form isn't displayed at the expected location. A test of `--x 0 --y 0` is NOT at the top left corner of the screen; it's inset a bit. I'm guessing the location is not being applied correctly at all and we're getting the default location.
+    - *🤖 Fixed SafetyRectangleForm positioning by replacing `Bounds = _targetRectangle` with explicit `Location = _targetRectangle.Location` and `Size = _targetRectangle.Size` assignments. Also added `StartPosition = FormStartPosition.Manual` and disabled control box properties to ensure precise positioning without Windows decoration offsets.*
 
 - [ ] Bug fix: on `confirm-click`, the prompt form is covering up the right portion of the crosshair. Explicitly coordinate set the prompt form location by reading the bounds of the crossfair window.
 
