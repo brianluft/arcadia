@@ -113,7 +113,8 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 - [x] Bug fix: on `confirm-click`, the prompt form is covering up the right portion of the crosshair. Explicitly set the prompt form location by reading the bounds of the crosshair window.
     - *🤖 Fixed by modifying SafetyManager.ConfirmClick() to use PositionFormNearRectangle() with crosshairForm.Bounds instead of PositionFormNearPoint() with just the target point, ensuring the prompt form is positioned around the actual crosshair form area rather than overlapping it.*
 
-- [ ] Bug fix: `SafetyPromptForm` has tons of hardcoded pixel values that are _not_ multiplied by the dpi scaling, which was required by the guidelines in this file. We need to intelligently support DPI scaling. 
+- [x] Bug fix: `SafetyPromptForm` has tons of hardcoded pixel values that are _not_ multiplied by the dpi scaling, which was required by the guidelines in this file. We need to intelligently support DPI scaling.
+    - *🤖 Added DPI scaling support to SafetyPromptForm by calculating the DPI scaling factor using `CreateGraphics().DpiX / 96.0f` and applying it to all hardcoded pixel values including form size (400x200), padding (20), maximum size (350), margins (10), and progress bar height (20). This follows the same pattern already established in MainForm.* 
 
 ## Phase - Screenshot
 - [ ] Create class `ScreenUse` with one function `TakeScreenshot`. Register DI singleton.

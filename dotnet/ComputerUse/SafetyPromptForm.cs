@@ -19,6 +19,10 @@ namespace ComputerUse
             _totalSeconds = countdownSeconds;
             _remainingSeconds = countdownSeconds;
 
+            // Get DPI scaling factor
+            using var g = CreateGraphics();
+            var dpiScaling = g.DpiX / 96.0f;
+
             SuspendLayout();
 
             // Form properties
@@ -30,7 +34,7 @@ namespace ComputerUse
             TopMost = true;
             AutoSize = true;
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            Size = new Size(400, 200);
+            Size = new Size((int)(400 * dpiScaling), (int)(200 * dpiScaling));
 
             // Create table layout
             _tableLayout = new TableLayoutPanel
@@ -40,7 +44,7 @@ namespace ComputerUse
                 AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 ColumnCount = 1,
                 RowCount = 3,
-                Padding = new Padding(20),
+                Padding = new Padding((int)(20 * dpiScaling)),
             };
 
             _tableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
@@ -53,9 +57,9 @@ namespace ComputerUse
             {
                 Text = message,
                 AutoSize = true,
-                MaximumSize = new Size(350, 0),
+                MaximumSize = new Size((int)(350 * dpiScaling), 0),
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
-                Margin = new Padding(0, 0, 0, 10),
+                Margin = new Padding(0, 0, 0, (int)(10 * dpiScaling)),
             };
 
             // Progress bar (starts full, goes to empty)
@@ -65,8 +69,8 @@ namespace ComputerUse
                 Maximum = _totalSeconds * 10, // 10 updates per second
                 Value = _totalSeconds * 10, // Start full
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
-                Height = 20,
-                Margin = new Padding(0, 0, 0, 10),
+                Height = (int)(20 * dpiScaling),
+                Margin = new Padding(0, 0, 0, (int)(10 * dpiScaling)),
             };
 
             // Cancel button
@@ -77,6 +81,12 @@ namespace ComputerUse
                 AutoSize = true,
                 Anchor = AnchorStyles.Top,
                 Margin = new Padding(0),
+                Padding = new Padding(
+                    (int)(10 * dpiScaling),
+                    (int)(4 * dpiScaling),
+                    (int)(10 * dpiScaling),
+                    (int)(4 * dpiScaling)
+                ),
             };
 
             // Add controls to table layout
