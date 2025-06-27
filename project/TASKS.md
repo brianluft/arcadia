@@ -195,25 +195,29 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 
 # Phase - Keyboard
 
-- [ ] Create class `KeyboardUse`. Register DI singleton.
+- [x] Create class `KeyboardUse`. Register DI singleton.
     - `void Press(Keys keys)` -- sends a single keystroke with modifiers, including Ctrl/Alt/Shift/Win.
     - `void Type(string text)` -- Sends a series of normal keystrokes
     - Procedure
         - Confirm with `SafetyManager.ConfirmType`
         - Using `FormHider.Do()`, perform typing.
+    - *🤖 Created KeyboardUse.cs with Press and Type methods using SendKeys.SendWait with proper key conversion and text escaping. Registered as DI singleton in Program.cs.*
 
-- [ ] Create CLI command "key-press"
+- [x] Create CLI command "key-press"
     - Mandatory parameter: `--key <Keys enum value>`
         - Examples: `--key X`, `--key Right`, `--key F4`
     - Optional modifier flags: `--shift`, `--ctrl`, `--alt`, `--win`
+    - *🤖 Created KeyPressCommand.cs that implements ICommand interface, parses Keys enum values and modifier flags, and executes via KeyboardUse. Added command parsing to Program.cs.*
 
-- [ ] Create CLI command "type"
+- [x] Create CLI command "type"
     - Mandatory parameters: `--text "string"`
+    - *🤖 Created TypeCommand.cs that implements ICommand interface, takes text parameter, and executes via KeyboardUse. Added command parsing to Program.cs.*
 
-- [ ] Create script `scripts/test-computer-use-press.sh`
+- [x] Create script `scripts/test-computer-use-press.sh`
     - `--key R --win`
     - `sleep 1`
     - `--key Escape`
+    - *🤖 Created test script that builds ComputerUse project and tests Win+R key combination followed by Escape key after 1 second delay.*
 
 # Phase - Run AI feedback loop
 

@@ -27,6 +27,7 @@ public static class Program
             services.AddSingleton<SafetyManager>();
             services.AddSingleton<ScreenUse>();
             services.AddSingleton<MouseUse>();
+            services.AddSingleton<KeyboardUse>();
             services.AddTransient<MainForm>();
 
             // Build service provider
@@ -61,6 +62,8 @@ public static class Program
             "confirm-type" => ParseConfirmTypeCommand(args),
             "screenshot" => ParseScreenshotCommand(args),
             "mouse-click" => ParseMouseClickCommand(args),
+            "key-press" => ParseKeyPressCommand(args),
+            "type" => ParseTypeCommand(args),
             _ => throw new ArgumentException($"Unknown command: {command}"),
         };
     }
@@ -245,6 +248,80 @@ public static class Program
         if (string.IsNullOrEmpty(command.Button))
         {
             throw new ArgumentException("--button parameter is required");
+        }
+
+        return command;
+    }
+
+    private static KeyPressCommand ParseKeyPressCommand(string[] args)
+    {
+        var serviceProvider = new ServiceCollection()
+            .AddSingleton<SafetyManager>()
+            .AddSingleton<KeyboardUse>()
+            .BuildServiceProvider();
+
+        var command = new KeyPressCommand(serviceProvider.GetRequiredService<KeyboardUse>());
+
+        for (int i = 1; i < args.Length; i++)
+        {
+            switch (args[i])
+            {
+                case "--key":
+                    if (++i >= args.Length)
+                        throw new ArgumentException("Missing --key parameter value");
+                    command.Key = args[i];
+                    break;
+                case "--shift":
+                    command.Shift = true;
+                    break;
+                case "--ctrl":
+                    command.Ctrl = true;
+                    break;
+                case "--alt":
+                    command.Alt = true;
+                    break;
+                case "--win":
+                    command.Win = true;
+                    break;
+                default:
+                    throw new ArgumentException($"Unknown parameter: {args[i]}");
+            }
+        }
+
+        if (string.IsNullOrEmpty(command.Key))
+        {
+            throw new ArgumentException("--key parameter is required");
+        }
+
+        return command;
+    }
+
+    private static TypeCommand ParseTypeCommand(string[] args)
+    {
+        var serviceProvider = new ServiceCollection()
+            .AddSingleton<SafetyManager>()
+            .AddSingleton<KeyboardUse>()
+            .BuildServiceProvider();
+
+        var command = new TypeCommand(serviceProvider.GetRequiredService<KeyboardUse>());
+
+        for (int i = 1; i < args.Length; i++)
+        {
+            switch (args[i])
+            {
+                case "--text":
+                    if (++i >= args.Length)
+                        throw new ArgumentException("Missing --text parameter value");
+                    command.Text = args[i];
+                    break;
+                default:
+                    throw new ArgumentException($"Unknown parameter: {args[i]}");
+            }
+        }
+
+        if (string.IsNullOrEmpty(command.Text))
+        {
+            throw new ArgumentException("--text parameter is required");
         }
 
         return command;
