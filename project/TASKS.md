@@ -120,15 +120,18 @@ Before every action (screenshot, mouse click, key press) we will inform the user
     - *🤖 Modified OnStatusUpdate method in MainForm.cs to replace AppendText with direct Text assignment, removed timestamp formatting and scrolling logic since only the most recent message is shown.*
 
 ## Phase - Screenshot
+- [ ] Create static class `FormHider` with `public static void Do(Action)`.
+    - Grab `Application.OpenForms` and hide them all. Wait 500ms.
+    - Invoke the `Action`
+    - Re-show the forms we hid.
+
 - [ ] Create class `ScreenUse` with one function `TakeScreenshot`. Register DI singleton.
     - Overview: Screenshot, scale, draw a grid, generate PNG.
     - Mandatory parameter: `FileInfo outputFile`. PNG file to write.
     - Optional parameter: `ZoomPath? zoomPath`. When omitted it screenshots the whole screen, otherwise it zooms into each grid cell in the path in succession.
     - Procedure
         - `SafetyManager.ConfirmScreenshot`
-        - Grab `Application.OpenForms` and hide them all. Wait 500ms
-        - Screenshot the primary monitor only. Include the mouse pointer.
-        - Re-show the forms we hid.
+        - Using `FormHider.Do()`, screenshot the primary monitor including the mouse pointer.
         - Calculate the target region of the primary screen via `zoomPath.GetRectangle()`. Crop the screenshot to that rectangle.
         - Scale (down _or_ up) to 1080 px height, with width according to the original aspect ratio. When scaling down, use a high quality scaling algorithm. When scaling up, use a nearest-neighbor algorithm.
         - Impose a grid of rectangles on the cropped image per `Coord.NUM_ROWS` and `Coord.NUM_COLUMNS`. Draw 2px inverted color grid lines.
@@ -158,9 +161,7 @@ Before every action (screenshot, mouse click, key press) we will inform the user
     - Mandatory parameter: `bool double` -- true for double-click.
     - Procedure
         - Confirm with `SafetyManager.ConfirmClick`
-        - Grab `Application.OpenForms` and hide them all. Wait 500ms
-        - Click
-        - Re-show the forms we hid.
+        - Using `FormHider.Do()`, perform click.
 
 - [ ] Create CLI command "mouse-click".
     - Mandatory parameter: `--zoomPath <comma-separated Coords>`. Example `--zoomPath A2,B6`
@@ -178,9 +179,7 @@ Before every action (screenshot, mouse click, key press) we will inform the user
     - `void Type(string text)` -- Sends a series of normal keystrokes
     - Procedure
         - Confirm with `SafetyManager.ConfirmType`
-        - Grab `Application.OpenForms` and hide them all. Wait 500ms
-        - Type
-        - Re-show the forms we hid.
+        - Using `FormHider.Do()`, perform typing.
 
 - [ ] Create CLI command "key-press"
     - Mandatory parameter: `--key <Keys enum value>`
