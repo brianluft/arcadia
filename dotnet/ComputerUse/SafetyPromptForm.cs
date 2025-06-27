@@ -1,0 +1,148 @@
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace ComputerUse
+{
+    public partial class SafetyPromptForm : Form
+    {
+        private readonly System.Windows.Forms.Timer _timer;
+        private readonly int _totalSeconds;
+        private float _remainingSeconds;
+        private Label _messageLabel;
+        private ProgressBar _progressBar;
+        private Button _cancelButton;
+        private TableLayoutPanel _tableLayout;
+
+        public SafetyPromptForm(string message, int countdownSeconds)
+        {
+            _totalSeconds = countdownSeconds;
+            _remainingSeconds = countdownSeconds;
+
+            InitializeComponent(message);
+
+            _timer = new System.Windows.Forms.Timer
+            {
+                Interval = 100, // 100ms updates
+            };
+            _timer.Tick += Timer_Tick;
+        }
+
+        private void InitializeComponent(string message)
+        {
+            SuspendLayout();
+
+            // Form properties
+            Text = "AI Action Confirmation";
+            StartPosition = FormStartPosition.CenterScreen;
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            TopMost = true;
+            AutoSize = true;
+            AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            Size = new Size(400, 200);
+
+            // Create table layout
+            _tableLayout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                ColumnCount = 1,
+                RowCount = 3,
+                Padding = new Padding(20),
+            };
+
+            _tableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+            _tableLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            _tableLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            _tableLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+            // Message label
+            _messageLabel = new Label
+            {
+                Text = message,
+                AutoSize = true,
+                MaximumSize = new Size(350, 0),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+                Margin = new Padding(0, 0, 0, 10),
+            };
+
+            // Progress bar (starts full, goes to empty)
+            _progressBar = new ProgressBar
+            {
+                Minimum = 0,
+                Maximum = _totalSeconds * 10, // 10 updates per second
+                Value = _totalSeconds * 10, // Start full
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+                Height = 20,
+                Margin = new Padding(0, 0, 0, 10),
+            };
+
+            // Cancel button
+            _cancelButton = new Button
+            {
+                Text = "Cancel",
+                DialogResult = DialogResult.Cancel,
+                AutoSize = true,
+                Anchor = AnchorStyles.Top,
+                Margin = new Padding(0),
+            };
+
+            // Add controls to table layout
+            _tableLayout.Controls.Add(_messageLabel, 0, 0);
+            _tableLayout.Controls.Add(_progressBar, 0, 1);
+            _tableLayout.Controls.Add(_cancelButton, 0, 2);
+
+            Controls.Add(_tableLayout);
+
+            // Set cancel button as cancel button for the form
+            CancelButton = _cancelButton;
+
+            ResumeLayout(false);
+            PerformLayout();
+        }
+
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            _timer.Start();
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            _remainingSeconds -= 0.1f;
+
+            if (_remainingSeconds <= 0)
+            {
+                _timer.Stop();
+                DialogResult = DialogResult.OK;
+                Close();
+                return;
+            }
+
+            // Update progress bar (countdown from full to empty)
+            int newValue = (int)(_remainingSeconds * 10);
+            if (newValue >= _progressBar.Minimum && newValue <= _progressBar.Maximum)
+            {
+                _progressBar.Value = newValue;
+            }
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            _timer?.Stop();
+            base.OnFormClosing(e);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _timer?.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+    }
+}

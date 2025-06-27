@@ -53,26 +53,29 @@
 ## Phase - Safety
 Before every action (screenshot, mouse click, key press) we will inform the user and allow them to cancel.
 
-- [ ] Create class `SafetyPromptForm`. This is a dialog with a label that tells the user what we're going to do, has a progressbar that goes backwards (filled to empty) as an N-second countdown, and a Cancel button.
+- [x] Create class `SafetyPromptForm`. This is a dialog with a label that tells the user what we're going to do, has a progressbar that goes backwards (filled to empty) as an N-second countdown, and a Cancel button.
     - Label text provided in constructor. Multi-line string.
     - Countdown in seconds provided in constructor.
     - 100ms timer updates the progressbar as it counts down to 0.
     - DialogResult OK is the countdown expired or Cancel if the user clicked Cancel or closed the dialog.
     - Set "Always On Top"
+    - *🤖 Created SafetyPromptForm.cs with TableLayoutPanel layout, countdown timer with 100ms intervals, progress bar that goes from full to empty, and proper modal dialog behavior with TopMost property.*
 
-- [ ] Create class `SafetyCrosshairForm`. This is a borderless, transparent, modeless window with a thick blinking crosshair drawn at a particular screen coordinate. Crosshair thickness is 3px * dpi scaling factor with the target dead center, length 64px * dpi scaling factor. The idea is for mouse click confirmation, we will show the crosshair as an overlay on the screen, and then show the prompt on top.
+- [x] Create class `SafetyCrosshairForm`. This is a borderless, transparent, modeless window with a thick blinking crosshair drawn at a particular screen coordinate. Crosshair thickness is 3px * dpi scaling factor with the target dead center, length 64px * dpi scaling factor. The idea is for mouse click confirmation, we will show the crosshair as an overlay on the screen, and then show the prompt on top.
     - Crosshair center `Point` in physical screen coordinates provided in constructor. It sets its own Location/Size in order to correctly cover the target position with the crosshair.
     - 250ms timer that toggles the crosshair between magenta and transparent.
     - Set "Always On Top"
     - Caller is expected to close the form, there's no other way for the user to close it.
+    - *🤖 Created SafetyCrosshairForm.cs with transparent overlay, DPI-aware crosshair sizing, 250ms blink timer, and proper overlay positioning centered on target point.*
 
-- [ ] Create class `SafetyRectangleForm`. This is a borderless, transparent, modeless window with either a magenta or transparent blinking solid color fill. The idea is for screenshot confirmation, we will blink a rectangle over the region about to be screenshotted.
+- [x] Create class `SafetyRectangleForm`. This is a borderless, transparent, modeless window with either a magenta or transparent blinking solid color fill. The idea is for screenshot confirmation, we will blink a rectangle over the region about to be screenshotted.
     - `Rectangle` in physical screen coordinates provided in constructor. It sets its own Location/Size to these.
     - 250ms that toggles the fill between magenta and transparent.
     - Set "Always On Top"
     - Caller is expected to close the form, there's no other way for the user to close it.
+    - *🤖 Created SafetyRectangleForm.cs with transparent overlay that fills the entire target rectangle bounds, 250ms blink timer alternating magenta/transparent fill.*
 
-- [ ] Create class `SafetyManager`. Register DI singleton.
+- [x] Create class `SafetyManager`. Register DI singleton.
     - `void ConfirmScreenshot(Rectangle)`
         - If this is NOT a full-screen screenshot, show modeless rectangle form at the target rect.
         - Show modal prompt form, 2 second countdown. Move it near the target rectangle (but outside it) while also staying on-screen. 
@@ -86,16 +89,19 @@ Before every action (screenshot, mouse click, key press) we will inform the user
     - `void ConfirmType(string)`
         - Show modal prompt form, 5 second countdown. Center screen.
         - Throw exception _unless_ prompt dialog result is OK
+    - *🤖 Created SafetyManager.cs with all three confirmation methods, intelligent form positioning logic to keep dialogs on-screen near targets, proper resource disposal in finally blocks, and registered as DI singleton in Program.cs.*
 
-- [ ] Create commands:
-    - [ ] `confirm-screenshot --x 0 --y 0 --w 100 --h 100`
-    - [ ] `confirm-click --x 100 -y 100`
-    - [ ] `confirm-type --text "foo bar"`
+- [x] Create commands:
+    - [x] `confirm-screenshot --x 0 --y 0 --w 100 --h 100`
+    - [x] `confirm-click --x 100 -y 100`  
+    - [x] `confirm-type --text "foo bar"`
+    - *🤖 Created ConfirmScreenshotCommand.cs, ConfirmClickCommand.cs, and ConfirmTypeCommand.cs that implement ICommand interface, take SafetyManager via DI, parse command line arguments in Program.cs with proper validation, and execute the respective safety confirmation methods.*
 
-- [ ] Create scripts with the test arguments above:
-    - [ ] `scripts/test-computer-use-confirm-screenshot.sh`
-    - [ ] `scripts/test-computer-use-confirm-click.sh`
-    - [ ] `scripts/test-computer-use-confirm-type.sh`
+- [x] Create scripts with the test arguments above:
+    - [x] `scripts/test-computer-use-confirm-screenshot.sh`
+    - [x] `scripts/test-computer-use-confirm-click.sh`
+    - [x] `scripts/test-computer-use-confirm-type.sh`
+    - *🤖 Created all three test scripts following the established pattern with build-then-run approach, using the exact test arguments specified in the requirements.*
 
 ## Phase - Screenshot
 - [ ] Create class `ScreenUse` with one function `TakeScreenshot`. Register DI singleton.

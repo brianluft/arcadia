@@ -59,7 +59,12 @@ public partial class MainForm : Form
             Text = "Stop",
             AutoSize = true,
             Margin = new Padding(0),
-            Padding = new Padding((int)(10 * dpiScaling), (int)(4 * dpiScaling), (int)(10 * dpiScaling), (int)(4 * dpiScaling)),
+            Padding = new Padding(
+                (int)(10 * dpiScaling),
+                (int)(4 * dpiScaling),
+                (int)(10 * dpiScaling),
+                (int)(4 * dpiScaling)
+            ),
         };
         stopButton.Click += (_, _) => Process.GetCurrentProcess().Kill();
 
