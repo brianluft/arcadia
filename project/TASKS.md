@@ -126,7 +126,7 @@ Before every action (screenshot, mouse click, key press) we will inform the user
     - Re-show the forms we hid.
     - *🤖 Created FormHider.cs with static Do method that collects all open forms, hides visible ones, waits 500ms, executes the provided action, then restores original visibility states with proper disposal checks in finally block.*
 
-- [ ] Create class `ScreenUse` with one function `TakeScreenshot`. Register DI singleton.
+- [x] Create class `ScreenUse` with one function `TakeScreenshot`. Register DI singleton.
     - Overview: Screenshot, scale, draw a grid, generate PNG.
     - Mandatory parameter: `FileInfo outputFile`. PNG file to write.
     - Optional parameter: `ZoomPath? zoomPath`. When omitted it screenshots the whole screen, otherwise it zooms into each grid cell in the path in succession.
@@ -138,13 +138,15 @@ Before every action (screenshot, mouse click, key press) we will inform the user
         - Impose a grid of rectangles on the cropped image per `Coord.NUM_ROWS` and `Coord.NUM_COLUMNS`. Draw 2px inverted color grid lines.
         - In the dead center of each grid cell, draw a 3x3 inverted color rectangle, with the center pixel of that 3x3 rectangle being the center of the grid cell. To the right, write the grid coordinate like "A0" (via `Coord.ToString()`) in small text 12px tall (make that font size a constant in the code so we can tweak it later).
         - Save to PNG in `outputFile`.
+    - *🤖 Created ScreenUse.cs with full screenshot functionality including P/Invoke cursor capture, image cropping, high-quality/nearest-neighbor scaling, grid overlay with coordinate labels, and PNG output. Registered as DI singleton in Program.cs.*
 
-- [ ] Create CLI command "screenshot".
+- [x] Create CLI command "screenshot".
     - Optional parameter: `--zoomPath <comma-separated Coords>`. Example `--zoomPath A2,B6`
     - Mandatory parameter: `--outputFile <filename>`. PNG output file.
     - Calls `ScreenUse`.
+    - *🤖 Created ScreenshotCommand.cs that implements ICommand interface, parses comma-separated coordinate strings into ZoomPath objects, handles file output with directory creation, and integrates with ScreenUse via DI. Added command parsing to Program.cs.*
 
-- [ ] Create script `scripts/test-computer-use-screenshot.sh`.
+- [x] Create script `scripts/test-computer-use-screenshot.sh`.
     - Use `cd "$( dirname "${BASH_SOURCE[0]}" )"` `cd ..` to situate yourself at the project root.
     - `mkdir -p temp`
     - Test `screenshot` by writing screenshots to `temp/`
@@ -153,6 +155,7 @@ Before every action (screenshot, mouse click, key press) we will inform the user
         3. `--zoomPath A1,A1`
         4. `--zoomPath B1`
         5. `--zoomPath B1,C2`
+    - *🤖 Created test script that builds the project in Release mode and tests all five screenshot scenarios (full screen, single zoom, double zoom, different positions) writing output to temp/ directory.*
 
 # Phase - Mouse
 

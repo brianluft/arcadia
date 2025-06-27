@@ -25,6 +25,7 @@ public static class Program
             // Register services
             services.AddSingleton<StatusReporter>();
             services.AddSingleton<SafetyManager>();
+            services.AddSingleton<ScreenUse>();
             services.AddTransient<MainForm>();
 
             // Build service provider
@@ -57,6 +58,7 @@ public static class Program
             "confirm-screenshot" => ParseConfirmScreenshotCommand(args),
             "confirm-click" => ParseConfirmClickCommand(args),
             "confirm-type" => ParseConfirmTypeCommand(args),
+            "screenshot" => ParseScreenshotCommand(args),
             _ => throw new ArgumentException($"Unknown command: {command}"),
         };
     }
@@ -161,6 +163,42 @@ public static class Program
         if (string.IsNullOrEmpty(command.Text))
         {
             throw new ArgumentException("--text parameter is required");
+        }
+
+        return command;
+    }
+
+    private static ScreenshotCommand ParseScreenshotCommand(string[] args)
+    {
+        var serviceProvider = new ServiceCollection()
+            .AddSingleton<SafetyManager>()
+            .AddSingleton<ScreenUse>()
+            .BuildServiceProvider();
+
+        var command = new ScreenshotCommand(serviceProvider.GetRequiredService<ScreenUse>());
+
+        for (int i = 1; i < args.Length; i++)
+        {
+            switch (args[i])
+            {
+                case "--zoomPath":
+                    if (++i >= args.Length)
+                        throw new ArgumentException("Missing --zoomPath parameter value");
+                    command.ZoomPathString = args[i];
+                    break;
+                case "--outputFile":
+                    if (++i >= args.Length)
+                        throw new ArgumentException("Missing --outputFile parameter value");
+                    command.OutputFile = args[i];
+                    break;
+                default:
+                    throw new ArgumentException($"Unknown parameter: {args[i]}");
+            }
+        }
+
+        if (string.IsNullOrEmpty(command.OutputFile))
+        {
+            throw new ArgumentException("--outputFile parameter is required");
         }
 
         return command;
