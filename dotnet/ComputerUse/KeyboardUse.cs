@@ -29,6 +29,20 @@ public class KeyboardUse
         });
     }
 
+    public async Task Press(Keys keys, string keyDescription)
+    {
+        // Use the provided key description for the safety confirmation
+        _safetyManager.ConfirmKeyPress(keyDescription);
+
+        await Task.Run(() =>
+        {
+            FormHider.Do(() =>
+            {
+                SendKeysCombination(keys);
+            });
+        });
+    }
+
     public async Task Type(string text)
     {
         _safetyManager.ConfirmType(text);

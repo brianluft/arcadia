@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -45,7 +46,21 @@ public class KeyPressCommand : ICommand
         if (Win)
             keys |= Keys.LWin; // Use LWin for Windows key
 
-        await _keyboardUse.Press(keys);
+        // Create key description using the original parsed information
+        var parts = new List<string>();
+        if (Win)
+            parts.Add("Win");
+        if (Ctrl)
+            parts.Add("Ctrl");
+        if (Alt)
+            parts.Add("Alt");
+        if (Shift)
+            parts.Add("Shift");
+        parts.Add(Key);
+
+        string keyDescription = string.Join(" + ", parts);
+
+        await _keyboardUse.Press(keys, keyDescription);
         statusReporter.Report("Key press completed");
     }
 }
