@@ -169,6 +169,8 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 - [x] Requirement change: I asked for a fixed 16x9 grid which you did. This works for a fullscreen screenshot but works poorly for zoomed-in shots which are no longer 16:9. Instead, let's keep the grid height constant (9) but set the grid width dynamically based on the screenshot aspect ratio. 16:9 screenshot gets 16 across. 4:3 screenshot, 4:3 is 12:9, so 12 across. 1:1 screenshot, 1:1 is 9:9, so 9 across. etc. The math will be calculated on `Coord.NUM_ROWS` which is currently 9 but may change. It has to be an integer number of grid cells in each direction so round it. Remove `NUM_COLUMNS` constant now that we don't need it.
     - *🤖 Removed NUM_COLUMNS constant from Coord.cs and added CalculateColumns() method that calculates grid width based on aspect ratio using formula `Math.Round(NUM_ROWS * aspectRatio)`. Modified ScreenUse.cs DrawGridAndCoordinates() method to calculate numColumns dynamically from image aspect ratio. Updated ZoomPath.cs GetRectangle() to calculate grid dimensions at each zoom level based on current rectangle's aspect ratio. This ensures grid coordinates match the actual screenshot dimensions whether fullscreen, zoomed, or any aspect ratio.*
 
+- [x] Requirement change: use Consolas Bold, NUM_ROWS = 4, CENTER_DOT_SIZE = 5
+
 # Phase - Mouse
 
 - [ ] Create class `MouseUse` with one function `Click`. Register DI singleton.

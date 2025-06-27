@@ -8,7 +8,7 @@ namespace ComputerUse;
 public class ScreenUse
 {
     private const int GRID_LINE_WIDTH = 2;
-    private const int CENTER_DOT_SIZE = 3;
+    private const int CENTER_DOT_SIZE = 5;
     private const int FONT_SIZE = 9;
 
     private readonly SafetyManager _safetyManager;
@@ -189,7 +189,7 @@ public class ScreenUse
                 }
 
                 // Draw center dots and coordinate labels in white on the overlay
-                using (var font = new Font("Consolas", FONT_SIZE, FontStyle.Regular))
+                using (var font = new Font("Consolas", FONT_SIZE, FontStyle.Bold))
                 using (var textBrush = new SolidBrush(Color.White))
                 using (var dotBrush = new SolidBrush(Color.White))
                 {

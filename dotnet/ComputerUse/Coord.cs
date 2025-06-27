@@ -2,7 +2,7 @@ namespace ComputerUse;
 
 public readonly record struct Coord(int RowIndex, int ColumnIndex)
 {
-    public const int NUM_ROWS = 9;
+    public const int NUM_ROWS = 4;
 
     public override string ToString() => $"{(char)('A' + ColumnIndex)}{RowIndex}";
 
