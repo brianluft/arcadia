@@ -267,9 +267,17 @@ public class ScreenUse
                         if (overlayR > 128 && overlayG > 128 && overlayB > 128)
                         {
                             // Invert the corresponding pixel in the result
-                            resultPtr[offset] = (byte)(255 - resultPtr[offset]); // Blue
-                            resultPtr[offset + 1] = (byte)(255 - resultPtr[offset + 1]); // Green
-                            resultPtr[offset + 2] = (byte)(255 - resultPtr[offset + 2]); // Red
+                            byte invertedB = (byte)(255 - resultPtr[offset]);
+                            byte invertedG = (byte)(255 - resultPtr[offset + 1]);
+                            byte invertedR = (byte)(255 - resultPtr[offset + 2]);
+
+                            // Add green tint to cope with middle-gray inversion issues
+                            // Boost the green component by 64 to ensure visibility
+                            invertedG = (byte)Math.Min(255, invertedG + 64);
+
+                            resultPtr[offset] = invertedB; // Blue
+                            resultPtr[offset + 1] = invertedG; // Green
+                            resultPtr[offset + 2] = invertedR; // Red
                             // Alpha channel (offset + 3) remains unchanged
                         }
                     }
