@@ -74,10 +74,10 @@ public class ScreenUse
             graphics.CopyFromScreen(screenBounds.Location, Point.Empty, screenBounds.Size);
 
             // Draw cursor
-            var cursorInfo = new CURSORINFO();
+            var cursorInfo = new NativeMethods.CURSORINFO();
             cursorInfo.cbSize = Marshal.SizeOf(cursorInfo);
 
-            if (GetCursorInfo(out cursorInfo) && cursorInfo.flags == CURSOR_SHOWING)
+            if (NativeMethods.GetCursorInfo(out cursorInfo) && cursorInfo.flags == NativeMethods.CURSOR_SHOWING)
             {
                 var cursorPosition = new Point(
                     cursorInfo.ptScreenPos.x - screenBounds.X,
@@ -86,7 +86,7 @@ public class ScreenUse
 
                 if (cursorInfo.hCursor != IntPtr.Zero)
                 {
-                    DrawIcon(graphics.GetHdc(), cursorPosition.X, cursorPosition.Y, cursorInfo.hCursor);
+                    NativeMethods.DrawIcon(graphics.GetHdc(), cursorPosition.X, cursorPosition.Y, cursorInfo.hCursor);
                     graphics.ReleaseHdc();
                 }
             }
@@ -295,29 +295,4 @@ public class ScreenUse
             overlay.UnlockBits(overlayData);
         }
     }
-
-    // P/Invoke declarations for cursor capture
-    [StructLayout(LayoutKind.Sequential)]
-    private struct POINT
-    {
-        public int x;
-        public int y;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct CURSORINFO
-    {
-        public int cbSize;
-        public int flags;
-        public IntPtr hCursor;
-        public POINT ptScreenPos;
-    }
-
-    private const int CURSOR_SHOWING = 0x00000001;
-
-    [DllImport("user32.dll")]
-    private static extern bool GetCursorInfo(out CURSORINFO pci);
-
-    [DllImport("user32.dll")]
-    private static extern bool DrawIcon(IntPtr hDC, int X, int Y, IntPtr hIcon);
 }

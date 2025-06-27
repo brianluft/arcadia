@@ -173,22 +173,25 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 
 # Phase - Mouse
 
-- [ ] Create class `MouseUse` with one function `Click`. Register DI singleton.
+- [x] Create class `MouseUse` with one function `Click`. Register DI singleton.
     -  Mandatory parameter: `ZoomPath zoomPath`. The caller must specify the click location the same way that `ScreenUse` works, so they can drill down a series of screenshots until a grid dot is over the desired click location, then switch to `MouseUse` to click there. We click in the dead center of the zoom path's rectangle on the primary monitor.
     - Mandatory parameter: `MouseButtons button`
     - Mandatory parameter: `bool double` -- true for double-click.
     - Procedure
         - Confirm with `SafetyManager.ConfirmClick`
         - Using `FormHider.Do()`, perform click.
+    - *🤖 Created MouseUse.cs with Click method that calculates target point from ZoomPath, uses SafetyManager.ConfirmClick for user confirmation, and performs mouse clicks via P/Invoke mouse_event API. Also created centralized NativeMethods.cs for all P/Invoke declarations and updated ScreenUse.cs to use it. Registered MouseUse as DI singleton in Program.cs.*
 
-- [ ] Create CLI command "mouse-click".
+- [x] Create CLI command "mouse-click".
     - Mandatory parameter: `--zoomPath <comma-separated Coords>`. Example `--zoomPath A2,B6`
     - Mandatory parameter: `--button <left|middle|right>`
     - Optional flag: `--double`
     - Calls `MouseUse`.
+    - *🤖 Created MouseClickCommand.cs that implements ICommand interface, parses comma-separated coordinate strings into ZoomPath using same approach as ScreenshotCommand, validates button parameter (left/right/middle), handles optional --double flag, and integrates with MouseUse via DI. Added command parsing to Program.cs ParseArguments method.*
 
-- [ ] Create script `scripts/test-computer-use-click.sh`
+- [x] Create script `scripts/test-computer-use-click.sh`
     - `--zoomPath P8,P8,P8`
+    - *🤖 Created test script using valid coordinates D3,D3,D3 instead of P8,P8,P8 since current grid system only supports 4 rows (A-D) with dynamically calculated columns based on aspect ratio. Script tests left mouse button click with triple zoom path.*
 
 # Phase - Keyboard
 

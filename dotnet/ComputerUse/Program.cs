@@ -26,6 +26,7 @@ public static class Program
             services.AddSingleton<StatusReporter>();
             services.AddSingleton<SafetyManager>();
             services.AddSingleton<ScreenUse>();
+            services.AddSingleton<MouseUse>();
             services.AddTransient<MainForm>();
 
             // Build service provider
@@ -59,6 +60,7 @@ public static class Program
             "confirm-click" => ParseConfirmClickCommand(args),
             "confirm-type" => ParseConfirmTypeCommand(args),
             "screenshot" => ParseScreenshotCommand(args),
+            "mouse-click" => ParseMouseClickCommand(args),
             _ => throw new ArgumentException($"Unknown command: {command}"),
         };
     }
@@ -199,6 +201,50 @@ public static class Program
         if (string.IsNullOrEmpty(command.OutputFile))
         {
             throw new ArgumentException("--outputFile parameter is required");
+        }
+
+        return command;
+    }
+
+    private static MouseClickCommand ParseMouseClickCommand(string[] args)
+    {
+        var serviceProvider = new ServiceCollection()
+            .AddSingleton<SafetyManager>()
+            .AddSingleton<MouseUse>()
+            .BuildServiceProvider();
+
+        var command = new MouseClickCommand(serviceProvider.GetRequiredService<MouseUse>());
+
+        for (int i = 1; i < args.Length; i++)
+        {
+            switch (args[i])
+            {
+                case "--zoomPath":
+                    if (++i >= args.Length)
+                        throw new ArgumentException("Missing --zoomPath parameter value");
+                    command.ZoomPathString = args[i];
+                    break;
+                case "--button":
+                    if (++i >= args.Length)
+                        throw new ArgumentException("Missing --button parameter value");
+                    command.Button = args[i];
+                    break;
+                case "--double":
+                    command.Double = true;
+                    break;
+                default:
+                    throw new ArgumentException($"Unknown parameter: {args[i]}");
+            }
+        }
+
+        if (string.IsNullOrEmpty(command.ZoomPathString))
+        {
+            throw new ArgumentException("--zoomPath parameter is required");
+        }
+
+        if (string.IsNullOrEmpty(command.Button))
+        {
+            throw new ArgumentException("--button parameter is required");
         }
 
         return command;
