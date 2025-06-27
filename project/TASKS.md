@@ -279,7 +279,8 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 
 - [ ] Write and flush the output file as we go, so that if the process is killed, we have the output up to that point.
 
-- [ ] `MouseUse`: Require at least _two_ coords in the zoomPath; it's too inaccurate when it tries to click directly from a fullscreen screenshot. If less, send an error message in our function call response to OpenAI telling it that it must zoom in at least once before clicking, and that 2+ coords are required in the zoomPath. Add the same information to the system prompt.
+- [x] `MouseUse`: Require at least _two_ coords in the zoomPath; it's too inaccurate when it tries to click directly from a fullscreen screenshot. If less, send an error message in our function call response to OpenAI telling it that it must zoom in at least once before clicking, and that 2+ coords are required in the zoomPath. Add the same information to the system prompt.
+    - *🤖 Added validation in ProcessMouseClickTool() to check coords.Count < 2 and return error message to OpenAI. Updated CreateMouseClickTool() function description and parameter description to emphasize the 2+ coordinate requirement. Enhanced SystemPrompt with IMPORTANT section explaining the zoom-first-then-click workflow. Updated context message tool description to mention the requirement.*
 
 # Phase - Code cleanup
 

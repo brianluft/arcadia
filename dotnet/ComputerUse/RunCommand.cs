@@ -230,7 +230,9 @@ public class RunCommand : ICommand
         contextBuilder.AppendLine("Please analyze the screenshot and decide what action to take next.");
         contextBuilder.AppendLine("You can use the following tools:");
         contextBuilder.AppendLine("- screenshot: Take a new screenshot, optionally with a zoom path");
-        contextBuilder.AppendLine("- mouse_click: Click at a specific location using grid coordinates");
+        contextBuilder.AppendLine(
+            "- mouse_click: Click at a specific location using grid coordinates (requires at least 2 coordinates for accuracy)"
+        );
         contextBuilder.AppendLine("- key_press: Press a key combination");
         contextBuilder.AppendLine("- type: Type text");
         contextBuilder.AppendLine();
@@ -318,6 +320,15 @@ public class RunCommand : ICommand
         {
             coords.Add(Coord.Parse(coordStr.Trim()));
         }
+
+        // Require at least 2 coordinates for accurate clicking
+        if (coords.Count < 2)
+        {
+            return "Error: Mouse clicking requires at least 2 coordinates in the zoomPath for accuracy. "
+                + "Please take a screenshot first to zoom into the target area, then click using the zoomed coordinates. "
+                + "Example: First use screenshot with zoomPath 'A1', then use mouse_click with zoomPath 'A1,B2'.";
+        }
+
         var zoomPath = new ZoomPath(coords);
 
         var buttonString = root.TryGetProperty("button", out var buttonElement) ? buttonElement.GetString() : "left";
@@ -403,7 +414,7 @@ public class RunCommand : ICommand
     {
         return ChatTool.CreateFunctionTool(
             functionName: "mouse_click",
-            functionDescription: "Click the mouse at a specific location using grid coordinates",
+            functionDescription: "Click the mouse at a specific location using grid coordinates. IMPORTANT: Requires at least 2 coordinates in zoomPath for accuracy.",
             functionParameters: BinaryData.FromBytes(
                 """
                 {
@@ -411,7 +422,7 @@ public class RunCommand : ICommand
                     "properties": {
                         "zoomPath": {
                             "type": "string",
-                            "description": "Comma-separated grid coordinates specifying the click location (e.g., 'A1,B2')"
+                            "description": "Comma-separated grid coordinates specifying the click location. MUST contain at least 2 coordinates for accuracy (e.g., 'A1,B2'). Take a screenshot first to zoom in, then click using the zoomed coordinates."
                         },
                         "button": {
                             "type": "string",
@@ -508,6 +519,11 @@ public class RunCommand : ICommand
 
         The screenshots have a grid overlay with coordinates. Use these coordinates to specify where to click.
         Each grid cell is labeled with a coordinate like A1, B2, etc.
+
+        IMPORTANT: For mouse clicking, you MUST provide at least 2 coordinates in the zoomPath for accuracy. 
+        Never click directly from a fullscreen screenshot as it's too inaccurate. Always zoom in first by taking 
+        a screenshot with a zoomPath, then click using the zoomed coordinates. For example: First use screenshot 
+        with zoomPath 'A1', then use mouse_click with zoomPath 'A1,B2'.
 
         Process:
         1. Analyze the screenshot to understand the current state
