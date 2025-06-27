@@ -8,6 +8,7 @@
 - Must not require administrator access or UAC elevation.
 - High-DPI support. Use `TableLayoutPanel`/`FlowLayoutPanel` and auto-size for everything possible. When fixed pixel values are needed, multiply by dpi scaling factor.
 - Put all P/Invoke declarations in a global `NativeMethods.cs` class
+- When writing test scripts, mimic `scripts\test-computer-use-noop.sh` exactly.
 
 ## Context
 - openai-dotnet: `context\openai-dotnet\README.md`
@@ -45,7 +46,6 @@
 
 - [x] Create test script: `scripts/test-computer-use-noop.sh`
     - *🤖 Created bash script that builds the ComputerUse project in Release mode and runs the noop command to test the CLI infrastructure.*
-    - IMPORTANT: Use this script as an example when writing future test scripts.
 
 - [x] Rework `MainForm` to use `TableLayoutPanel` for layout. Your layout is all over the place. Use as few hardcoded pixel values as possible.
     - *🤖 Replaced manual positioning with TableLayoutPanel containing 3 rows (title, textbox, stop link). Used AutoSize for labels, Percent sizing for textbox to fill space, Dock/Anchor/Margin for proper layout, and eliminated hardcoded positions. Form now uses AutoSize with GrowAndShrink mode and positioning moved to Load event.*
@@ -102,6 +102,12 @@ Before every action (screenshot, mouse click, key press) we will inform the user
     - [x] `scripts/test-computer-use-confirm-click.sh`
     - [x] `scripts/test-computer-use-confirm-type.sh`
     - *🤖 Created all three test scripts following the established pattern with build-then-run approach, using the exact test arguments specified in the requirements.*
+
+- [ ] Bug fix: on `confirm-screenshot`, the rectangle form isn't displayed at the expected location. A test of `--x 0 --y 0` is NOT at the top left corner of the screen; it's inset a bit. I'm guessing the location is not being applied correctly at all and we're getting the default location.
+
+- [ ] Bug fix: on `confirm-click`, the prompt form is covering up the right portion of the crosshair. Explicitly coordinate set the prompt form location by reading the bounds of the crossfair window.
+
+- [ ] Bug fix: `SafetyPromptForm` has tons of hardcoded pixel values that are _not_ multiplied by the dpi scaling, which was required by the guidelines in this file. We need to intelligently support DPI scaling. 
 
 ## Phase - Screenshot
 - [ ] Create class `ScreenUse` with one function `TakeScreenshot`. Register DI singleton.
