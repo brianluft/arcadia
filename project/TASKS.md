@@ -224,7 +224,8 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 
 - [x] Bug fix: The test command is `--key R --win` but you treated it like LWin _only_. It brought up the Start menu instead of the Run dialog.
     - *🤖 Fixed by implementing proper Windows key combination handling using P/Invoke keybd_event API instead of SendKeys. Added GetVirtualKeyCode mapping, SendWindowsKeyCombo method, and proper key sequence (press Win, press R, release R, release Win) to correctly trigger Win+R combination that opens Run dialog.*
-    - [ ] I think you're on the right track, but immediately that made things worse. Now it says "Win + None" instead of "Win + R" and still actually just pressed Win by itself, and the second test said "None" instead of "Escape" butb actually did press Escape. Your status report in MainForm correctly states the keys but your message in the prompt window is wrong.
+    - [x] I think you're on the right track, but immediately that made things worse. Now it says "Win + None" instead of "Win + R" and still actually just pressed Win by itself, and the second test said "None" instead of "Escape" butb actually did press Escape. Your status report in MainForm correctly states the keys but your message in the prompt window is wrong.
+        - *🤖 Fixed by using `Keys.KeyCode` mask in GetKeyDescription() method instead of manual bit manipulation. Keys.KeyCode is the proper .NET Framework mask (0x0000FFFF) designed to extract the base key code from a Keys value that includes modifier flags. This ensures Win+R displays as "Win + R" and Escape displays as "Escape" in the safety prompt window.*
 
 # Phase - Run AI feedback loop
 

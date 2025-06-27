@@ -48,10 +48,11 @@ public class KeyboardUse
         bool ctrl = (keys & Keys.Control) == Keys.Control;
         bool alt = (keys & Keys.Alt) == Keys.Alt;
         bool shift = (keys & Keys.Shift) == Keys.Shift;
-        bool win = (keys & Keys.LWin) == Keys.LWin;
+        bool win = (keys & Keys.LWin) == Keys.LWin || (keys & Keys.RWin) == Keys.RWin;
 
-        // Remove modifiers to get the base key
-        Keys baseKey = keys & ~Keys.Modifiers & ~Keys.LWin;
+        // Extract the base key by removing modifier flags
+        // Use KeyCode property which returns the key code without modifiers
+        Keys baseKey = keys & Keys.KeyCode;
 
         // Build description
         var parts = new List<string>();
@@ -64,8 +65,18 @@ public class KeyboardUse
         if (shift)
             parts.Add("Shift");
 
-        string keyName = GetKeyName(baseKey);
-        parts.Add(keyName);
+        // Only add the base key if it's not None/0
+        if (baseKey != Keys.None)
+        {
+            string keyName = GetKeyName(baseKey);
+            parts.Add(keyName);
+        }
+
+        // If we have no parts (shouldn't happen in normal use), return a default
+        if (parts.Count == 0)
+        {
+            return "Unknown Key";
+        }
 
         return string.Join(" + ", parts);
     }
