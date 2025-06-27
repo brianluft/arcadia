@@ -11,10 +11,15 @@ public readonly record struct ZoomPath(List<Coord> Coords)
         // Iteratively zoom in.
         foreach (var coord in Coords)
         {
-            var x = coord.ColumnIndex * rectangle.Width / Coord.NUM_COLUMNS;
-            var y = coord.RowIndex * rectangle.Height / Coord.NUM_ROWS;
-            var width = rectangle.Width / Coord.NUM_COLUMNS;
-            var height = rectangle.Height / Coord.NUM_ROWS;
+            // Calculate grid dimensions based on current rectangle's aspect ratio
+            var aspectRatio = (double)rectangle.Width / rectangle.Height;
+            var numColumns = Coord.CalculateColumns(aspectRatio);
+            var numRows = Coord.NUM_ROWS;
+
+            var x = coord.ColumnIndex * rectangle.Width / numColumns;
+            var y = coord.RowIndex * rectangle.Height / numRows;
+            var width = rectangle.Width / numColumns;
+            var height = rectangle.Height / numRows;
             rectangle = new Rectangle(x, y, width, height);
         }
 

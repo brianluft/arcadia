@@ -152,6 +152,11 @@ public class ScreenUse
     {
         var result = new Bitmap(source);
 
+        // Calculate grid dimensions dynamically based on image aspect ratio
+        var aspectRatio = (double)source.Width / source.Height;
+        var numColumns = Coord.CalculateColumns(aspectRatio);
+        var numRows = Coord.NUM_ROWS;
+
         // Create an off-screen bitmap for the overlay (grid and text)
         using (var overlay = new Bitmap(source.Width, source.Height))
         {
@@ -160,8 +165,8 @@ public class ScreenUse
                 // Clear overlay to black (transparent areas)
                 overlayGraphics.Clear(Color.Black);
 
-                var cellWidth = (float)source.Width / Coord.NUM_COLUMNS;
-                var cellHeight = (float)source.Height / Coord.NUM_ROWS;
+                var cellWidth = (float)source.Width / numColumns;
+                var cellHeight = (float)source.Height / numRows;
 
                 // Draw grid lines in white on the overlay
                 using (var pen = new Pen(Color.White, GRID_LINE_WIDTH))
@@ -169,14 +174,14 @@ public class ScreenUse
                     pen.DashStyle = DashStyle.Solid;
 
                     // Draw vertical lines
-                    for (int col = 1; col < Coord.NUM_COLUMNS; col++)
+                    for (int col = 1; col < numColumns; col++)
                     {
                         var x = col * cellWidth;
                         overlayGraphics.DrawLine(pen, x, 0, x, source.Height);
                     }
 
                     // Draw horizontal lines
-                    for (int row = 1; row < Coord.NUM_ROWS; row++)
+                    for (int row = 1; row < numRows; row++)
                     {
                         var y = row * cellHeight;
                         overlayGraphics.DrawLine(pen, 0, y, source.Width, y);
@@ -184,13 +189,13 @@ public class ScreenUse
                 }
 
                 // Draw center dots and coordinate labels in white on the overlay
-                using (var font = new Font("Consolas", FONT_SIZE, FontStyle.Bold))
+                using (var font = new Font("Consolas", FONT_SIZE, FontStyle.Regular))
                 using (var textBrush = new SolidBrush(Color.White))
                 using (var dotBrush = new SolidBrush(Color.White))
                 {
-                    for (int row = 0; row < Coord.NUM_ROWS; row++)
+                    for (int row = 0; row < numRows; row++)
                     {
-                        for (int col = 0; col < Coord.NUM_COLUMNS; col++)
+                        for (int col = 0; col < numColumns; col++)
                         {
                             var coord = new Coord(row, col);
 
