@@ -9,6 +9,7 @@
 - High-DPI support. Use `TableLayoutPanel`/`FlowLayoutPanel` and auto-size for everything possible. When fixed pixel values are needed, multiply by dpi scaling factor.
 - Put all P/Invoke declarations in a global `NativeMethods.cs` class
 - When writing test scripts, mimic `scripts\test-computer-use-noop.sh` exactly.
+- Warnings are unacceptable. Always fix them.
 
 ## Context
 - openai-dotnet: `context\openai-dotnet\README.md`
@@ -102,6 +103,8 @@ Before every action (screenshot, mouse click, key press) we will inform the user
     - [x] `scripts/test-computer-use-confirm-click.sh`
     - [x] `scripts/test-computer-use-confirm-type.sh`
     - *🤖 Created all three test scripts following the established pattern with build-then-run approach, using the exact test arguments specified in the requirements.*
+
+- [ ] You have lots of C# warnings. I have enabled "treat warnings as errors". Fix them all.
 
 - [ ] Bug fix: on `confirm-screenshot`, the rectangle form isn't displayed at the expected location. A test of `--x 0 --y 0` is NOT at the top left corner of the screen; it's inset a bit. I'm guessing the location is not being applied correctly at all and we're getting the default location.
 
