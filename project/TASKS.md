@@ -225,8 +225,9 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 - [x] Bug fix: The test command is `--key R --win` but you treated it like LWin _only_. It brought up the Start menu instead of the Run dialog.
     - *🤖 Fixed by implementing proper Windows key combination handling using P/Invoke keybd_event API instead of SendKeys. Added GetVirtualKeyCode mapping, SendWindowsKeyCombo method, and proper key sequence (press Win, press R, release R, release Win) to correctly trigger Win+R combination that opens Run dialog.*
     - [x] I think you're on the right track, but immediately that made things worse. Now it says "Win + None" instead of "Win + R" and still actually just pressed Win by itself, and the second test said "None" instead of "Escape" but actually did press Escape. Your status report in MainForm correctly states the keys but your message in the prompt window is wrong.
-        - *🤖 Fixed by using `Keys.KeyCode` mask in both GetKeyDescription() and SendKeysCombination() methods instead of manual bit manipulation. Also added timing delays in SendWindowsKeyCombo() to ensure reliable key combination registration. Now Win+R properly opens the Run dialog instead of just the Start menu, and the safety prompt correctly shows "Win + R".*
-    
+    - *🤖 Fixed by using `Keys.KeyCode` mask in both GetKeyDescription() and SendKeysCombination() methods instead of manual bit manipulation. Also added timing delays in SendWindowsKeyCombo() to ensure reliable key combination registration. Now Win+R properly opens the Run dialog instead of just the Start menu, and the safety prompt correctly shows "Win + R".*
+    - [ ] Win+R does _not_ work, it's still simply doing Win. Let's give up--Win _cannot_ be used as a modifier key with our tool. It can only be used by itself. Remove support for Win as a modifier key, but otherwise keep the same approach you're using now. Remove `--win` as a CLI option, change the test script to do `--key LWin` only.
+
 # Phase - Run AI feedback loop
 
 - [ ] Create a `StorageFolder` class. NOT registered with DI. Constructed with a `string path`. Thread safe.
