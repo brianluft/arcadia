@@ -138,8 +138,8 @@ public class KeyboardUse
         bool shift = (keys & Keys.Shift) == Keys.Shift;
         bool win = (keys & Keys.LWin) == Keys.LWin;
 
-        // Remove modifiers to get the base key
-        Keys baseKey = keys & ~Keys.Modifiers & ~Keys.LWin;
+        // Extract the base key using Keys.KeyCode mask (same as GetKeyDescription)
+        Keys baseKey = keys & Keys.KeyCode;
 
         // Handle Windows key combinations using P/Invoke
         if (win)
@@ -167,13 +167,20 @@ public class KeyboardUse
         // Press Windows key
         NativeMethods.keybd_event(0x5B, 0, 0, UIntPtr.Zero); // VK_LWIN
 
+        // Small delay to ensure Windows key is registered
+        System.Threading.Thread.Sleep(50);
+
         // Press the base key
         byte vkCode = GetVirtualKeyCode(baseKey);
         if (vkCode != 0)
         {
             NativeMethods.keybd_event(vkCode, 0, 0, UIntPtr.Zero);
+            System.Threading.Thread.Sleep(50); // Hold the key briefly
             NativeMethods.keybd_event(vkCode, 0, NativeMethods.KEYEVENTF_KEYUP, UIntPtr.Zero);
         }
+
+        // Small delay before releasing Windows key
+        System.Threading.Thread.Sleep(50);
 
         // Release Windows key
         NativeMethods.keybd_event(0x5B, 0, NativeMethods.KEYEVENTF_KEYUP, UIntPtr.Zero);
