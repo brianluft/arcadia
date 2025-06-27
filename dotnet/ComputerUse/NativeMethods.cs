@@ -32,6 +32,9 @@ internal static class NativeMethods
     public const uint MOUSEEVENTF_MIDDLEUP = 0x0040;
     public const uint MOUSEEVENTF_ABSOLUTE = 0x8000;
 
+    // Keyboard event constants
+    public const uint KEYEVENTF_KEYUP = 0x0002;
+
     // Cursor functions
     [DllImport("user32.dll")]
     public static extern bool GetCursorInfo(out CURSORINFO pci);
@@ -45,4 +48,8 @@ internal static class NativeMethods
 
     [DllImport("user32.dll")]
     public static extern bool SetCursorPos(int x, int y);
+
+    // Keyboard functions
+    [DllImport("user32.dll")]
+    public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
 }

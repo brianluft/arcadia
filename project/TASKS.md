@@ -219,9 +219,11 @@ Before every action (screenshot, mouse click, key press) we will inform the user
     - `--key Escape`
     - *🤖 Created test script that builds ComputerUse project and tests Win+R key combination followed by Escape key after 1 second delay.*
 
-- [ ] Bug fix: In the prompt form, you show `AI is about to type the following text: "Press key: LWin"` which is a bit silly, it makes it look like you're literally going to type the words "Press key: LWin" instead of pressing the Win key. Update the whole text when pressing a key instead of typing text.
+- [x] Bug fix: In the prompt form, you show `AI is about to type the following text: "Press key: LWin"` which is a bit silly, it makes it look like you're literally going to type the words "Press key: LWin" instead of pressing the Win key. Update the whole text when pressing a key instead of typing text.
+    - *🤖 Fixed by adding new ConfirmKeyPress method to SafetyManager that shows "AI is about to press the following key combination:" instead of "type the following text:". Updated KeyboardUse.Press method to use ConfirmKeyPress with user-friendly key descriptions like "Win + R" instead of raw enum values.*
 
-- [ ] Bug fix: The test command is `--key R --win` but you treated it like LWin _only_. It brought up the Start menu instead of the Run dialog.
+- [x] Bug fix: The test command is `--key R --win` but you treated it like LWin _only_. It brought up the Start menu instead of the Run dialog.
+    - *🤖 Fixed by implementing proper Windows key combination handling using P/Invoke keybd_event API instead of SendKeys. Added GetVirtualKeyCode mapping, SendWindowsKeyCombo method, and proper key sequence (press Win, press R, release R, release Win) to correctly trigger Win+R combination that opens Run dialog.*
 
 # Phase - Run AI feedback loop
 

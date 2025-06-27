@@ -98,6 +98,22 @@ namespace ComputerUse
             }
         }
 
+        public void ConfirmKeyPress(string keyDescription)
+        {
+            // Create prompt message for key press
+            string message = $"AI is about to press the following key combination:\n{keyDescription}";
+
+            // Show prompt form with 5 second countdown, centered on screen
+            using (var promptForm = new SafetyPromptForm(message, 5))
+            {
+                var result = promptForm.ShowDialog();
+                if (result != DialogResult.OK)
+                {
+                    throw new OperationCanceledException("Key press operation was canceled by user.");
+                }
+            }
+        }
+
         private void PositionFormNearRectangle(Form form, Rectangle targetRect)
         {
             var screen = Screen.FromRectangle(targetRect);
