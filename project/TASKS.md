@@ -34,13 +34,17 @@
     - Always on top. Lower right corner of the workspace, inset by 5% of the workspace size.
     - *🤖 Created MainForm.cs with all required UI elements, DPI scaling support, proper positioning, and thread-safe status message handling via BeginInvoke.*
 
-- [ ] Stub out `interface ICommand` to represent a command to be executed by the main form. Each CLI command will be an implementation of this, with its parameters as properties and an `Execute()` method. When I ask for new CLI commands, make a new `ICommand` implementation and update `Program.cs` to parse its arguments and construct the object and pass it into `MainForm` which then executes it.
+- [x] Stub out `interface ICommand` to represent a command to be executed by the main form. Each CLI command will be an implementation of this, with its parameters as properties and an `Execute()` method. When I ask for new CLI commands, make a new `ICommand` implementation and update `Program.cs` to parse its arguments and construct the object and pass it into `MainForm` which then executes it.
+    - *🤖 Created ICommand.cs interface with ExecuteAsync method, updated Program.cs to parse CLI arguments with sub-command structure using switch expressions, and modified MainForm to accept and execute commands via SetCommand method and SetVisibleCore override.*
 
-- [ ] Set up CLI argument parsing with standard sub-command structure. However, since this is WinForms, on error you must show a message box and then exit 1, rather than printing to stderr. Don't print anything to stdout. Get the data together into an `ICommand` object and pass it to the main window's constructor. The main window will do the actual execution.
+- [x] Set up CLI argument parsing with standard sub-command structure. However, since this is WinForms, on error you must show a message box and then exit 1, rather than printing to stderr. Don't print anything to stdout. Get the data together into an `ICommand` object and pass it to the main window's constructor. The main window will do the actual execution.
+    - *🤖 Implemented ParseArguments method in Program.cs with sub-command parsing, error handling shows MessageBox and exits with code 1, MainForm executes commands asynchronously and auto-closes after completion.*
 
-- [ ] Add command `noop` to test your implementation that simply does nothing and exits immediately.
+- [x] Add command `noop` to test your implementation that simply does nothing and exits immediately.
+    - *🤖 Created NoopCommand.cs that implements ICommand interface, reports status messages, and completes after brief delay to demonstrate the command execution pattern.*
 
-- [ ] Create test script: `scripts/test-computer-use-noop.sh`
+- [x] Create test script: `scripts/test-computer-use-noop.sh`
+    - *🤖 Created bash script that builds the ComputerUse project in Release mode and runs the noop command to test the CLI infrastructure.*
 
 ## Phase - Safety
 Before every action (screenshot, mouse click, key press) we will inform the user and allow them to cancel.

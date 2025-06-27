@@ -6,6 +6,7 @@ public partial class MainForm : Form
 {
     private readonly StatusReporter _statusReporter;
     private readonly TextBox _statusTextBox;
+    private ICommand? _command;
 
     public MainForm(StatusReporter statusReporter)
     {
@@ -65,6 +66,38 @@ public partial class MainForm : Form
 
         // Add controls to form
         Controls.AddRange(new Control[] { titleLabel, _statusTextBox, stopLinkLabel });
+    }
+
+    /// <summary>
+    /// Sets the command to be executed by this form.
+    /// </summary>
+    /// <param name="command">The command to execute.</param>
+    public void SetCommand(ICommand command)
+    {
+        _command = command;
+    }
+
+    protected override async void SetVisibleCore(bool value)
+    {
+        base.SetVisibleCore(value);
+
+        if (value && _command != null)
+        {
+            // Execute the command when the form becomes visible
+            try
+            {
+                await _command.ExecuteAsync(_statusReporter);
+                // After command execution, close the form
+                await Task.Delay(1000); // Give user time to see final status
+                Close();
+            }
+            catch (Exception ex)
+            {
+                _statusReporter.Report($"Command execution failed: {ex.Message}");
+                await Task.Delay(2000); // Give user time to see error
+                Close();
+            }
+        }
     }
 
     private void OnStatusUpdate(object? sender, StatusUpdateEventArgs e)
