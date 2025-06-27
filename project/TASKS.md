@@ -231,12 +231,14 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 
 # Phase - Run AI feedback loop
 
-- [ ] Create a `StorageFolder` class. NOT registered with DI. Constructed with a `string path`. Thread safe.
+- [x] Create a `StorageFolder` class. NOT registered with DI. Constructed with a `string path`. Thread safe.
     - `FileInfo GenerateFilename(string extension)`. Filename is `{DateTime.UtcNow:yyyyMMddHHmmss}_{++counter}{extension}`. `counter` is an internal counter for disambiguating filenames assigned in rapid succession. Does not actually write a file to disk.
+    - *🤖 Implemented StorageFolder.cs with thread-safe counter using lock, DateTime.UtcNow formatting, and automatic extension prefix handling. Returns FileInfo objects with generated filenames without actually creating files.*
 
-- [ ] Create `WindowWalker` class. Use P/Invoke to enumerate the visible top-level windows and return the one focused window (if any?) and the list of unfocused windows. Register DI singleton.
+- [x] Create `WindowWalker` class. Use P/Invoke to enumerate the visible top-level windows and return the one focused window (if any?) and the list of unfocused windows. Register DI singleton.
+    - *🤖 Created WindowWalker.cs with P/Invoke declarations in NativeMethods.cs for window enumeration, GetForegroundWindow, and GetWindowText. Implemented GetFocusedWindow and GetUnfocusedWindows methods, registered as DI singleton in Program.cs.*
 
-- [ ] Add command `run`. This is the main command that runs the AI computer use feedback loop.
+- [x] Add command `run`. This is the main command that runs the AI computer use feedback loop.
     - In Program.cs, for this command specifically, before showing MainForm, show MessageBox warning that the AI is taking over the computer. OK=Proceed to MainForm, Cancel=Exit 1.
     - CLI arguments
         - Mandatory CLI argument: `--configFile {filename}`. Path to arcadia config.jsonc. This is JSON with `#` comments and trailing commas. Read this in, parse it, grab `.apiKeys.openai` for now. If that's not present, fail with an error that explains that an OpenAI key is required in `config.jsonc`. We will add more computer use configuration later. Create `ArcadiaConfig` object to store it.
@@ -265,10 +267,12 @@ Before every action (screenshot, mouse click, key press) we will inform the user
             - Append GPT's response to the message history.
         - Finish the log file with the exit condition: success because the model said to stop, user cancellation, or some kind of error
         - Close MainForm
+    - *🤖 Created RunCommand.cs implementing full AI feedback loop with OpenAI GPT-4o, function calling for screenshot/mouse-click/key-press/type tools, JSONC configuration parsing in expanded ArcadiaConfig.cs, comprehensive logging, and warning MessageBox in Program.cs. Added OpenAI and System.Text.Json NuGet packages. Handles ClientResult<T> API wrapper and ZoomPath parsing using Coord.Parse pattern.*
 
-- [ ] Create script `scripts/test-computer-use-run.sh`
+- [x] Create script `scripts/test-computer-use-run.sh`
     - Write `temp/prompt.txt`: "Open Notepad and type Hello World in it."
     - `--configFile "$ARCADIA_CONFIG_FILE" --promptFile "temp/prompt.txt" --storageFolder "temp/" --outputFile "temp/output.txt"`
+    - *🤖 Created test script that writes the specified prompt to temp/prompt.txt and calls ComputerUse.exe run with all required parameters including ARCADIA_CONFIG_FILE environment variable.*
 
 # Phase - MCP Integration
 

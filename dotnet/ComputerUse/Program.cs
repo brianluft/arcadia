@@ -15,6 +15,22 @@ public static class Program
             // Parse command line arguments
             var command = ParseArguments(args);
 
+            // Special handling for run command - show warning
+            if (command is RunCommand)
+            {
+                var result = MessageBox.Show(
+                    "The AI is about to take control of this computer. This will involve taking screenshots, clicking, typing, and other interactions with your desktop.\n\nDo you want to proceed?",
+                    "AI Computer Control Warning",
+                    MessageBoxButtons.OKCancel,
+                    MessageBoxIcon.Warning
+                );
+
+                if (result == DialogResult.Cancel)
+                {
+                    Environment.Exit(1);
+                }
+            }
+
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
@@ -28,6 +44,7 @@ public static class Program
             services.AddSingleton<ScreenUse>();
             services.AddSingleton<MouseUse>();
             services.AddSingleton<KeyboardUse>();
+            services.AddSingleton<WindowWalker>();
             services.AddTransient<MainForm>();
 
             // Build service provider
@@ -64,6 +81,7 @@ public static class Program
             "mouse-click" => ParseMouseClickCommand(args),
             "key-press" => ParseKeyPressCommand(args),
             "type" => ParseTypeCommand(args),
+            "run" => ParseRunCommand(args),
             _ => throw new ArgumentException($"Unknown command: {command}"),
         };
     }
@@ -320,6 +338,67 @@ public static class Program
         {
             throw new ArgumentException("--text parameter is required");
         }
+
+        return command;
+    }
+
+    private static RunCommand ParseRunCommand(string[] args)
+    {
+        var serviceProvider = new ServiceCollection()
+            .AddSingleton<StatusReporter>()
+            .AddSingleton<SafetyManager>()
+            .AddSingleton<ScreenUse>()
+            .AddSingleton<MouseUse>()
+            .AddSingleton<KeyboardUse>()
+            .AddSingleton<WindowWalker>()
+            .BuildServiceProvider();
+
+        var command = new RunCommand(
+            serviceProvider.GetRequiredService<ScreenUse>(),
+            serviceProvider.GetRequiredService<MouseUse>(),
+            serviceProvider.GetRequiredService<KeyboardUse>(),
+            serviceProvider.GetRequiredService<WindowWalker>(),
+            serviceProvider.GetRequiredService<StatusReporter>()
+        );
+
+        for (int i = 1; i < args.Length; i++)
+        {
+            switch (args[i])
+            {
+                case "--configFile":
+                    if (++i >= args.Length)
+                        throw new ArgumentException("Missing --configFile parameter value");
+                    command.ConfigFile = args[i];
+                    break;
+                case "--promptFile":
+                    if (++i >= args.Length)
+                        throw new ArgumentException("Missing --promptFile parameter value");
+                    command.PromptFile = args[i];
+                    break;
+                case "--storageFolder":
+                    if (++i >= args.Length)
+                        throw new ArgumentException("Missing --storageFolder parameter value");
+                    command.StorageFolder = args[i];
+                    break;
+                case "--outputFile":
+                    if (++i >= args.Length)
+                        throw new ArgumentException("Missing --outputFile parameter value");
+                    command.OutputFile = args[i];
+                    break;
+                default:
+                    throw new ArgumentException($"Unknown parameter: {args[i]}");
+            }
+        }
+
+        // Validate required parameters
+        if (string.IsNullOrEmpty(command.ConfigFile))
+            throw new ArgumentException("--configFile parameter is required");
+        if (string.IsNullOrEmpty(command.PromptFile))
+            throw new ArgumentException("--promptFile parameter is required");
+        if (string.IsNullOrEmpty(command.StorageFolder))
+            throw new ArgumentException("--storageFolder parameter is required");
+        if (string.IsNullOrEmpty(command.OutputFile))
+            throw new ArgumentException("--outputFile parameter is required");
 
         return command;
     }
