@@ -143,9 +143,7 @@ public partial class MainForm : Form
             return;
         }
 
-        _statusTextBox.AppendText($"{DateTime.Now:HH:mm:ss} - {e.Message}\r\n");
-        _statusTextBox.SelectionStart = _statusTextBox.Text.Length;
-        _statusTextBox.ScrollToCaret();
+        _statusTextBox.Text = e.Message;
     }
 
     protected override void Dispose(bool disposing)
