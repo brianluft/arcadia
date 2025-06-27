@@ -45,6 +45,7 @@
 
 - [x] Create test script: `scripts/test-computer-use-noop.sh`
     - *🤖 Created bash script that builds the ComputerUse project in Release mode and runs the noop command to test the CLI infrastructure.*
+    - IMPORTANT: Use this script as an example when writing future test scripts.
 
 - [x] Rework `MainForm` to use `TableLayoutPanel` for layout. Your layout is all over the place. Use as few hardcoded pixel values as possible.
     - *🤖 Replaced manual positioning with TableLayoutPanel containing 3 rows (title, textbox, stop link). Used AutoSize for labels, Percent sizing for textbox to fill space, Dock/Anchor/Margin for proper layout, and eliminated hardcoded positions. Form now uses AutoSize with GrowAndShrink mode and positioning moved to Load event.*
