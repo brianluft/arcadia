@@ -39,7 +39,31 @@ public class ScreenshotCommand : ICommand
         // Create directory if it doesn't exist
         outputFileInfo.Directory?.Create();
 
-        _screenUse.TakeScreenshot(outputFileInfo, zoomPath);
+        // Take screenshots
+        var screenshots = _screenUse.TakeScreenshots(zoomPath);
+
+        try
+        {
+            // Save the primary (zoomed) screenshot
+            screenshots.Primary.Save(outputFileInfo.FullName, System.Drawing.Imaging.ImageFormat.Png);
+
+            // If there's an overview screenshot, save it too
+            if (screenshots.Overview != null)
+            {
+                var overviewFileName =
+                    Path.GetFileNameWithoutExtension(outputFileInfo.Name)
+                    + "_overview"
+                    + Path.GetExtension(outputFileInfo.Name);
+                var overviewPath = Path.Combine(outputFileInfo.DirectoryName!, overviewFileName);
+                screenshots.Overview.Save(overviewPath, System.Drawing.Imaging.ImageFormat.Png);
+            }
+        }
+        finally
+        {
+            // Dispose of images
+            screenshots.Primary.Dispose();
+            screenshots.Overview?.Dispose();
+        }
 
         return Task.CompletedTask;
     }

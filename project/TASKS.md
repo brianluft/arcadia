@@ -282,10 +282,11 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 
 - [ ] Write and flush the output file as we go, so that if the process is killed, we have the output up to that point.
 
-- [ ] GPT is having trouble identifying grid coordinates from the picture. When GPT asks for a zoomed-in screnshot, give it the zoomed-in screenshot _and_ a fullscreen screenshot with the chosen target rectangle outlined with thick magenta border and its interior tinted magenta, so GPT understands the context of the zoomd-in screenshot.
-    - [ ] `ScreenUse`: When a zoom path is specified, generate the fullscreen overview in addition to the zoomed-in shot we currently take, and return them both.
-    - [ ] `screenshot` CLI command: When a zoom path is specified, save both generated images to the storage folder.
-    - [ ] `run` CLI command: If `ScreenUse` produces two images then provide them both to GPT.
+- [x] GPT is having trouble identifying grid coordinates from the picture. When GPT asks for a zoomed-in screnshot, give it the zoomed-in screenshot _and_ a fullscreen screenshot with the chosen target rectangle outlined with thick magenta border and its interior tinted magenta, so GPT understands the context of the zoomd-in screenshot.
+    - *🤖 Implemented dual screenshot functionality by creating ScreenshotResult record and TakeScreenshots method in ScreenUse.cs that returns both zoomed and overview images when zoom path is provided. Overview image highlights target rectangle with thick magenta border and semi-transparent tint. Updated ScreenshotCommand to save both files with "_overview" suffix. Modified RunCommand to use new TakeAndSaveScreenshots method, updated CreateContextMessage to accept dual images, and enhanced ProcessScreenshotTool to provide both images to GPT. Updated system prompt to explain dual screenshot feature.*
+    - [x] `ScreenUse`: When a zoom path is specified, generate the fullscreen overview in addition to the zoomed-in shot we currently take, and return them both.
+    - [x] `screenshot` CLI command: When a zoom path is specified, save both generated images to the storage folder.
+    - [x] `run` CLI command: If `ScreenUse` produces two images then provide them both to GPT.
 
 # Phase - Code cleanup
 

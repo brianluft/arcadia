@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 
 namespace ComputerUse;
 
+public record ScreenshotResult(Bitmap Primary, Bitmap? Overview = null);
+
 public class ScreenUse
 {
     private const int GRID_LINE_WIDTH = 2;
@@ -19,6 +21,18 @@ public class ScreenUse
     }
 
     public void TakeScreenshot(FileInfo outputFile, ZoomPath? zoomPath = null)
+    {
+        var screenshots = TakeScreenshots(zoomPath);
+
+        // Save the primary (zoomed) screenshot
+        screenshots.Primary.Save(outputFile.FullName, ImageFormat.Png);
+
+        // Dispose of images
+        screenshots.Primary.Dispose();
+        screenshots.Overview?.Dispose();
+    }
+
+    public ScreenshotResult TakeScreenshots(ZoomPath? zoomPath = null)
     {
         var primaryScreen = Screen.PrimaryScreen ?? throw new InvalidOperationException("No primary screen found");
         var screenBounds = primaryScreen.Bounds;
@@ -48,20 +62,42 @@ public class ScreenUse
 
         using (screenshot)
         {
-            // Crop to target rectangle
-            using (var croppedImage = CropImage(screenshot, targetRectangle, screenBounds))
+            Bitmap primaryImage;
+            Bitmap? overviewImage = null;
+
+            if (zoomPath == null)
             {
-                // Scale to 1080px height
-                using (var scaledImage = ScaleImage(croppedImage, 1080))
+                // No zoom path - just process the full screenshot
+                using (var scaledImage = ScaleImage(screenshot, 1080))
                 {
-                    // Draw grid and coordinates
-                    using (var finalImage = DrawGridAndCoordinates(scaledImage))
-                    {
-                        // Save as PNG
-                        finalImage.Save(outputFile.FullName, ImageFormat.Png);
-                    }
+                    primaryImage = DrawGridAndCoordinates(scaledImage);
                 }
             }
+            else
+            {
+                // Zoom path specified - create both zoomed and overview images
+
+                // Create the zoomed image
+                using (var croppedImage = CropImage(screenshot, targetRectangle, screenBounds))
+                {
+                    using (var scaledImage = ScaleImage(croppedImage, 1080))
+                    {
+                        primaryImage = DrawGridAndCoordinates(scaledImage);
+                    }
+                }
+
+                // Create the overview image with highlighted target rectangle
+                using (var scaledFullscreen = ScaleImage(screenshot, 1080))
+                {
+                    overviewImage = DrawGridAndCoordinatesWithHighlight(
+                        scaledFullscreen,
+                        targetRectangle,
+                        screenBounds
+                    );
+                }
+            }
+
+            return new ScreenshotResult(primaryImage, overviewImage);
         }
     }
 
@@ -226,6 +262,45 @@ public class ScreenUse
             // Apply the inversion magic: wherever the overlay has white pixels,
             // invert the corresponding pixels in the result
             ApplyInversionMask(result, overlay);
+        }
+
+        return result;
+    }
+
+    private static Bitmap DrawGridAndCoordinatesWithHighlight(
+        Bitmap source,
+        Rectangle targetRectangle,
+        Rectangle screenBounds
+    )
+    {
+        // First draw the regular grid and coordinates
+        var result = DrawGridAndCoordinates(source);
+
+        // Calculate the target rectangle relative to the scaled image
+        var scaleFactorX = (double)source.Width / screenBounds.Width;
+        var scaleFactorY = (double)source.Height / screenBounds.Height;
+
+        var scaledTargetRect = new Rectangle(
+            (int)((targetRectangle.X - screenBounds.X) * scaleFactorX),
+            (int)((targetRectangle.Y - screenBounds.Y) * scaleFactorY),
+            (int)(targetRectangle.Width * scaleFactorX),
+            (int)(targetRectangle.Height * scaleFactorY)
+        );
+
+        // Draw highlight on the result
+        using (var graphics = Graphics.FromImage(result))
+        {
+            // Draw thick magenta border
+            using (var borderPen = new Pen(Color.Magenta, 6))
+            {
+                graphics.DrawRectangle(borderPen, scaledTargetRect);
+            }
+
+            // Add magenta tint to the interior
+            using (var tintBrush = new SolidBrush(Color.FromArgb(64, Color.Magenta))) // Semi-transparent magenta
+            {
+                graphics.FillRectangle(tintBrush, scaledTargetRect);
+            }
         }
 
         return result;

@@ -68,6 +68,35 @@ public class RunCommand : ICommand
         }
     }
 
+    private record ScreenshotFiles(FileInfo Primary, FileInfo? Overview = null);
+
+    private ScreenshotFiles TakeAndSaveScreenshots(StorageFolder storageFolder, ZoomPath? zoomPath)
+    {
+        var screenshots = _screenUse.TakeScreenshots(zoomPath);
+
+        try
+        {
+            // Save primary screenshot
+            var primaryFile = storageFolder.GenerateFilename("png");
+            screenshots.Primary.Save(primaryFile.FullName, System.Drawing.Imaging.ImageFormat.Png);
+
+            FileInfo? overviewFile = null;
+            if (screenshots.Overview != null)
+            {
+                // Save overview screenshot
+                overviewFile = storageFolder.GenerateFilename("png");
+                screenshots.Overview.Save(overviewFile.FullName, System.Drawing.Imaging.ImageFormat.Png);
+            }
+
+            return new ScreenshotFiles(primaryFile, overviewFile);
+        }
+        finally
+        {
+            screenshots.Primary.Dispose();
+            screenshots.Overview?.Dispose();
+        }
+    }
+
     private async Task RunComputerUseLoopAsync(
         ChatClient client,
         string promptText,
@@ -78,8 +107,8 @@ public class RunCommand : ICommand
         _statusReporter.Report($"> {promptText}");
 
         // Take initial screenshot
-        var initialScreenshot = storageFolder.GenerateFilename("png");
-        _screenUse.TakeScreenshot(initialScreenshot, null);
+        var initialScreenshots = TakeAndSaveScreenshots(storageFolder, null);
+        var primaryScreenshot = initialScreenshots.Primary;
 
         // Initialize conversation
         var messages = new List<ChatMessage> { new SystemChatMessage(SystemPrompt) };
@@ -117,9 +146,10 @@ public class RunCommand : ICommand
                 // Create user message with context
                 var contextMessage = CreateContextMessage(
                     promptText,
-                    initialScreenshot,
+                    primaryScreenshot,
                     focusedWindow,
-                    unfocusedWindows
+                    unfocusedWindows,
+                    initialScreenshots.Overview
                 );
                 messages.Add(contextMessage);
 
@@ -128,7 +158,7 @@ public class RunCommand : ICommand
                 logEntries.Add($"Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
                 logEntries.Add($"Focused Window: {focusedWindow?.Title ?? "None"}");
                 logEntries.Add($"Unfocused Windows: {string.Join(", ", unfocusedWindows.Select(w => w.Title))}");
-                logEntries.Add($"Screenshot: {initialScreenshot.Name}");
+                logEntries.Add($"Screenshot: {primaryScreenshot.Name}");
                 logEntries.Add("");
 
                 // Submit to GPT
@@ -175,8 +205,8 @@ public class RunCommand : ICommand
                         )
                         {
                             await Task.Delay(1000); // Wait 1 second
-                            initialScreenshot = storageFolder.GenerateFilename("png");
-                            _screenUse.TakeScreenshot(initialScreenshot, null);
+                            var newScreenshots = TakeAndSaveScreenshots(storageFolder, null);
+                            primaryScreenshot = newScreenshots.Primary;
                         }
                         break;
 
@@ -218,7 +248,8 @@ public class RunCommand : ICommand
         string promptText,
         FileInfo screenshot,
         WindowInfo? focusedWindow,
-        List<WindowInfo> unfocusedWindows
+        List<WindowInfo> unfocusedWindows,
+        FileInfo? overviewScreenshot = null
     )
     {
         var contextBuilder = new StringBuilder();
@@ -246,6 +277,13 @@ public class RunCommand : ICommand
             ChatMessageContentPart.CreateTextPart(contextBuilder.ToString()),
             ChatMessageContentPart.CreateImagePart(BinaryData.FromBytes(imageBytes), "image/png"),
         };
+
+        // Add overview screenshot if provided (for zoomed screenshots)
+        if (overviewScreenshot != null)
+        {
+            byte[] overviewImageBytes = File.ReadAllBytes(overviewScreenshot.FullName);
+            content.Add(ChatMessageContentPart.CreateImagePart(BinaryData.FromBytes(overviewImageBytes), "image/png"));
+        }
 
         return new UserChatMessage(content);
     }
@@ -299,10 +337,16 @@ public class RunCommand : ICommand
             }
         }
 
-        var screenshotFile = storageFolder.GenerateFilename("png");
-        await Task.Run(() => _screenUse.TakeScreenshot(screenshotFile, zoomPath));
+        var screenshotFiles = await Task.Run(() => TakeAndSaveScreenshots(storageFolder, zoomPath));
 
-        return $"Screenshot taken: {screenshotFile.Name}";
+        if (screenshotFiles.Overview != null)
+        {
+            return $"Screenshots taken: {screenshotFiles.Primary.Name} (zoomed) and {screenshotFiles.Overview.Name} (overview with highlighted target area)";
+        }
+        else
+        {
+            return $"Screenshot taken: {screenshotFiles.Primary.Name}";
+        }
     }
 
     private async Task<string> ProcessMouseClickTool(ChatToolCall toolCall)
@@ -519,6 +563,10 @@ public class RunCommand : ICommand
 
         The screenshots have a grid overlay with coordinates. Use these coordinates to specify where to click.
         Each grid cell is labeled with a coordinate like A1, B2, etc.
+
+        When you request a zoomed-in screenshot, you will receive two images:
+        1. The zoomed-in view with grid coordinates for precise targeting
+        2. A fullscreen overview with the target area highlighted in magenta to show context
 
         IMPORTANT: For mouse clicking, you MUST provide at least 2 coordinates in the zoomPath for accuracy. 
         Never click directly from a fullscreen screenshot as it's too inaccurate. Always zoom in first by taking 
