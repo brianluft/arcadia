@@ -280,13 +280,13 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 - [x] `MouseUse`: Require at least _two_ coords in the zoomPath; it's too inaccurate when it tries to click directly from a fullscreen screenshot. If less, send an error message in our function call response to OpenAI telling it that it must zoom in at least once before clicking, and that 2+ coords are required in the zoomPath. Add the same information to the system prompt.
     - *🤖 Added validation in ProcessMouseClickTool() to check coords.Count < 2 and return error message to OpenAI. Updated CreateMouseClickTool() function description and parameter description to emphasize the 2+ coordinate requirement. Enhanced SystemPrompt with IMPORTANT section explaining the zoom-first-then-click workflow. Updated context message tool description to mention the requirement.*
 
-- [ ] Write and flush the output file as we go, so that if the process is killed, we have the output up to that point.
-
 - [x] GPT is having trouble identifying grid coordinates from the picture. When GPT asks for a zoomed-in screnshot, give it the zoomed-in screenshot _and_ a fullscreen screenshot with the chosen target rectangle outlined with thick magenta border and its interior tinted magenta, so GPT understands the context of the zoomd-in screenshot.
     - *🤖 Implemented dual screenshot functionality by creating ScreenshotResult record and TakeScreenshots method in ScreenUse.cs that returns both zoomed and overview images when zoom path is provided. Overview image highlights target rectangle with thick magenta border and semi-transparent tint. Updated ScreenshotCommand to save both files with "_overview" suffix. Modified RunCommand to use new TakeAndSaveScreenshots method, updated CreateContextMessage to accept dual images, and enhanced ProcessScreenshotTool to provide both images to GPT. Updated system prompt to explain dual screenshot feature.*
     - [x] `ScreenUse`: When a zoom path is specified, generate the fullscreen overview in addition to the zoomed-in shot we currently take, and return them both.
     - [x] `screenshot` CLI command: When a zoom path is specified, save both generated images to the storage folder.
     - [x] `run` CLI command: If `ScreenUse` produces two images then provide them both to GPT.
+
+- [ ] Use `File.AppendAllLines` when writing to the output file, so that if the process is killed, we have the output up to that point.
 
 # Phase - Code cleanup
 
