@@ -286,7 +286,11 @@ Before every action (screenshot, mouse click, key press) we will inform the user
     - [x] `screenshot` CLI command: When a zoom path is specified, save both generated images to the storage folder.
     - [x] `run` CLI command: If `ScreenUse` produces two images then provide them both to GPT.
 
-- [ ] Use `File.AppendAllLines` when writing to the output file, so that if the process is killed, we have the output up to that point.
+- [x] Use `File.AppendAllLines` when writing to the output file, so that if the process is killed, we have the output up to that point.
+
+- [ ] Add to the information we provide in our initial prompt and user response to GPT on every iteration: Tell it the range of rows and columns in the screenshot (i.e. A-F, 0-9). If we provided two screenshots, briefly explain the purpose of the two screenshots and give it the ranges for the zoomed-in screenshot.
+
+- [ ] We are drawing our grid lines and text as inverted color, I think that's confusing for the model. Let's make it full-bright magenta, with a black shadow at a +1px,+1px offset. Compose it to the offscreen bitmap, then draw that in black with 1px offset to the screenshot and then again in magenta without the offset.
 
 # Phase - Code cleanup
 
