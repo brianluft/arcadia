@@ -277,10 +277,15 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 - [x] I'm getting an error about a trailing comma in `config.jsonc`. That file has comments and trailing commas. Furthermore, that error is showing up in the status report in `MainForm` and not in a message box, so I could only briefly catch it before the window closed. All exceptions should be shown in message boxes.
     - *🤖 Fixed JSONC parsing by adding regex to remove trailing commas before closing braces/brackets `cleanJson = Regex.Replace(cleanJson, @",(\s*[}\]])", "$1")`. Updated all exception handling in MainForm, RunCommand, and all Confirm\*Commands to show MessageBox.Show() in addition to status reporting, ensuring users can see error messages even when forms close quickly.*
 
-- [ ] Write and flush the output file as we go, so that if the process is killed, we have the output up to that point.
-
 - [x] `MouseUse`: Require at least _two_ coords in the zoomPath; it's too inaccurate when it tries to click directly from a fullscreen screenshot. If less, send an error message in our function call response to OpenAI telling it that it must zoom in at least once before clicking, and that 2+ coords are required in the zoomPath. Add the same information to the system prompt.
     - *🤖 Added validation in ProcessMouseClickTool() to check coords.Count < 2 and return error message to OpenAI. Updated CreateMouseClickTool() function description and parameter description to emphasize the 2+ coordinate requirement. Enhanced SystemPrompt with IMPORTANT section explaining the zoom-first-then-click workflow. Updated context message tool description to mention the requirement.*
+
+- [ ] Write and flush the output file as we go, so that if the process is killed, we have the output up to that point.
+
+- [ ] GPT is having trouble identifying grid coordinates from the picture. When GPT asks for a zoomed-in screnshot, give it the zoomed-in screenshot _and_ a fullscreen screenshot with the chosen target rectangle outlined with thick magenta border and its interior tinted magenta, so GPT understands the context of the zoomd-in screenshot.
+    - [ ] `ScreenUse`: When a zoom path is specified, generate the fullscreen overview in addition to the zoomed-in shot we currently take, and return them both.
+    - [ ] `screenshot` CLI command: When a zoom path is specified, save both generated images to the storage folder.
+    - [ ] `run` CLI command: If `ScreenUse` produces two images then provide them both to GPT.
 
 # Phase - Code cleanup
 
