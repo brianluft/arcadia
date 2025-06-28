@@ -112,7 +112,12 @@ public class RunCommand : ICommand
 
         // Initialize conversation
         var messages = new List<ChatMessage> { new SystemChatMessage(SystemPrompt) };
-        var logEntries = new List<string>();
+        
+        // Helper method to write log entries immediately
+        async Task WriteLogAsync(params string[] entries)
+        {
+            await File.AppendAllLinesAsync(outputFile.FullName, entries);
+        }
 
         // Define available tools
         var tools = new List<ChatTool>
@@ -153,25 +158,29 @@ public class RunCommand : ICommand
                 );
                 messages.Add(contextMessage);
 
-                // Log the user prompt
-                logEntries.Add($"=== Iteration {iteration} - User Prompt ===");
-                logEntries.Add($"Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-                logEntries.Add($"Focused Window: {focusedWindow?.Title ?? "None"}");
-                logEntries.Add($"Unfocused Windows: {string.Join(", ", unfocusedWindows.Select(w => w.Title))}");
-                logEntries.Add($"Screenshot: {primaryScreenshot.Name}");
-                logEntries.Add("");
+                // Log the user prompt immediately
+                await WriteLogAsync(
+                    $"=== Iteration {iteration} - User Prompt ===",
+                    $"Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
+                    $"Focused Window: {focusedWindow?.Title ?? "None"}",
+                    $"Unfocused Windows: {string.Join(", ", unfocusedWindows.Select(w => w.Title))}",
+                    $"Screenshot: {primaryScreenshot.Name}",
+                    ""
+                );
 
                 // Submit to GPT
                 _statusReporter.Report("Thinking...");
                 var completionResult = await client.CompleteChatAsync(messages, options);
                 var completion = completionResult.Value;
 
-                // Log GPT response
-                logEntries.Add($"=== GPT Response ===");
-                logEntries.Add($"Content: {completion.Content.FirstOrDefault()?.Text ?? "No content"}");
-                logEntries.Add($"Finish Reason: {completion.FinishReason}");
-                logEntries.Add($"Tool Calls: {completion.ToolCalls.Count}");
-                logEntries.Add("");
+                // Log GPT response immediately
+                await WriteLogAsync(
+                    $"=== GPT Response ===",
+                    $"Content: {completion.Content.FirstOrDefault()?.Text ?? "No content"}",
+                    $"Finish Reason: {completion.FinishReason}",
+                    $"Tool Calls: {completion.ToolCalls.Count}",
+                    ""
+                );
 
                 _statusReporter.Report(completion.Content.FirstOrDefault()?.Text ?? "No content");
 
@@ -179,8 +188,10 @@ public class RunCommand : ICommand
                 switch (completion.FinishReason)
                 {
                     case ChatFinishReason.Stop:
-                        logEntries.Add("=== AI decided to stop ===");
-                        logEntries.Add("Reason: Task completed successfully");
+                        await WriteLogAsync(
+                            "=== AI decided to stop ===",
+                            "Reason: Task completed successfully"
+                        );
                         continueLoop = false;
                         break;
 
@@ -191,7 +202,7 @@ public class RunCommand : ICommand
                         // Process each tool call
                         foreach (var toolCall in completion.ToolCalls)
                         {
-                            var toolResult = await ProcessToolCall(toolCall, storageFolder, logEntries);
+                            var toolResult = await ProcessToolCall(toolCall, storageFolder, outputFile);
                             messages.Add(new ToolChatMessage(toolCall.Id, toolResult));
                         }
 
@@ -211,12 +222,12 @@ public class RunCommand : ICommand
                         break;
 
                     case ChatFinishReason.Length:
-                        logEntries.Add("=== Stopped due to length limit ===");
+                        await WriteLogAsync("=== Stopped due to length limit ===");
                         continueLoop = false;
                         break;
 
                     default:
-                        logEntries.Add($"=== Stopped due to: {completion.FinishReason} ===");
+                        await WriteLogAsync($"=== Stopped due to: {completion.FinishReason} ===");
                         continueLoop = false;
                         break;
                 }
@@ -224,23 +235,18 @@ public class RunCommand : ICommand
 
             if (iteration >= maxIterations)
             {
-                logEntries.Add("=== Stopped due to maximum iterations reached ===");
+                await WriteLogAsync("=== Stopped due to maximum iterations reached ===");
             }
         }
         catch (OperationCanceledException)
         {
-            logEntries.Add("=== User cancelled the operation ===");
+            await WriteLogAsync("=== User cancelled the operation ===");
             throw;
         }
         catch (Exception ex)
         {
-            logEntries.Add($"=== Error occurred: {ex.Message} ===");
+            await WriteLogAsync($"=== Error occurred: {ex.Message} ===");
             throw;
-        }
-        finally
-        {
-            // Write log file
-            await File.WriteAllLinesAsync(outputFile.FullName, logEntries);
         }
     }
 
@@ -291,11 +297,17 @@ public class RunCommand : ICommand
     private async Task<string> ProcessToolCall(
         ChatToolCall toolCall,
         StorageFolder storageFolder,
-        List<string> logEntries
+        FileInfo outputFile
     )
     {
-        logEntries.Add($"=== Executing Tool: {toolCall.FunctionName} ===");
-        logEntries.Add($"Arguments: {toolCall.FunctionArguments}");
+        // Helper method to write log entries immediately
+        async Task WriteLogAsync(params string[] entries)
+        {
+            await File.AppendAllLinesAsync(outputFile.FullName, entries);
+        }
+
+        await WriteLogAsync($"=== Executing Tool: {toolCall.FunctionName} ===");
+        await WriteLogAsync($"Arguments: {toolCall.FunctionArguments}");
 
         try
         {
@@ -311,7 +323,7 @@ public class RunCommand : ICommand
         catch (Exception ex)
         {
             var errorMessage = $"Error executing {toolCall.FunctionName}: {ex.Message}";
-            logEntries.Add($"Error: {errorMessage}");
+            await WriteLogAsync($"Error: {errorMessage}");
             return errorMessage;
         }
     }
