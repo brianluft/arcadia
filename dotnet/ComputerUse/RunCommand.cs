@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Text;
 using System.Text.Json;
 using System.Windows.Forms;
@@ -112,7 +113,7 @@ public class RunCommand : ICommand
 
         // Initialize conversation
         var messages = new List<ChatMessage> { new SystemChatMessage(SystemPrompt) };
-        
+
         // Helper method to write log entries immediately
         async Task WriteLogAsync(params string[] entries)
         {
@@ -188,10 +189,7 @@ public class RunCommand : ICommand
                 switch (completion.FinishReason)
                 {
                     case ChatFinishReason.Stop:
-                        await WriteLogAsync(
-                            "=== AI decided to stop ===",
-                            "Reason: Task completed successfully"
-                        );
+                        await WriteLogAsync("=== AI decided to stop ===", "Reason: Task completed successfully");
                         continueLoop = false;
                         break;
 
@@ -264,6 +262,47 @@ public class RunCommand : ICommand
         contextBuilder.AppendLine($"Focused Window: {focusedWindow?.Title ?? "None"}");
         contextBuilder.AppendLine($"Other Windows: {string.Join(", ", unfocusedWindows.Select(w => w.Title))}");
         contextBuilder.AppendLine();
+
+        // Calculate grid ranges for the primary screenshot
+        using (var img = Image.FromFile(screenshot.FullName))
+        {
+            var aspectRatio = (double)img.Width / img.Height;
+            var numColumns = Coord.CalculateColumns(aspectRatio);
+            var numRows = Coord.NUM_ROWS;
+
+            var maxColumn = (char)('A' + numColumns - 1);
+            var maxRow = numRows - 1;
+
+            if (overviewScreenshot != null)
+            {
+                // Dual screenshot mode - explain both images
+                contextBuilder.AppendLine("Two screenshots provided:");
+                contextBuilder.AppendLine(
+                    $"1. Zoomed-in screenshot: Grid ranges A-{maxColumn}, 0-{maxRow} - Use these coordinates for precise targeting"
+                );
+                contextBuilder.AppendLine(
+                    "2. Overview screenshot: Shows the zoomed area (highlighted in magenta) within the full desktop context"
+                );
+
+                // Calculate overview grid ranges
+                using (var overviewImg = Image.FromFile(overviewScreenshot.FullName))
+                {
+                    var overviewAspectRatio = (double)overviewImg.Width / overviewImg.Height;
+                    var overviewNumColumns = Coord.CalculateColumns(overviewAspectRatio);
+                    var overviewMaxColumn = (char)('A' + overviewNumColumns - 1);
+                    var overviewMaxRow = Coord.NUM_ROWS - 1;
+
+                    contextBuilder.AppendLine($"   Overview grid ranges: A-{overviewMaxColumn}, 0-{overviewMaxRow}");
+                }
+            }
+            else
+            {
+                // Single screenshot mode
+                contextBuilder.AppendLine($"Screenshot grid ranges: A-{maxColumn}, 0-{maxRow}");
+            }
+        }
+
+        contextBuilder.AppendLine();
         contextBuilder.AppendLine("Please analyze the screenshot and decide what action to take next.");
         contextBuilder.AppendLine("You can use the following tools:");
         contextBuilder.AppendLine("- screenshot: Take a new screenshot, optionally with a zoom path");
@@ -294,11 +333,7 @@ public class RunCommand : ICommand
         return new UserChatMessage(content);
     }
 
-    private async Task<string> ProcessToolCall(
-        ChatToolCall toolCall,
-        StorageFolder storageFolder,
-        FileInfo outputFile
-    )
+    private async Task<string> ProcessToolCall(ChatToolCall toolCall, StorageFolder storageFolder, FileInfo outputFile)
     {
         // Helper method to write log entries immediately
         async Task WriteLogAsync(params string[] entries)

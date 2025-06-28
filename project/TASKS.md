@@ -288,7 +288,8 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 
 - [x] Use `File.AppendAllLines` when writing to the output file, so that if the process is killed, we have the output up to that point.
 
-- [ ] Add to the information we provide in our initial prompt and user response to GPT on every iteration: Tell it the range of rows and columns in the screenshot (i.e. A-F, 0-9). If we provided two screenshots, briefly explain the purpose of the two screenshots and give it the ranges for the zoomed-in screenshot.
+- [x] Add to the information we provide in our initial prompt and user response to GPT on every iteration: Tell it the range of rows and columns in the screenshot (i.e. A-F, 0-9). If we provided two screenshots, briefly explain the purpose of the two screenshots and give it the ranges for the zoomed-in screenshot.
+    - *🤖 Modified CreateContextMessage method in RunCommand.cs to dynamically calculate grid ranges based on screenshot aspect ratio using Coord.CalculateColumns(). Added System.Drawing using statement. For single screenshots, shows ranges like "A-D, 0-3". For dual screenshots (zoomed + overview), explains that zoomed image is for precise targeting and overview shows context with magenta highlighting, providing grid ranges for both images.*
 
 - [ ] We are drawing our grid lines and text as inverted color, I think that's confusing for the model. Let's make it full-bright magenta, with a black shadow at a +1px,+1px offset. Compose it to the offscreen bitmap, then draw that in black with 1px offset to the screenshot and then again in magenta without the offset.
 
