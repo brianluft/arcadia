@@ -14,7 +14,7 @@ public class TypeCommand : ICommand
         _keyboardUse = keyboardUse;
     }
 
-    public Task ExecuteAsync(StatusReporter statusReporter)
+    public Task ExecuteAsync()
     {
         if (string.IsNullOrEmpty(Text))
         {

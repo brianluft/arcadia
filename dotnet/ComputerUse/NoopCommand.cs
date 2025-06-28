@@ -6,7 +6,7 @@ namespace ComputerUse;
 /// </summary>
 public class NoopCommand : ICommand
 {
-    public Task ExecuteAsync(StatusReporter statusReporter)
+    public Task ExecuteAsync()
     {
         return Task.CompletedTask;
     }

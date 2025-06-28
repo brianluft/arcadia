@@ -2,101 +2,100 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace ComputerUse
+namespace ComputerUse;
+
+public partial class SafetyRectangleForm : Form
 {
-    public partial class SafetyRectangleForm : Form
+    private readonly System.Windows.Forms.Timer _blinkTimer;
+    private readonly Rectangle _targetRectangle;
+    private bool _isVisible = true;
+
+    public SafetyRectangleForm(Rectangle rectangle)
     {
-        private readonly System.Windows.Forms.Timer _blinkTimer;
-        private readonly Rectangle _targetRectangle;
-        private bool _isVisible = true;
+        _targetRectangle = rectangle;
 
-        public SafetyRectangleForm(Rectangle rectangle)
+        SuspendLayout();
+
+        // Form properties for transparent overlay
+        FormBorderStyle = FormBorderStyle.None;
+        WindowState = FormWindowState.Normal;
+        StartPosition = FormStartPosition.Manual;
+        TopMost = true;
+        ShowInTaskbar = false;
+        BackColor = Color.Lime; // Will be made transparent
+        TransparencyKey = Color.Lime;
+
+        // Ensure no control box or minimize/maximize buttons
+        ControlBox = false;
+        MaximizeBox = false;
+        MinimizeBox = false;
+
+        // Set form size and position to match target rectangle
+        Load += delegate
         {
-            _targetRectangle = rectangle;
+            Location = _targetRectangle.Location;
+            Size = _targetRectangle.Size;
+        };
 
-            SuspendLayout();
+        // Enable double buffering to reduce flicker
+        SetStyle(
+            ControlStyles.AllPaintingInWmPaint
+                | ControlStyles.UserPaint
+                | ControlStyles.DoubleBuffer
+                | ControlStyles.ResizeRedraw,
+            true
+        );
 
-            // Form properties for transparent overlay
-            FormBorderStyle = FormBorderStyle.None;
-            WindowState = FormWindowState.Normal;
-            StartPosition = FormStartPosition.Manual;
-            TopMost = true;
-            ShowInTaskbar = false;
-            BackColor = Color.Lime; // Will be made transparent
-            TransparencyKey = Color.Lime;
+        ResumeLayout(false);
 
-            // Ensure no control box or minimize/maximize buttons
-            ControlBox = false;
-            MaximizeBox = false;
-            MinimizeBox = false;
-
-            // Set form size and position to match target rectangle
-            Load += delegate
-            {
-                Location = _targetRectangle.Location;
-                Size = _targetRectangle.Size;
-            };
-
-            // Enable double buffering to reduce flicker
-            SetStyle(
-                ControlStyles.AllPaintingInWmPaint
-                    | ControlStyles.UserPaint
-                    | ControlStyles.DoubleBuffer
-                    | ControlStyles.ResizeRedraw,
-                true
-            );
-
-            ResumeLayout(false);
-
-            _blinkTimer = new System.Windows.Forms.Timer
-            {
-                Interval = 250, // 250ms blink interval
-            };
-            _blinkTimer.Tick += BlinkTimer_Tick;
-            _blinkTimer.Start();
-        }
-
-        private void BlinkTimer_Tick(object? sender, EventArgs e)
+        _blinkTimer = new System.Windows.Forms.Timer
         {
-            _isVisible = !_isVisible;
-            Invalidate(); // Trigger repaint
-        }
+            Interval = 250, // 250ms blink interval
+        };
+        _blinkTimer.Tick += BlinkTimer_Tick;
+        _blinkTimer.Start();
+    }
 
-        protected override void OnPaint(PaintEventArgs e)
+    private void BlinkTimer_Tick(object? sender, EventArgs e)
+    {
+        _isVisible = !_isVisible;
+        Invalidate(); // Trigger repaint
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        base.OnPaint(e);
+
+        if (!_isVisible)
+            return;
+
+        var graphics = e.Graphics;
+        using (var brush = new SolidBrush(Color.Magenta))
         {
-            base.OnPaint(e);
-
-            if (!_isVisible)
-                return;
-
-            var graphics = e.Graphics;
-            using (var brush = new SolidBrush(Color.Magenta))
-            {
-                // Fill the entire client area with magenta
-                graphics.FillRectangle(brush, ClientRectangle);
-            }
+            // Fill the entire client area with magenta
+            graphics.FillRectangle(brush, ClientRectangle);
         }
+    }
 
-        protected override void OnFormClosing(FormClosingEventArgs e)
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        _blinkTimer?.Stop();
+        base.OnFormClosing(e);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
         {
-            _blinkTimer?.Stop();
-            base.OnFormClosing(e);
+            _blinkTimer?.Dispose();
         }
+        base.Dispose(disposing);
+    }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _blinkTimer?.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
-        // Prevent user from closing via Alt+F4 or other means
-        protected override void OnFormClosed(FormClosedEventArgs e)
-        {
-            _blinkTimer?.Stop();
-            base.OnFormClosed(e);
-        }
+    // Prevent user from closing via Alt+F4 or other means
+    protected override void OnFormClosed(FormClosedEventArgs e)
+    {
+        _blinkTimer?.Stop();
+        base.OnFormClosed(e);
     }
 }

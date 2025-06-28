@@ -4,6 +4,8 @@ namespace ComputerUse;
 
 public static class Program
 {
+    private static ServiceProvider? _serviceProvider;
+
     /// <summary>
     ///  The main entry point for the application.
     /// </summary>
@@ -12,7 +14,26 @@ public static class Program
     {
         try
         {
-            // Parse command line arguments
+            // To customize application configuration such as set high DPI settings or default font,
+            // see https://aka.ms/applicationconfiguration.
+            ApplicationConfiguration.Initialize();
+
+            // Set up dependency injection - SINGLE CONTAINER FOR ENTIRE APPLICATION
+            var services = new ServiceCollection();
+
+            // Register services
+            services.AddSingleton<StatusReporter>();
+            services.AddSingleton<SafetyManager>();
+            services.AddSingleton<ScreenUse>();
+            services.AddSingleton<MouseUse>();
+            services.AddSingleton<KeyboardUse>();
+            services.AddSingleton<WindowWalker>();
+            services.AddTransient<MainForm>();
+
+            // Build service provider
+            _serviceProvider = services.BuildServiceProvider();
+
+            // Parse command line arguments using the shared service provider
             var command = ParseArguments(args);
 
             // Special handling for run command - show warning
@@ -31,27 +52,8 @@ public static class Program
                 }
             }
 
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
-            ApplicationConfiguration.Initialize();
-
-            // Set up dependency injection
-            var services = new ServiceCollection();
-
-            // Register services
-            services.AddSingleton<StatusReporter>();
-            services.AddSingleton<SafetyManager>();
-            services.AddSingleton<ScreenUse>();
-            services.AddSingleton<MouseUse>();
-            services.AddSingleton<KeyboardUse>();
-            services.AddSingleton<WindowWalker>();
-            services.AddTransient<MainForm>();
-
-            // Build service provider
-            var serviceProvider = services.BuildServiceProvider();
-
             // Run the application
-            var mainForm = serviceProvider.GetRequiredService<MainForm>();
+            var mainForm = _serviceProvider.GetRequiredService<MainForm>();
             mainForm.SetCommand(command);
             Application.Run(mainForm);
         }
@@ -59,6 +61,10 @@ public static class Program
         {
             MessageBox.Show(ex.Message, "Arcadia Computer Use Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             Environment.Exit(1);
+        }
+        finally
+        {
+            _serviceProvider?.Dispose();
         }
     }
 
@@ -99,9 +105,8 @@ public static class Program
 
     private static ConfirmScreenshotCommand ParseConfirmScreenshotCommand(string[] args)
     {
-        var serviceProvider = new ServiceCollection().AddSingleton<SafetyManager>().BuildServiceProvider();
-
-        var command = new ConfirmScreenshotCommand(serviceProvider.GetRequiredService<SafetyManager>());
+        var safetyManager = _serviceProvider!.GetRequiredService<SafetyManager>();
+        var command = new ConfirmScreenshotCommand(safetyManager);
 
         for (int i = 1; i < args.Length; i++)
         {
@@ -137,9 +142,8 @@ public static class Program
 
     private static ConfirmClickCommand ParseConfirmClickCommand(string[] args)
     {
-        var serviceProvider = new ServiceCollection().AddSingleton<SafetyManager>().BuildServiceProvider();
-
-        var command = new ConfirmClickCommand(serviceProvider.GetRequiredService<SafetyManager>());
+        var safetyManager = _serviceProvider!.GetRequiredService<SafetyManager>();
+        var command = new ConfirmClickCommand(safetyManager);
 
         for (int i = 1; i < args.Length; i++)
         {
@@ -165,9 +169,8 @@ public static class Program
 
     private static ConfirmTypeCommand ParseConfirmTypeCommand(string[] args)
     {
-        var serviceProvider = new ServiceCollection().AddSingleton<SafetyManager>().BuildServiceProvider();
-
-        var command = new ConfirmTypeCommand(serviceProvider.GetRequiredService<SafetyManager>());
+        var safetyManager = _serviceProvider!.GetRequiredService<SafetyManager>();
+        var command = new ConfirmTypeCommand(safetyManager);
 
         for (int i = 1; i < args.Length; i++)
         {
@@ -193,12 +196,8 @@ public static class Program
 
     private static ScreenshotCommand ParseScreenshotCommand(string[] args)
     {
-        var serviceProvider = new ServiceCollection()
-            .AddSingleton<SafetyManager>()
-            .AddSingleton<ScreenUse>()
-            .BuildServiceProvider();
-
-        var command = new ScreenshotCommand(serviceProvider.GetRequiredService<ScreenUse>());
+        var screenUse = _serviceProvider!.GetRequiredService<ScreenUse>();
+        var command = new ScreenshotCommand(screenUse);
 
         for (int i = 1; i < args.Length; i++)
         {
@@ -229,12 +228,8 @@ public static class Program
 
     private static MouseClickCommand ParseMouseClickCommand(string[] args)
     {
-        var serviceProvider = new ServiceCollection()
-            .AddSingleton<SafetyManager>()
-            .AddSingleton<MouseUse>()
-            .BuildServiceProvider();
-
-        var command = new MouseClickCommand(serviceProvider.GetRequiredService<MouseUse>());
+        var mouseUse = _serviceProvider!.GetRequiredService<MouseUse>();
+        var command = new MouseClickCommand(mouseUse);
 
         for (int i = 1; i < args.Length; i++)
         {
@@ -273,12 +268,8 @@ public static class Program
 
     private static KeyPressCommand ParseKeyPressCommand(string[] args)
     {
-        var serviceProvider = new ServiceCollection()
-            .AddSingleton<SafetyManager>()
-            .AddSingleton<KeyboardUse>()
-            .BuildServiceProvider();
-
-        var command = new KeyPressCommand(serviceProvider.GetRequiredService<KeyboardUse>());
+        var keyboardUse = _serviceProvider!.GetRequiredService<KeyboardUse>();
+        var command = new KeyPressCommand(keyboardUse);
 
         for (int i = 1; i < args.Length; i++)
         {
@@ -313,12 +304,8 @@ public static class Program
 
     private static TypeCommand ParseTypeCommand(string[] args)
     {
-        var serviceProvider = new ServiceCollection()
-            .AddSingleton<SafetyManager>()
-            .AddSingleton<KeyboardUse>()
-            .BuildServiceProvider();
-
-        var command = new TypeCommand(serviceProvider.GetRequiredService<KeyboardUse>());
+        var keyboardUse = _serviceProvider!.GetRequiredService<KeyboardUse>();
+        var command = new TypeCommand(keyboardUse);
 
         for (int i = 1; i < args.Length; i++)
         {
@@ -344,22 +331,13 @@ public static class Program
 
     private static RunCommand ParseRunCommand(string[] args)
     {
-        var serviceProvider = new ServiceCollection()
-            .AddSingleton<StatusReporter>()
-            .AddSingleton<SafetyManager>()
-            .AddSingleton<ScreenUse>()
-            .AddSingleton<MouseUse>()
-            .AddSingleton<KeyboardUse>()
-            .AddSingleton<WindowWalker>()
-            .BuildServiceProvider();
+        var screenUse = _serviceProvider!.GetRequiredService<ScreenUse>();
+        var mouseUse = _serviceProvider!.GetRequiredService<MouseUse>();
+        var keyboardUse = _serviceProvider!.GetRequiredService<KeyboardUse>();
+        var windowWalker = _serviceProvider!.GetRequiredService<WindowWalker>();
+        var statusReporter = _serviceProvider!.GetRequiredService<StatusReporter>();
 
-        var command = new RunCommand(
-            serviceProvider.GetRequiredService<ScreenUse>(),
-            serviceProvider.GetRequiredService<MouseUse>(),
-            serviceProvider.GetRequiredService<KeyboardUse>(),
-            serviceProvider.GetRequiredService<WindowWalker>(),
-            serviceProvider.GetRequiredService<StatusReporter>()
-        );
+        var command = new RunCommand(screenUse, mouseUse, keyboardUse, windowWalker, statusReporter);
 
         for (int i = 1; i < args.Length; i++)
         {

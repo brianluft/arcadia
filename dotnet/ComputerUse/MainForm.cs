@@ -123,7 +123,7 @@ public partial class MainForm : Form
             _firstShow = false;
             try
             {
-                await _command.ExecuteAsync(_statusReporter);
+                await _command.ExecuteAsync();
                 // After command execution, close the form
                 await Task.Delay(1000); // Give user time to see final status
                 Close();

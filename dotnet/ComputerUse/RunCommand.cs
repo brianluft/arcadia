@@ -35,7 +35,7 @@ public class RunCommand : ICommand
         _statusReporter = statusReporter;
     }
 
-    public async Task ExecuteAsync(StatusReporter statusReporter)
+    public async Task ExecuteAsync()
     {
         try
         {

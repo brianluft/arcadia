@@ -19,7 +19,7 @@ public class KeyPressCommand : ICommand
         _keyboardUse = keyboardUse;
     }
 
-    public Task ExecuteAsync(StatusReporter statusReporter)
+    public Task ExecuteAsync()
     {
         if (string.IsNullOrEmpty(Key))
         {

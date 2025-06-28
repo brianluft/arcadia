@@ -12,7 +12,7 @@ public class ScreenshotCommand : ICommand
     public string? ZoomPathString { get; set; }
     public string OutputFile { get; set; } = string.Empty;
 
-    public Task ExecuteAsync(StatusReporter statusReporter)
+    public Task ExecuteAsync()
     {
         if (string.IsNullOrEmpty(OutputFile))
         {

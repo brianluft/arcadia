@@ -3,44 +3,43 @@ using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace ComputerUse
+namespace ComputerUse;
+
+public class ConfirmScreenshotCommand : ICommand
 {
-    public class ConfirmScreenshotCommand : ICommand
+    private readonly SafetyManager _safetyManager;
+    public int X { get; set; }
+    public int Y { get; set; }
+    public int Width { get; set; }
+    public int Height { get; set; }
+
+    public ConfirmScreenshotCommand(SafetyManager safetyManager)
     {
-        private readonly SafetyManager _safetyManager;
-        public int X { get; set; }
-        public int Y { get; set; }
-        public int Width { get; set; }
-        public int Height { get; set; }
+        _safetyManager = safetyManager;
+    }
 
-        public ConfirmScreenshotCommand(SafetyManager safetyManager)
+    public Task ExecuteAsync()
+    {
+        try
         {
-            _safetyManager = safetyManager;
+            var rectangle = new Rectangle(X, Y, Width, Height);
+            _safetyManager.ConfirmScreenshot(rectangle);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Error during screenshot confirmation: {ex.Message}",
+                "Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            );
+            throw;
         }
 
-        public Task ExecuteAsync(StatusReporter statusReporter)
-        {
-            try
-            {
-                var rectangle = new Rectangle(X, Y, Width, Height);
-                _safetyManager.ConfirmScreenshot(rectangle);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    $"Error during screenshot confirmation: {ex.Message}",
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
-                throw;
-            }
-
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
     }
 }

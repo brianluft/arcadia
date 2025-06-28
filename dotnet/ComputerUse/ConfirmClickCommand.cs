@@ -3,42 +3,41 @@ using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace ComputerUse
+namespace ComputerUse;
+
+public class ConfirmClickCommand : ICommand
 {
-    public class ConfirmClickCommand : ICommand
+    private readonly SafetyManager _safetyManager;
+    public int X { get; set; }
+    public int Y { get; set; }
+
+    public ConfirmClickCommand(SafetyManager safetyManager)
     {
-        private readonly SafetyManager _safetyManager;
-        public int X { get; set; }
-        public int Y { get; set; }
+        _safetyManager = safetyManager;
+    }
 
-        public ConfirmClickCommand(SafetyManager safetyManager)
+    public Task ExecuteAsync()
+    {
+        try
         {
-            _safetyManager = safetyManager;
+            var point = new Point(X, Y);
+            _safetyManager.ConfirmClick(point);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Error during click confirmation: {ex.Message}",
+                "Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            );
+            throw;
         }
 
-        public Task ExecuteAsync(StatusReporter statusReporter)
-        {
-            try
-            {
-                var point = new Point(X, Y);
-                _safetyManager.ConfirmClick(point);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    $"Error during click confirmation: {ex.Message}",
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
-                throw;
-            }
-
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
     }
 }

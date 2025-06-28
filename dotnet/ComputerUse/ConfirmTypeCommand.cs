@@ -2,40 +2,39 @@ using System;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace ComputerUse
+namespace ComputerUse;
+
+public class ConfirmTypeCommand : ICommand
 {
-    public class ConfirmTypeCommand : ICommand
+    private readonly SafetyManager _safetyManager;
+    public string Text { get; set; } = string.Empty;
+
+    public ConfirmTypeCommand(SafetyManager safetyManager)
     {
-        private readonly SafetyManager _safetyManager;
-        public string Text { get; set; } = string.Empty;
+        _safetyManager = safetyManager;
+    }
 
-        public ConfirmTypeCommand(SafetyManager safetyManager)
+    public Task ExecuteAsync()
+    {
+        try
         {
-            _safetyManager = safetyManager;
+            _safetyManager.ConfirmType(Text);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Error during type confirmation: {ex.Message}",
+                "Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error
+            );
+            throw;
         }
 
-        public Task ExecuteAsync(StatusReporter statusReporter)
-        {
-            try
-            {
-                _safetyManager.ConfirmType(Text);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(
-                    $"Error during type confirmation: {ex.Message}",
-                    "Error",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Error
-                );
-                throw;
-            }
-
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
     }
 }
