@@ -325,6 +325,6 @@ The tools we offer to OpenAI are all stateless; it requires OpenAI to track the 
 
 # Phase - MCP Integration
 
-- [ ] Add `computerUse` section to `config.jsonc` with optional `enable` property that defaults to false. Computer use tool is available only when an OpenAI key is present AND enable is true.
-
-- [ ] Add `use_computer` tool. Takes a prompt (tell the client to include extensive, precise details because GPT doesn't have any other context) and calls our `ComputerUse.exe run ...`.
+- [ ] Add `use_computer` tool. Takes a prompt (tell the client to include extensive, precise details because GPT doesn't have any other context) and calls our `ComputerUse.exe run ...`. In the tool prompt doc, tell the MCP client only to use `use_computer` if explicitly instructed by the user because of the danger involved, and that the user will be prompted for confirmation.
+    - [ ] Add `computerUse` section to `config.jsonc` with optional `enable` property that defaults to false. Computer use tool is available only when an OpenAI key is present AND enable is true.
+    - [ ] The MCP response from `use_computer` is the final content of the output text file which includes the log of the OpenAI interactions.
