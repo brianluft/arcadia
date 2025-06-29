@@ -15,6 +15,9 @@ public class RunCommand : ICommand
     private readonly WindowWalker _windowWalker;
     private readonly StatusReporter _statusReporter;
 
+    // Internal zoom state - this replaces the AI-visible zoom path concept
+    private List<Coord> _currentZoomPath = new();
+
     public string ConfigFile { get; set; } = string.Empty;
     public string PromptFile { get; set; } = string.Empty;
     public string StorageFolder { get; set; } = string.Empty;
@@ -107,8 +110,9 @@ public class RunCommand : ICommand
     {
         _statusReporter.Report($"> {promptText}");
 
-        // Take initial screenshot
-        var initialScreenshots = TakeAndSaveScreenshots(storageFolder, null);
+        // Take initial screenshot using current zoom state
+        ZoomPath? currentZoomPath = _currentZoomPath.Count > 0 ? new ZoomPath(_currentZoomPath) : null;
+        var initialScreenshots = TakeAndSaveScreenshots(storageFolder, currentZoomPath);
         var primaryScreenshot = initialScreenshots.Primary;
 
         // Initialize conversation
@@ -123,7 +127,10 @@ public class RunCommand : ICommand
         // Define available tools
         var tools = new List<ChatTool>
         {
-            CreateScreenshotTool(),
+            CreateZoomInTool(),
+            CreateZoomOutTool(),
+            CreateZoomFullscreenTool(),
+            CreatePanTool(),
             CreateMouseClickTool(),
             CreateKeyPressTool(),
             CreateTypeTool(),
@@ -155,6 +162,7 @@ public class RunCommand : ICommand
                     primaryScreenshot,
                     focusedWindow,
                     unfocusedWindows,
+                    _currentZoomPath,
                     initialScreenshots.Overview
                 );
                 messages.Add(contextMessage);
@@ -204,19 +212,12 @@ public class RunCommand : ICommand
                             messages.Add(new ToolChatMessage(toolCall.Id, toolResult));
                         }
 
-                        // Take screenshot after actions
-                        if (
-                            completion.ToolCalls.Any(tc =>
-                                tc.FunctionName == "mouse_click"
-                                || tc.FunctionName == "key_press"
-                                || tc.FunctionName == "type"
-                            )
-                        )
-                        {
-                            await Task.Delay(1000); // Wait 1 second
-                            var newScreenshots = TakeAndSaveScreenshots(storageFolder, null);
-                            primaryScreenshot = newScreenshots.Primary;
-                        }
+                        // Take screenshot after any action (zoom changes, clicks, key presses, typing)
+                        // We automatically provide screenshots after any tool usage
+                        await Task.Delay(1000); // Wait 1 second
+                        ZoomPath? updatedZoomPath = _currentZoomPath.Count > 0 ? new ZoomPath(_currentZoomPath) : null;
+                        var newScreenshots = TakeAndSaveScreenshots(storageFolder, updatedZoomPath);
+                        primaryScreenshot = newScreenshots.Primary;
                         break;
 
                     case ChatFinishReason.Length:
@@ -253,6 +254,7 @@ public class RunCommand : ICommand
         FileInfo screenshot,
         WindowInfo? focusedWindow,
         List<WindowInfo> unfocusedWindows,
+        List<Coord> currentZoomPath,
         FileInfo? overviewScreenshot = null
     )
     {
@@ -261,6 +263,33 @@ public class RunCommand : ICommand
         contextBuilder.AppendLine($"Current Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
         contextBuilder.AppendLine($"Focused Window: {focusedWindow?.Title ?? "None"}");
         contextBuilder.AppendLine($"Other Windows: {string.Join(", ", unfocusedWindows.Select(w => w.Title))}");
+        contextBuilder.AppendLine();
+
+        // Add current zoom state information
+        if (currentZoomPath.Count == 0)
+        {
+            contextBuilder.AppendLine("Current Zoom: Fullscreen view");
+        }
+        else
+        {
+            var zoomPathString = string.Join(",", currentZoomPath.Select(c => c.ToString()));
+            contextBuilder.AppendLine($"Current Zoom: {zoomPathString}");
+        }
+
+        // Add click eligibility information
+        if (currentZoomPath.Count < 2)
+        {
+            var moreZoomsNeeded = 2 - currentZoomPath.Count;
+            contextBuilder.AppendLine(
+                $"Click Status: You need to zoom in {moreZoomsNeeded} more time(s) before you can click for accuracy."
+            );
+        }
+        else
+        {
+            contextBuilder.AppendLine(
+                "Click Status: You are zoomed in enough to click accurately at the center of the current view."
+            );
+        }
         contextBuilder.AppendLine();
 
         // Calculate grid ranges for the primary screenshot
@@ -305,13 +334,17 @@ public class RunCommand : ICommand
         contextBuilder.AppendLine();
         contextBuilder.AppendLine("Please analyze the screenshot and decide what action to take next.");
         contextBuilder.AppendLine("You can use the following tools:");
-        contextBuilder.AppendLine("- screenshot: Take a new screenshot, optionally with a zoom path");
+        contextBuilder.AppendLine("- zoom_in: Zoom into a specific grid coordinate");
+        contextBuilder.AppendLine("- zoom_out: Zoom out one level");
+        contextBuilder.AppendLine("- zoom_fullscreen: Return to fullscreen view");
+        contextBuilder.AppendLine("- pan: Move the current zoom view by grid offsets");
         contextBuilder.AppendLine(
-            "- mouse_click: Click at a specific location using grid coordinates (requires at least 2 coordinates for accuracy)"
+            "- mouse_click: Click at the center of the current zoom view (requires sufficient zoom level)"
         );
         contextBuilder.AppendLine("- key_press: Press a key combination");
         contextBuilder.AppendLine("- type: Type text");
         contextBuilder.AppendLine();
+        contextBuilder.AppendLine("Screenshots are automatically provided after each action.");
         contextBuilder.AppendLine("If you believe the task is complete, respond without calling any tools.");
 
         // Read screenshot as base64
@@ -348,7 +381,10 @@ public class RunCommand : ICommand
         {
             return toolCall.FunctionName switch
             {
-                "screenshot" => await ProcessScreenshotTool(toolCall, storageFolder),
+                "zoom_in" => await ProcessZoomInTool(toolCall),
+                "zoom_out" => await ProcessZoomOutTool(toolCall),
+                "zoom_fullscreen" => await ProcessZoomFullscreenTool(toolCall),
+                "pan" => await ProcessPanTool(toolCall),
                 "mouse_click" => await ProcessMouseClickTool(toolCall),
                 "key_press" => await ProcessKeyPressTool(toolCall),
                 "type" => await ProcessTypeTool(toolCall),
@@ -363,64 +399,86 @@ public class RunCommand : ICommand
         }
     }
 
-    private async Task<string> ProcessScreenshotTool(ChatToolCall toolCall, StorageFolder storageFolder)
+    private Task<string> ProcessZoomInTool(ChatToolCall toolCall)
     {
         using var argsDoc = JsonDocument.Parse(toolCall.FunctionArguments);
         var root = argsDoc.RootElement;
 
-        ZoomPath? zoomPath = null;
-        if (root.TryGetProperty("zoomPath", out var zoomPathElement))
+        var coordString = root.GetProperty("coord").GetString();
+        if (string.IsNullOrEmpty(coordString))
+            throw new ArgumentException("coord is required");
+
+        var coord = Coord.Parse(coordString);
+        _currentZoomPath.Add(coord);
+
+        var zoomPathString = string.Join(",", _currentZoomPath.Select(c => c.ToString()));
+        return Task.FromResult($"Zoomed in to {coordString}. Current zoom path: {zoomPathString}");
+    }
+
+    private Task<string> ProcessZoomOutTool(ChatToolCall toolCall)
+    {
+        if (_currentZoomPath.Count == 0)
         {
-            var zoomPathString = zoomPathElement.GetString();
-            if (!string.IsNullOrEmpty(zoomPathString))
-            {
-                var coordStrings = zoomPathString.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                var coords = new List<Coord>();
-                foreach (var coordStr in coordStrings)
-                {
-                    coords.Add(Coord.Parse(coordStr.Trim()));
-                }
-                zoomPath = new ZoomPath(coords);
-            }
+            return Task.FromResult("Already at fullscreen - cannot zoom out further.");
         }
 
-        var screenshotFiles = await Task.Run(() => TakeAndSaveScreenshots(storageFolder, zoomPath));
+        var removedCoord = _currentZoomPath[^1];
+        _currentZoomPath.RemoveAt(_currentZoomPath.Count - 1);
 
-        if (screenshotFiles.Overview != null)
+        var zoomPathString =
+            _currentZoomPath.Count > 0 ? string.Join(",", _currentZoomPath.Select(c => c.ToString())) : "fullscreen";
+        return Task.FromResult($"Zoomed out from {removedCoord}. Current zoom path: {zoomPathString}");
+    }
+
+    private Task<string> ProcessZoomFullscreenTool(ChatToolCall toolCall)
+    {
+        var previousZoomPath = string.Join(",", _currentZoomPath.Select(c => c.ToString()));
+        _currentZoomPath.Clear();
+
+        return Task.FromResult($"Returned to fullscreen view. Previous zoom path was: {previousZoomPath}");
+    }
+
+    private Task<string> ProcessPanTool(ChatToolCall toolCall)
+    {
+        if (_currentZoomPath.Count == 0)
         {
-            return $"Screenshots taken: {screenshotFiles.Primary.Name} (zoomed) and {screenshotFiles.Overview.Name} (overview with highlighted target area)";
+            return Task.FromResult("Cannot pan - currently at fullscreen view. Use zoom_in first.");
         }
-        else
+
+        using var argsDoc = JsonDocument.Parse(toolCall.FunctionArguments);
+        var root = argsDoc.RootElement;
+
+        var verticalOffset = root.TryGetProperty("vertical", out var vertElement) ? vertElement.GetInt32() : 0;
+        var horizontalOffset = root.TryGetProperty("horizontal", out var horizElement) ? horizElement.GetInt32() : 0;
+
+        if (verticalOffset == 0 && horizontalOffset == 0)
         {
-            return $"Screenshot taken: {screenshotFiles.Primary.Name}";
+            return Task.FromResult("No movement - both vertical and horizontal offsets are zero.");
         }
+
+        // Modify the last coordinate in the zoom path
+        var lastCoord = _currentZoomPath[^1];
+        var newRow = Math.Max(0, Math.Min(Coord.NUM_ROWS - 1, lastCoord.RowIndex + verticalOffset));
+        var newCol = Math.Max(0, lastCoord.ColumnIndex + horizontalOffset); // Column limit depends on aspect ratio
+
+        var newCoord = new Coord(newRow, newCol);
+        _currentZoomPath[^1] = newCoord;
+
+        var zoomPathString = string.Join(",", _currentZoomPath.Select(c => c.ToString()));
+        return Task.FromResult($"Panned by ({horizontalOffset},{verticalOffset}). Current zoom path: {zoomPathString}");
     }
 
     private async Task<string> ProcessMouseClickTool(ChatToolCall toolCall)
     {
+        // Check if we have sufficient zoom level for accurate clicking
+        if (_currentZoomPath.Count < 2)
+        {
+            return "Error: You must zoom in at least 2 levels before clicking for accuracy. "
+                + "Use zoom_in to zoom into target areas before attempting to click.";
+        }
+
         using var argsDoc = JsonDocument.Parse(toolCall.FunctionArguments);
         var root = argsDoc.RootElement;
-
-        var zoomPathString = root.GetProperty("zoomPath").GetString();
-        if (string.IsNullOrEmpty(zoomPathString))
-            throw new ArgumentException("zoomPath is required");
-
-        var coordStrings = zoomPathString.Split(',', StringSplitOptions.RemoveEmptyEntries);
-        var coords = new List<Coord>();
-        foreach (var coordStr in coordStrings)
-        {
-            coords.Add(Coord.Parse(coordStr.Trim()));
-        }
-
-        // Require at least 2 coordinates for accurate clicking
-        if (coords.Count < 2)
-        {
-            return "Error: Mouse clicking requires at least 2 coordinates in the zoomPath for accuracy. "
-                + "Please take a screenshot first to zoom into the target area, then click using the zoomed coordinates. "
-                + "Example: First use screenshot with zoomPath 'A1', then use mouse_click with zoomPath 'A1,B2'.";
-        }
-
-        var zoomPath = new ZoomPath(coords);
 
         var buttonString = root.TryGetProperty("button", out var buttonElement) ? buttonElement.GetString() : "left";
         var doubleClick = root.TryGetProperty("double", out var doubleElement) && doubleElement.GetBoolean();
@@ -433,9 +491,13 @@ public class RunCommand : ICommand
             _ => MouseButtons.Left,
         };
 
+        // Use current zoom path for clicking at the implicit center
+        var zoomPath = new ZoomPath(_currentZoomPath);
         await Task.Run(() => _mouseUse.Click(zoomPath, mouseButton, doubleClick));
 
-        return $"Mouse click performed: {buttonString} at {zoomPathString}" + (doubleClick ? " (double-click)" : "");
+        var zoomPathString = string.Join(",", _currentZoomPath.Select(c => c.ToString()));
+        return $"Mouse click performed: {buttonString} at center of zoom level {zoomPathString}"
+            + (doubleClick ? " (double-click)" : "");
     }
 
     private async Task<string> ProcessKeyPressTool(ChatToolCall toolCall)
@@ -480,19 +542,77 @@ public class RunCommand : ICommand
         return $"Text typed: {text}";
     }
 
-    private static ChatTool CreateScreenshotTool()
+    private static ChatTool CreateZoomInTool()
     {
         return ChatTool.CreateFunctionTool(
-            functionName: "screenshot",
-            functionDescription: "Take a screenshot of the current screen state",
+            functionName: "zoom_in",
+            functionDescription: "Zoom into a specific grid coordinate",
             functionParameters: BinaryData.FromBytes(
                 """
                 {
                     "type": "object",
                     "properties": {
-                        "zoomPath": {
+                        "coord": {
                             "type": "string",
-                            "description": "Optional comma-separated grid coordinates to zoom into (e.g., 'A1,B2')"
+                            "description": "Grid coordinate to zoom into (e.g., 'A1', 'B2')"
+                        }
+                    },
+                    "required": ["coord"]
+                }
+                """u8.ToArray()
+            )
+        );
+    }
+
+    private static ChatTool CreateZoomOutTool()
+    {
+        return ChatTool.CreateFunctionTool(
+            functionName: "zoom_out",
+            functionDescription: "Zoom out one level from the current zoom state",
+            functionParameters: BinaryData.FromBytes(
+                """
+                {
+                    "type": "object",
+                    "properties": {}
+                }
+                """u8.ToArray()
+            )
+        );
+    }
+
+    private static ChatTool CreateZoomFullscreenTool()
+    {
+        return ChatTool.CreateFunctionTool(
+            functionName: "zoom_fullscreen",
+            functionDescription: "Return to fullscreen view, clearing all zoom levels",
+            functionParameters: BinaryData.FromBytes(
+                """
+                {
+                    "type": "object",
+                    "properties": {}
+                }
+                """u8.ToArray()
+            )
+        );
+    }
+
+    private static ChatTool CreatePanTool()
+    {
+        return ChatTool.CreateFunctionTool(
+            functionName: "pan",
+            functionDescription: "Move the current zoom view by the specified grid cell offsets",
+            functionParameters: BinaryData.FromBytes(
+                """
+                {
+                    "type": "object",
+                    "properties": {
+                        "vertical": {
+                            "type": "integer",
+                            "description": "Vertical offset in grid cells (positive = down, negative = up)"
+                        },
+                        "horizontal": {
+                            "type": "integer", 
+                            "description": "Horizontal offset in grid cells (positive = right, negative = left)"
                         }
                     }
                 }
@@ -505,16 +625,12 @@ public class RunCommand : ICommand
     {
         return ChatTool.CreateFunctionTool(
             functionName: "mouse_click",
-            functionDescription: "Click the mouse at a specific location using grid coordinates. IMPORTANT: Requires at least 2 coordinates in zoomPath for accuracy.",
+            functionDescription: "Click the mouse at the center of the current zoom view. Requires at least 2 zoom levels for accuracy.",
             functionParameters: BinaryData.FromBytes(
                 """
                 {
                     "type": "object",
                     "properties": {
-                        "zoomPath": {
-                            "type": "string",
-                            "description": "Comma-separated grid coordinates specifying the click location. MUST contain at least 2 coordinates for accuracy (e.g., 'A1,B2'). Take a screenshot first to zoom in, then click using the zoomed coordinates."
-                        },
                         "button": {
                             "type": "string",
                             "enum": ["left", "right", "middle"],
@@ -526,8 +642,7 @@ public class RunCommand : ICommand
                             "description": "Whether to perform a double-click",
                             "default": false
                         }
-                    },
-                    "required": ["zoomPath"]
+                    }
                 }
                 """u8.ToArray()
             )
@@ -598,37 +713,47 @@ public class RunCommand : ICommand
 
         You will be given:
         1. A goal or task to accomplish
-        2. A screenshot of the current desktop state  
-        3. Information about currently open windows
+        2. A screenshot of the current desktop state with your current zoom level
+        3. Information about currently open windows and your current zoom state
         4. A set of tools you can use to interact with the computer
 
         Your tools are:
-        - screenshot: Take a new screenshot, optionally zooming into specific grid coordinates
-        - mouse_click: Click at a location specified by grid coordinates on the screenshot
+        - zoom_in: Zoom into a specific grid coordinate to get a closer view
+        - zoom_out: Zoom out one level to see more of the screen
+        - zoom_fullscreen: Return to fullscreen view
+        - pan: Move the current zoom view by grid cell offsets
+        - mouse_click: Click at the center of your current zoom view (requires at least 2 zoom levels)
         - key_press: Press keyboard keys with optional modifiers (Shift, Ctrl, Alt)
         - type: Type text into the currently focused input
 
-        The screenshots have a grid overlay with coordinates. Use these coordinates to specify where to click.
-        Each grid cell is labeled with a coordinate like A1, B2, etc.
+        The screenshots have a grid overlay with coordinates. Each grid cell is labeled with a coordinate like A1, B2, etc.
 
-        When you request a zoomed-in screenshot, you will receive two images:
-        1. The zoomed-in view with grid coordinates for precise targeting
-        2. A fullscreen overview with the target area highlighted in magenta to show context
+        ZOOM STATE MANAGEMENT:
+        - You maintain an internal zoom state that persists across interactions
+        - When zoomed in, you will see two images: the zoomed view and an overview showing context
+        - Use zoom_in to drill down to specific areas you want to target
+        - Use zoom_out or zoom_fullscreen to see more of the screen when needed
+        - Use pan to adjust your current view without changing zoom level
 
-        IMPORTANT: For mouse clicking, you MUST provide at least 2 coordinates in the zoomPath for accuracy. 
-        Never click directly from a fullscreen screenshot as it's too inaccurate. Always zoom in first by taking 
-        a screenshot with a zoomPath, then click using the zoomed coordinates. For example: First use screenshot 
-        with zoomPath 'A1', then use mouse_click with zoomPath 'A1,B2'.
+        CLICKING ACCURACY:
+        - You MUST zoom in at least 2 levels before clicking for accuracy
+        - The system will tell you when you're zoomed in enough to click
+        - Clicks always target the center of your current zoom view
+        - If you need to click somewhere else, zoom out and zoom back in to that location
+
+        AUTOMATIC SCREENSHOTS:
+        - Screenshots are automatically provided after every action
+        - You don't need to request screenshots - they happen automatically
+        - Focus on using zoom tools to navigate and position yourself for precise actions
 
         Process:
-        1. Analyze the screenshot to understand the current state
-        2. Determine what action is needed to progress toward the goal
-        3. Use the appropriate tool to perform that action
-        4. After actions that might change the screen, the system will automatically take a new screenshot
-        5. Continue until the task is complete
+        1. Analyze the current screenshot and zoom state
+        2. Navigate using zoom tools to target the area you need to interact with
+        3. Once properly positioned and zoomed in, perform actions (click, type, key press)
+        4. Continue until the task is complete
 
         If you believe the task is complete or cannot be completed, respond with a message explaining the outcome without calling any tools.
 
-        Be precise with your coordinates and actions. Take your time to analyze the screenshot carefully before acting.
+        Be methodical with your zoom navigation. Take your time to position yourself correctly before acting.
         """;
 }

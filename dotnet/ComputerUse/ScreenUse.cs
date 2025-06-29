@@ -77,12 +77,12 @@ public class ScreenUse
             {
                 // Zoom path specified - create both zoomed and overview images
 
-                // Create the zoomed image
+                // Create the zoomed image with fake cursor in the center
                 using (var croppedImage = CropImage(screenshot, targetRectangle, screenBounds))
                 {
                     using (var scaledImage = ScaleImage(croppedImage, 1080))
                     {
-                        primaryImage = DrawGridAndCoordinates(scaledImage);
+                        primaryImage = DrawGridAndCoordinates(scaledImage, drawFakeCursor: true);
                     }
                 }
 
@@ -184,7 +184,7 @@ public class ScreenUse
         return scaledBitmap;
     }
 
-    private static Bitmap DrawGridAndCoordinates(Bitmap source)
+    private static Bitmap DrawGridAndCoordinates(Bitmap source, bool drawFakeCursor = false)
     {
         var result = new Bitmap(source);
 
@@ -257,6 +257,12 @@ public class ScreenUse
                         }
                     }
                 }
+
+                // Draw fake mouse cursor in the center of the image if requested
+                if (drawFakeCursor)
+                {
+                    DrawFakeMouseCursor(overlayGraphics, source.Width / 2, source.Height / 2);
+                }
             }
 
             // Apply the inversion magic: wherever the overlay has white pixels,
@@ -265,6 +271,32 @@ public class ScreenUse
         }
 
         return result;
+    }
+
+    private static void DrawFakeMouseCursor(Graphics graphics, int centerX, int centerY)
+    {
+        // Draw a simple arrow-shaped cursor pointing to the center
+        // Make it large enough to be visible but not too intrusive
+        const int cursorSize = 20;
+
+        using (var pen = new Pen(Color.White, 3))
+        using (var brush = new SolidBrush(Color.White))
+        {
+            // Draw arrow shape pointing to center
+            Point[] arrowPoints = new Point[]
+            {
+                new Point(centerX - cursorSize / 2, centerY - cursorSize / 2), // Top left
+                new Point(centerX - cursorSize / 4, centerY - cursorSize / 2), // Top middle
+                new Point(centerX, centerY - cursorSize / 4), // Right middle
+                new Point(centerX + cursorSize / 4, centerY), // Bottom right
+                new Point(centerX, centerY + cursorSize / 4), // Bottom middle
+                new Point(centerX - cursorSize / 4, centerY), // Left middle
+                new Point(centerX - cursorSize / 2, centerY - cursorSize / 4), // Left top
+            };
+
+            graphics.FillPolygon(brush, arrowPoints);
+            graphics.DrawPolygon(pen, arrowPoints);
+        }
     }
 
     private static Bitmap DrawGridAndCoordinatesWithHighlight(
