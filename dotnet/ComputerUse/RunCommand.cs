@@ -61,7 +61,7 @@ public class RunCommand : ICommand
             outputFileInfo.Directory?.Create();
 
             // Set up OpenAI client
-            var client = new ChatClient("o4-mini", config.OpenAIKey);
+            var client = new ChatClient("gpt-4o", config.OpenAIKey);
 
             await RunComputerUseLoopAsync(client, promptText, storageFolder, outputFileInfo);
         }
