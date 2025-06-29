@@ -302,6 +302,20 @@ Before every action (screenshot, mouse click, key press) we will inform the user
 - [x] Review all .cs files and make sure they are using file-scoped namespaces like `namespace ComputerUse;`
     - *🤖 Updated all remaining files to use file-scoped namespaces: SafetyManager.cs, SafetyRectangleForm.cs, SafetyCrosshairForm.cs, SafetyPromptForm.cs, and FormHider.cs. Removed closing braces after converting from traditional namespace syntax.*
 
+# Phase - Stateful Interaction Redesign
+The tools we offer to OpenAI are all stateless; it requires OpenAI to track the state. It's too dumb to do that. We must keep track of the state so OpenAI only has to make decisions, not remember stuff _and_ make decisions.
+
+- [ ] Eliminate the AI-visible "zoom path" concept, replacing it with an implicit zoom state kept on our side. Maintain the current zoom path as an internal state variable.
+    - In the infodump we provide every time on our turn, include the current zoom path.
+    - In the dead center of every zoomed-in screenshot (i.e. zoom path is non-empty, and this is not the "context" fullscreen partner image), draw a fake mouse cursor pointing to the center.
+    - Add "zoom_in" tool. It takes a single coord and modifies the zoom path state, appending the coord.
+    - Add "zoom_out" tool. It removes the last level from the zoom path state, zooming out one step.
+    - Add "zoom_fullscreen" tool. It clears the zoom path state and returns to fullscreen.
+    - Add "pan" tool. It takes optional vertical and horizontal integer offsets. It updates the last level in the zoom path state to move the specified number of cells, positive or negative.
+    - mouse_click tool: Remove coord path parameter. Use the center of the current zoom level implicitly, where we now draw the fake mouse cursor. Refuse to click if the zoom path has fewer than 2 coords in it.
+    - In the infodump each turn, add a brief message that tells OpenAI whether it has zoomed in enough to click. If not, tell it how many more times it needs to zoom in before it's allowed to click.
+    - Eliminate the "screenshot" tool. OpenAI will not explicitly ask for screenshots, instead it will ask for the zoom level to change; we will automatically provide the screenshot at the start of the conversation and again every time we take a conversation turn.
+
 # Phase - MCP Integration
 
 - [ ] Add `computerUse` section to `config.jsonc` with optional `enable` property that defaults to false. Computer use tool is available only when an OpenAI key is present AND enable is true.
