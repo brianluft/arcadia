@@ -205,16 +205,29 @@ public class RunCommand : ICommand
                         // Add assistant message with tool calls
                         messages.Add(new AssistantChatMessage(completion));
 
+                        // Track if we need to delay before taking screenshot
+                        bool shouldDelay = false;
+
                         // Process each tool call
                         foreach (var toolCall in completion.ToolCalls)
                         {
                             var toolResult = await ProcessToolCall(toolCall, storageFolder, outputFile);
                             messages.Add(new ToolChatMessage(toolCall.Id, toolResult));
+
+                            // Check if this tool requires a delay (actions that change the screen)
+                            if (toolCall.FunctionName is "mouse_click" or "key_press" or "type")
+                            {
+                                shouldDelay = true;
+                            }
                         }
 
-                        // Take screenshot after any action (zoom changes, clicks, key presses, typing)
-                        // We automatically provide screenshots after any tool usage
-                        await Task.Delay(1000); // Wait 1 second
+                        // Add delay only after screen-changing actions, not zoom operations
+                        if (shouldDelay)
+                        {
+                            await Task.Delay(1000); // Wait 1 second for screen reaction
+                        }
+
+                        // Take screenshot after processing all tool calls
                         ZoomPath? updatedZoomPath = _currentZoomPath.Count > 0 ? new ZoomPath(_currentZoomPath) : null;
                         var newScreenshots = TakeAndSaveScreenshots(storageFolder, updatedZoomPath);
                         primaryScreenshot = newScreenshots.Primary;
@@ -493,11 +506,16 @@ public class RunCommand : ICommand
 
         // Use current zoom path for clicking at the implicit center
         var zoomPath = new ZoomPath(_currentZoomPath);
+        var zoomPathString = string.Join(",", _currentZoomPath.Select(c => c.ToString()));
+
         await Task.Run(() => _mouseUse.Click(zoomPath, mouseButton, doubleClick));
 
-        var zoomPathString = string.Join(",", _currentZoomPath.Select(c => c.ToString()));
+        // Reset zoom path to fullscreen after clicking
+        _currentZoomPath.Clear();
+
         return $"Mouse click performed: {buttonString} at center of zoom level {zoomPathString}"
-            + (doubleClick ? " (double-click)" : "");
+            + (doubleClick ? " (double-click)" : "")
+            + ". Zoom has been reset to fullscreen.";
     }
 
     private async Task<string> ProcessKeyPressTool(ChatToolCall toolCall)
