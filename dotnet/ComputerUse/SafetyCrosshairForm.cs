@@ -41,15 +41,24 @@ public partial class SafetyCrosshairForm : Form
         // Form properties for transparent overlay
         FormBorderStyle = FormBorderStyle.None;
         WindowState = FormWindowState.Normal;
+        StartPosition = FormStartPosition.Manual;
         TopMost = true;
         ShowInTaskbar = false;
         BackColor = Color.Lime; // Will be made transparent
         TransparencyKey = Color.Lime;
 
+        // Ensure no control box or minimize/maximize buttons
+        ControlBox = false;
+        MaximizeBox = false;
+        MinimizeBox = false;
+
         // Set form size and position to cover crosshair area
-        int formSize = _crosshairLength + _crosshairThickness;
-        Size = new Size(formSize, formSize);
-        Location = new Point(_crosshairCenter.X - formSize / 2, _crosshairCenter.Y - formSize / 2);
+        Load += delegate
+        {
+            int formSize = _crosshairLength + _crosshairThickness;
+            Size = new Size(formSize, formSize);
+            Location = new Point(_crosshairCenter.X - formSize / 2, _crosshairCenter.Y - formSize / 2);
+        };
 
         // Enable double buffering to reduce flicker
         SetStyle(
