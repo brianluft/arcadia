@@ -325,6 +325,7 @@ The tools we offer to OpenAI are all stateless; it requires OpenAI to track the 
 
 # Phase - MCP Integration
 
-- [ ] Add `use_computer` tool. Takes a prompt (tell the client to include extensive, precise details because GPT doesn't have any other context) and calls our `ComputerUse.exe run ...`. In the tool prompt doc, tell the MCP client only to use `use_computer` if explicitly instructed by the user because of the danger involved, and that the user will be prompted for confirmation.
-    - [ ] Add `computerUse` section to `config.jsonc` with optional `enable` property that defaults to false. Computer use tool is available only when an OpenAI key is present AND enable is true.
-    - [ ] The MCP response from `use_computer` is the final content of the output text file which includes the log of the OpenAI interactions.
+- [x] Add `use_computer` tool. Takes a prompt (tell the client to include extensive, precise details because GPT doesn't have any other context) and calls our `ComputerUse.exe run ...`. In the tool prompt doc, tell the MCP client only to use `use_computer` if explicitly instructed by the user because of the danger involved, and that the user will be prompted for confirmation.
+    - [x] Add `computerUse` section to `config.jsonc` with optional `enable` property that defaults to false. Computer use tool is available only when an OpenAI key is present AND enable is true.
+    - [x] The MCP response from `use_computer` is the final content of the output text file which includes the log of the OpenAI interactions.
+    - *🤖 Implemented complete MCP integration by: 1) Adding computerUse config section to Config interface and config.jsonc with enable defaulting to false, 2) Added conditional use_computer tool that only appears when OpenAI key is present AND computerUse.enable is true, 3) Tool creates temporary prompt/output files, calls ComputerUse.exe run with proper arguments including configFile/promptFile/storageFolder/outputFile, 4) Returns final output file content along with command execution status. The tool includes strong warning about danger and requirement for user confirmation.*

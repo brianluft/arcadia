@@ -21,6 +21,9 @@ export interface Config {
       [connectionName: string]: string;
     };
   };
+  computerUse?: {
+    enable?: boolean;
+  };
 }
 
 /**

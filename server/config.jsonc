@@ -13,6 +13,10 @@
   "apiKeys": {
     "openai": null
   },
+  // Computer use configuration - OPTIONAL
+  "computerUse": {
+    "enable": false
+  },
   // SQL Server connection strings - OPTIONAL
   // Configuration is not required for SQLite as SQLite databases can be used on-the-fly without configuration
   // "connections": {

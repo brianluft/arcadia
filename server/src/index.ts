@@ -191,6 +191,26 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     } as const);
   }
 
+  // Add use_computer tool only if OpenAI client is available AND computer use is enabled
+  if (openaiClient && config.computerUse?.enable === true) {
+    tools.push({
+      name: 'use_computer',
+      description:
+        'Control the computer to accomplish a goal through AI-guided automation. **WARNING: This tool will take control of your computer and perform actions on your behalf. Only use if explicitly instructed by the user, as this involves significant risk. The user will be prompted for confirmation before any actions are taken.**',
+      inputSchema: {
+        type: 'object' as const,
+        properties: {
+          goal: {
+            type: 'string' as const,
+            description:
+              'Detailed description of what you want the AI to accomplish on the computer. Be extremely specific and include all necessary context, as the AI has no other information about your current situation or environment.',
+          },
+        },
+        required: ['goal'] as const,
+      },
+    } as const);
+  }
+
   // Add database tools
   tools.push(
     {
@@ -843,6 +863,82 @@ server.setRequestHandler(CallToolRequestSchema, async request => {
         };
       } catch (error) {
         throw new McpError(ErrorCode.InternalError, `Failed to run SQL command: ${error}`);
+      }
+
+    case 'use_computer':
+      // Only allow use_computer if OpenAI client is available AND computer use is enabled
+      if (!openaiClient) {
+        throw new McpError(ErrorCode.InternalError, 'use_computer tool requires OpenAI API key to be configured');
+      }
+      if (!config.computerUse?.enable) {
+        throw new McpError(
+          ErrorCode.InternalError,
+          'use_computer tool requires computerUse.enable to be true in configuration'
+        );
+      }
+
+      if (!args || typeof args.goal !== 'string') {
+        throw new McpError(ErrorCode.InvalidParams, 'Missing or invalid goal parameter');
+      }
+
+      try {
+        // Create temporary files for the computer use operation
+        const promptFile = generateTimestampedFilename(storageDirectory, 'txt');
+        const outputFile = generateTimestampedFilename(storageDirectory, 'txt');
+
+        // Write the goal to the prompt file
+        fs.writeFileSync(promptFile, args.goal, 'utf8');
+
+        // Get the absolute path to the config file (use environment variable if set, otherwise default)
+        let configFilePath: string;
+        if (process.env.ARCADIA_CONFIG_FILE) {
+          configFilePath = process.env.ARCADIA_CONFIG_FILE;
+        } else {
+          configFilePath = path.join(__dirname, '..', 'config.jsonc');
+        }
+
+        // Construct the command to run ComputerUse.exe
+        const computerUseExe = path.join(__dirname, '..', '..', 'build', 'dotnet', 'ComputerUse.exe');
+
+        const result = await runBashCommand(
+          `"${computerUseExe}" run --configFile "${configFilePath}" --promptFile "${promptFile}" --storageFolder "${storageDirectory}" --outputFile "${outputFile}"`,
+          storageDirectory,
+          600, // 10 minute timeout for computer use operations
+          config,
+          storageDirectory
+        );
+
+        // Read the output file content
+        let outputContent = '';
+        if (fs.existsSync(outputFile)) {
+          outputContent = fs.readFileSync(outputFile, 'utf8');
+        }
+
+        // Clean up temporary prompt file
+        try {
+          fs.unlinkSync(promptFile);
+        } catch (cleanupError) {
+          console.error(`Failed to clean up prompt file: ${cleanupError}`);
+        }
+
+        // Build response text
+        const responseLines = [outputContent];
+        if (result.truncationMessage) {
+          responseLines.push('', '--- Computer Use Command Output ---', result.status, result.truncationMessage);
+        } else {
+          responseLines.push('', '--- Computer Use Command Output ---', result.status);
+        }
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: responseLines.join('\n'),
+            },
+          ],
+        };
+      } catch (error) {
+        throw new McpError(ErrorCode.InternalError, `Failed to use computer: ${error}`);
       }
 
     default:
