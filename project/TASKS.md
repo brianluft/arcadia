@@ -317,6 +317,10 @@ The tools we offer to OpenAI are all stateless; it requires OpenAI to track the 
     - Eliminate the "screenshot" tool. OpenAI will not explicitly ask for screenshots, instead it will ask for the zoom level to change; we will automatically provide the screenshot at the start of the conversation and again every time we take a conversation turn.
     - *🤖 Implemented stateful interaction redesign by: 1) Adding internal _currentZoomPath state to RunCommand, 2) Creating zoom_in, zoom_out, zoom_fullscreen, and pan tools with proper state management, 3) Modified mouse_click tool to use implicit center without requiring zoom path parameters, 4) Added context information showing current zoom state and click eligibility, 5) Eliminated explicit screenshot tool - screenshots now automatically provided after each action, 6) Added fake mouse cursor drawn in center of zoomed screenshots using DrawFakeMouseCursor method in ScreenUse, 7) Updated system prompt to explain new stateful zoom navigation workflow. All zoom state is now maintained server-side, making AI interactions much simpler.*
 
+- [ ] mouse_click tool: Reset the zoom path state to fullscreen afterwards. In the text response from this tool, say that the zoom has been reset to fullscreen.
+
+- [ ] Feedback cycle: Add a one second delay after each mouse_click, key_press, and type command before we take the screenshot for the next iteration, so we don't miss any slightly delayed reaction to our action.
+
 # Phase - MCP Integration
 
 - [ ] Add `computerUse` section to `config.jsonc` with optional `enable` property that defaults to false. Computer use tool is available only when an OpenAI key is present AND enable is true.
